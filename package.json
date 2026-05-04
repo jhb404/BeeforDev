@@ -1,0 +1,75 @@
+{
+  "name": "beefor-dev",
+  "version": "0.1.0",
+  "description": "Beefor Dev - desktop automation for Beefor",
+  "main": "dist/main/index.js",
+  "author": "Joao Batista",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "predev": "node scripts/free-port.mjs 5177",
+    "dev": "concurrently -k -n vite,tsc,electron \"npm:dev:renderer\" \"npm:dev:tsc\" \"npm:dev:electron\"",
+    "dev:renderer": "vite",
+    "dev:tsc": "tsc -p tsconfig.main.json -w --preserveWatchOutput",
+    "dev:electron": "wait-on tcp:5177 file:dist/main/index.js && cross-env NODE_ENV=development electron .",
+    "kill:port": "node scripts/free-port.mjs 5177",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build": "npm run build:renderer && npm run build:main",
+    "start": "electron .",
+    "package:win": "npm run build && electron-builder --win",
+    "package:mac": "npm run build && electron-builder --mac",
+    "postinstall": "playwright install chromium",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "electron-log": "^5.1.5",
+    "keytar": "^7.9.0",
+    "playwright": "^1.47.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^31.3.0",
+    "electron-builder": "^24.13.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.4",
+    "vitest": "^2.0.5",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "io.beefor.dev",
+    "productName": "Beefor Dev",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/playwright/**",
+      "node_modules/playwright-core/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.developer-tools"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
