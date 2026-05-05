@@ -181,6 +181,33 @@ export function Home() {
     await Promise.all([refreshTimesheet(), refreshMood()]);
   };
 
+  useEffect(() => {
+    if (!ready) return;
+    const handleFocus = () => {
+      void refreshMood();
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshMood();
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [ready, month, year]);
+
+  useEffect(() => {
+    const off = window.beefor.onNotify((info) => {
+      if (info.title === 'sync:autoLancamento' && info.body === 'ok') {
+        void refreshAll();
+      }
+    });
+    return off;
+  }, [year, month, ready]);
+
   const updateRow = (idx: number, patch: Partial<RowState>) =>
     setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
 
