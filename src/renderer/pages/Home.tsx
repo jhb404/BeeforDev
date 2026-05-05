@@ -10,6 +10,7 @@ import { MOODS } from '../../shared/types';
 import { useBeefor } from '../hooks/useBeefor';
 import { MoodPicker } from '../components/MoodPicker';
 import { StatusBadge } from '../components/StatusBadge';
+import { Bolt, Calendar, Clock, Heart, Trophy } from '../components/Icons';
 import {
   MONTHS_PT,
   WEEKDAY_SHORT_PT,
@@ -406,16 +407,16 @@ export function Home() {
           <div className="ts-actions">
             <span>{filledForBatch} dia(s) preenchido(s)</span>
             <button
-              className="secondary"
+              className="warm"
               disabled={busy || !ready}
               onClick={autoLancamento}
             >
               Auto lançamento
             </button>
             <button
-              className="warm"
-              disabled={busy || !ready || batchRows.length === 0}
-              onClick={() => setShowBatchModal(true)}
+              className="secondary"
+              disabled
+              title="Em breve"
             >
               Lançar mês
             </button>
@@ -423,36 +424,36 @@ export function Home() {
         </div>
 
         <div className="summary-strip">
-          <div>
-            <span>Horas trabalhadas</span>
-            <strong>{formatMinutes(summary.workedTotal)}</strong>
+          <div className="summary-card">
+            <span className="summary-label"><Clock size={14} /> Horas trabalhadas</span>
+            <strong className="summary-value">{formatMinutes(summary.workedTotal)}</strong>
           </div>
-          <div>
-            <span>Horas previstas</span>
-            <strong>{formatMinutes(summary.expectedTotal)}</strong>
+          <div className="summary-card">
+            <span className="summary-label"><Calendar size={14} /> Horas previstas</span>
+            <strong className="summary-value">{formatMinutes(summary.expectedTotal)}</strong>
           </div>
-          <div>
-            <span>Saldo do mês</span>
-            <strong className={summary.saldoTotal >= 0 ? 'diff-pos' : 'diff-neg'}>
+          <div className={`summary-card ${summary.saldoTotal >= 0 ? 'pos' : 'neg'}`}>
+            <span className="summary-label"><Bolt size={14} /> Saldo do mês</span>
+            <strong className="summary-value">
               {formatMinutes(summary.saldoTotal, true)}
             </strong>
           </div>
-          <div>
-            <span>Horas extras</span>
-            <strong>{formatMinutes(summary.overtimeMin)}</strong>
+          <div className="summary-card warm">
+            <span className="summary-label"><Trophy size={14} /> Horas extras</span>
+            <strong className="summary-value">{formatMinutes(summary.overtimeMin)}</strong>
           </div>
-          <div>
-            <span>Valor extras</span>
-            <strong>
+          <div className="summary-card warm">
+            <span className="summary-label"><Trophy size={14} /> Valor extras</span>
+            <strong className="summary-value">
               {summary.overtimeValue.toLocaleString('pt-BR', {
                 style: 'currency',
                 currency: 'BRL',
               })}
             </strong>
           </div>
-          <div>
-            <span>Total estimado</span>
-            <strong>
+          <div className="summary-card">
+            <span className="summary-label"><Heart size={14} /> Total estimado</span>
+            <strong className="summary-value">
               {summary.totalSalary.toLocaleString('pt-BR', {
                 style: 'currency',
                 currency: 'BRL',

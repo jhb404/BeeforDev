@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Home } from './pages/Home';
-import { Settings } from './pages/Settings';
+import { Settings as SettingsPage } from './pages/Settings';
+import { BrandLogo, Moon, Sun } from './components/Icons';
+import { playAlarm } from './utils/alarm';
 
 type Tab = 'home' | 'settings';
 type ThemeMode = 'dark' | 'light';
@@ -20,36 +22,31 @@ export default function App() {
     window.localStorage.setItem('beefor-theme', theme);
   }, [theme]);
 
-  const nextTheme = theme === 'dark' ? 'light' : 'dark';
+  useEffect(() => {
+    const off = window.beefor.onPlayAlarm(() => {
+      void playAlarm();
+    });
+    return off;
+  }, []);
+
+  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
 
   return (
     <div className="app-shell">
       <header className="topbar">
         <div className="brand">
-          <span className="brand-logo" aria-hidden="true">
-            <span className="brand-logo__wing brand-logo__wing--left" />
-            <span className="brand-logo__body">
-              <span />
-              <span />
-              <span />
-            </span>
-            <span className="brand-logo__wing brand-logo__wing--right" />
+          <span className="brand-icon" aria-hidden="true">
+            <BrandLogo size={28} />
           </span>
-          beefor dev
+          <span className="brand-name">beefor dev</span>
         </div>
         <div className="topbar-actions">
           <button
-            aria-label={`Ativar modo ${nextTheme === 'dark' ? 'escuro' : 'claro'}`}
-            aria-pressed={theme === 'dark'}
-            className={`theme-switch ${theme === 'dark' ? 'is-dark' : 'is-light'}`}
-            onClick={() => setTheme(nextTheme)}
-            type="button"
+            className="icon-btn"
+            aria-label={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+            onClick={toggleTheme}
           >
-            <span className="theme-switch__icon">☀</span>
-            <span className="theme-switch__track">
-              <span className="theme-switch__thumb" />
-            </span>
-            <span className="theme-switch__icon">☾</span>
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
           <div className="tabs">
             <button
@@ -73,21 +70,12 @@ export default function App() {
           <Home />
         </section>
         <section className="tab-panel" hidden={tab !== 'settings'}>
-          <Settings />
+          <SettingsPage />
         </section>
       </main>
 
-      <footer
-        style={{
-          padding: '8px 22px',
-          borderTop: '1px solid var(--border)',
-          color: 'var(--text-muted)',
-          fontSize: 12,
-          textAlign: 'right',
-          background: 'var(--bg-1)',
-        }}
-      >
-        beefor Dev · uso interno · Playwright + Electron
+      <footer className="appfoot">
+        beefor dev · uso interno · Playwright + Electron
       </footer>
     </div>
   );

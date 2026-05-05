@@ -21,17 +21,31 @@ export interface Credentials {
   password: string;
 }
 
+export type KudocardFrequency = 'once' | 'twice' | 'custom';
+
 export interface AppSettings {
   autoStart: boolean;
   autoLoginOnLaunch: boolean;
+
+  /** Auto punch base times "HH:MM" (4 entries: entrada, saída almoço, retorno, saída) */
   automatePunch: boolean;
+  punchTimes: [string, string, string, string];
+  /** Max minutes drift applied randomly per day to each base time */
+  punchDriftMinutes: number;
+
   lunchAlarm: boolean;
+  lunchAlarmTime: string; // "HH:MM"
+
   moodNotification: boolean;
+  moodNotificationTime: string; // "HH:MM"
+  moodAlarm: boolean;
+
   kudocardNotification: boolean;
-  adjustInitialLayout: boolean;
-  /** Hours per workday (e.g. 8). Used to compute diff vs total. */
+  kudocardFrequency: KudocardFrequency;
+  /** Used when frequency === 'custom'. Day numbers 1..28 */
+  kudocardDays: number[];
+
   hoursPerDay: number;
-  /** Hourly rate in BRL. Used for salary estimate. */
   hourRate: number;
 }
 

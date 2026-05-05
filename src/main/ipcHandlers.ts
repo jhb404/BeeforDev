@@ -35,6 +35,8 @@ import {
 } from '../automation/beefor/beeforActions';
 import { withPageLock } from '../automation/beefor/pageLock';
 import { ensureSessionForAction } from './sessionGuard';
+import { isElevated, relaunchAsAdmin } from './adminCheck';
+import { fireTestNotification } from './scheduler';
 
 function ok<T>(data?: T): ActionResult<T> {
   return { ok: true, data };
@@ -239,4 +241,31 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
       return fail(err);
     }
   });
+
+  ipcMain.handle(IPC.ADMIN_STATUS, async () => ({
+    elevated: isElevated(),
+    platform: process.platform,
+  }));
+
+  ipcMain.handle(IPC.ADMIN_RELAUNCH, async () => {
+    try {
+      await relaunchAsAdmin();
+      return ok();
+    } catch (err) {
+      logger.error('Relaunch as admin failed', err);
+      return fail(err);
+    }
+  });
+
+  ipcMain.handle(
+    IPC.NOTIFY_TEST,
+    async (_e, kind: 'mood' | 'lunch' | 'kudocard' | 'punch') => {
+      try {
+        fireTestNotification(getWindow(), kind);
+        return ok();
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  );
 }

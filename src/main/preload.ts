@@ -52,6 +52,28 @@ const api = {
       ipcRenderer.removeListener(IPC.EVT_STATUS, listener);
     };
   },
+
+  // admin / system
+  getAdminStatus: (): Promise<{ elevated: boolean; platform: string }> =>
+    ipcRenderer.invoke(IPC.ADMIN_STATUS),
+  relaunchAsAdmin: (): Promise<ActionResult> =>
+    ipcRenderer.invoke(IPC.ADMIN_RELAUNCH),
+
+  // notification testing
+  testNotification: (
+    kind: 'mood' | 'lunch' | 'kudocard' | 'punch',
+  ): Promise<ActionResult> => ipcRenderer.invoke(IPC.NOTIFY_TEST, kind),
+
+  onPlayAlarm: (cb: (info: { title: string; body: string }) => void): (() => void) => {
+    const listener = (_e: unknown, info: { title: string; body: string }) => cb(info);
+    ipcRenderer.on(IPC.EVT_PLAY_ALARM, listener);
+    return () => ipcRenderer.removeListener(IPC.EVT_PLAY_ALARM, listener);
+  },
+  onNotify: (cb: (info: { title: string; body: string }) => void): (() => void) => {
+    const listener = (_e: unknown, info: { title: string; body: string }) => cb(info);
+    ipcRenderer.on(IPC.EVT_NOTIFY, listener);
+    return () => ipcRenderer.removeListener(IPC.EVT_NOTIFY, listener);
+  },
 };
 
 contextBridge.exposeInMainWorld('beefor', api);

@@ -6,6 +6,7 @@ import { loadSettings } from './sessionStore';
 import { setAutoStart } from './autoStart';
 import { BeeforClient } from '../automation/beefor/beeforClient';
 import { ensureSession, startWatchdog, stopWatchdog } from './sessionManager';
+import { startScheduler, stopScheduler } from './scheduler';
 
 let mainWindow: BrowserWindow | null = null;
 const getWindow = () => mainWindow;
@@ -33,6 +34,7 @@ async function bootstrap() {
   }
 
   startWatchdog(getWindow);
+  startScheduler(getWindow);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -44,6 +46,7 @@ async function bootstrap() {
 
 app.on('window-all-closed', async () => {
   stopWatchdog();
+  stopScheduler();
   await BeeforClient.instance().close();
   if (process.platform !== 'darwin') app.quit();
 });

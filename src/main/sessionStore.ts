@@ -8,11 +8,22 @@ import { logger } from './logger';
 const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
   autoLoginOnLaunch: true,
+
   automatePunch: false,
+  punchTimes: ['09:00', '12:00', '13:00', '18:00'],
+  punchDriftMinutes: 10,
+
   lunchAlarm: false,
+  lunchAlarmTime: '12:00',
+
   moodNotification: false,
+  moodNotificationTime: '09:30',
+  moodAlarm: false,
+
   kudocardNotification: false,
-  adjustInitialLayout: true,
+  kudocardFrequency: 'once',
+  kudocardDays: [],
+
   hoursPerDay: 8,
   hourRate: 0,
 };

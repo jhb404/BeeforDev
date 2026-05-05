@@ -21,8 +21,17 @@ export const IPC = {
   ACTION_FETCH_TIMESHEET: 'action:fetchTimesheet',
   ACTION_GET_CURRENT_MOOD: 'action:getCurrentMood',
 
+  // admin / system
+  ADMIN_STATUS: 'admin:status',
+  ADMIN_RELAUNCH: 'admin:relaunch',
+
+  // notification testing
+  NOTIFY_TEST: 'notify:test',
+
   // events main → renderer
   EVT_STATUS: 'evt:status',
+  EVT_PLAY_ALARM: 'evt:playAlarm',
+  EVT_NOTIFY: 'evt:notify',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];
