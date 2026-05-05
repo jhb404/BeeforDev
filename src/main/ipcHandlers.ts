@@ -34,7 +34,7 @@ import {
   doGetCurrentMood,
 } from '../automation/beefor/beeforActions';
 import { withPageLock } from '../automation/beefor/pageLock';
-import { ensureSessionForAction } from './sessionGuard';
+import { ensureSessionForAction, forceReconnect } from './sessionGuard';
 import { isElevated, relaunchAsAdmin } from './adminCheck';
 import { fireTestNotification } from './scheduler';
 
@@ -155,10 +155,24 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
     const win = getWindow();
     try {
       await ensureSessionForAction(win);
-      await withPageLock(async () => {
-        const page = await client.getPage();
-        await doAutoLancamento(page);
-      });
+      try {
+        await withPageLock(async () => {
+          const page = await client.getPage();
+          await doAutoLancamento(page);
+        });
+      } catch (actionErr) {
+        const msg = actionErr instanceof Error ? actionErr.message : String(actionErr);
+        if (msg.includes('Sessão expirada') || msg.includes('Timeout')) {
+          logger.warn('Auto lançamento: session stale, reconnecting and retrying');
+          await forceReconnect(win);
+          await withPageLock(async () => {
+            const page = await client.getPage();
+            await doAutoLancamento(page);
+          });
+        } else {
+          throw actionErr;
+        }
+      }
       return ok();
     } catch (err) {
       logger.error('Auto lançamento failed', err);
@@ -170,10 +184,24 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
     const win = getWindow();
     try {
       await ensureSessionForAction(win);
-      await withPageLock(async () => {
-        const page = await client.getPage();
-        await doSelectMood(page, mood);
-      });
+      try {
+        await withPageLock(async () => {
+          const page = await client.getPage();
+          await doSelectMood(page, mood);
+        });
+      } catch (actionErr) {
+        const msg = actionErr instanceof Error ? actionErr.message : String(actionErr);
+        if (msg.includes('Sessão expirada')) {
+          logger.warn('Select mood: session stale, reconnecting and retrying');
+          await forceReconnect(win);
+          await withPageLock(async () => {
+            const page = await client.getPage();
+            await doSelectMood(page, mood);
+          });
+        } else {
+          throw actionErr;
+        }
+      }
       return ok();
     } catch (err) {
       logger.error('Select mood failed', err);
@@ -231,11 +259,25 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
     const win = getWindow();
     try {
       await ensureSessionForAction(win);
-      const mood = await withPageLock(async () => {
-        const page = await client.getPage();
-        return doGetCurrentMood(page);
-      });
-      return ok(mood);
+      try {
+        const mood = await withPageLock(async () => {
+          const page = await client.getPage();
+          return doGetCurrentMood(page);
+        });
+        return ok(mood);
+      } catch (actionErr) {
+        const msg = actionErr instanceof Error ? actionErr.message : String(actionErr);
+        if (msg.includes('Sessão expirada')) {
+          logger.warn('Get current mood: session stale, reconnecting and retrying');
+          await forceReconnect(win);
+          const mood = await withPageLock(async () => {
+            const page = await client.getPage();
+            return doGetCurrentMood(page);
+          });
+          return ok(mood);
+        }
+        throw actionErr;
+      }
     } catch (err) {
       logger.error('Get current mood failed', err);
       return fail(err);

@@ -1,5 +1,6 @@
 import type { BrowserWindow } from 'electron';
 import { ensureSession } from './sessionManager';
+import { emitStatus } from './statusBus';
 
 /**
  * Called before any user action. Auto-reconnects if session expired.
@@ -16,4 +17,13 @@ export async function ensureSessionForAction(
         : 'Sessão indisponível. Tente novamente em alguns segundos.',
     );
   }
+}
+
+/**
+ * Force-invalidates cached "connected" status then reconnects.
+ * Use when an action detected the browser session expired mid-run.
+ */
+export async function forceReconnect(win: BrowserWindow | null): Promise<void> {
+  emitStatus(win, 'expired');
+  await ensureSessionForAction(win);
 }

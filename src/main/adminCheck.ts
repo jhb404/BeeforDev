@@ -4,13 +4,12 @@ import { promisify } from 'node:util';
 
 const execFileP = promisify(execFile);
 
+const USER_DATA_FLAG = '--user-data-dir=';
+
 export function isElevated(): boolean {
   if (process.platform !== 'win32') {
-    // Unix-like: euid 0 = root
     return typeof process.getuid === 'function' && process.getuid() === 0;
   }
-  // Electron exposes process.isElevated only on Windows
-  // (typed as any to avoid version-specific typings)
   const proc = process as unknown as { isElevated?: () => boolean };
   if (typeof proc.isElevated === 'function') return proc.isElevated();
   return false;
@@ -18,28 +17,32 @@ export function isElevated(): boolean {
 
 /**
  * Relaunches the app with elevated privileges via PowerShell `Start-Process -Verb RunAs`.
- * Triggers UAC prompt. App quits after spawning the elevated instance.
+ * Passes --user-data-dir so the elevated process reads the same userData path,
+ * preventing settings/session loss when admin uses a different profile directory.
  */
 export async function relaunchAsAdmin(): Promise<void> {
   if (process.platform !== 'win32') {
     throw new Error('Elevação só suportada no Windows.');
   }
   const exe = process.execPath;
-  const args = process.argv.slice(1);
+
+  // Keep existing args but ensure --user-data-dir points to current userData
+  const userData = app.getPath('userData');
+  const existingArgs = process.argv.slice(1).filter(
+    (a) => !a.startsWith(USER_DATA_FLAG),
+  );
+  const args = [...existingArgs, `${USER_DATA_FLAG}${userData}`];
 
   const psArgs = [
     '-NoProfile',
     '-WindowStyle',
     'Hidden',
     '-Command',
-    args.length
-      ? `Start-Process -FilePath '${exe}' -ArgumentList ${args
-          .map((a) => `'${a.replace(/'/g, "''")}'`)
-          .join(',')} -Verb RunAs`
-      : `Start-Process -FilePath '${exe}' -Verb RunAs`,
+    `Start-Process -FilePath '${exe}' -ArgumentList ${args
+      .map((a) => `'${a.replace(/'/g, "''")}'`)
+      .join(',')} -Verb RunAs`,
   ];
 
   await execFileP('powershell.exe', psArgs);
-  // give UAC a moment to spawn, then quit current
   setTimeout(() => app.quit(), 500);
 }

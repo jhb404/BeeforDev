@@ -49,16 +49,19 @@ export function Settings() {
   }, []);
 
   const needsAdmin =
-    settings.automatePunch ||
-    settings.lunchAlarm ||
-    settings.moodAlarm ||
-    settings.moodNotification ||
-    settings.kudocardNotification;
+    (settings.automatePunch ||
+      settings.lunchAlarm ||
+      settings.moodAlarm ||
+      settings.moodNotification ||
+      settings.kudocardNotification) &&
+    !settings.adminBannerDismissed;
 
   const elevateNow = async () => {
     const res = await window.beefor.relaunchAsAdmin();
     if (!res.ok) setMsg(`Falha ao elevar: ${res.error}`);
   };
+
+  const dismissAdminBanner = () => update('adminBannerDismissed', true);
 
   const testNotif = async (kind: 'mood' | 'lunch' | 'kudocard' | 'punch') => {
     const res = await window.beefor.testNotification(kind);
@@ -113,24 +116,23 @@ export function Settings() {
       {needsAdmin && admin && !admin.elevated && admin.platform === 'win32' && (
         <div className="admin-banner" style={{ gridColumn: '1 / -1' }}>
           <div>
-            <strong>Permissão de administrador necessária</strong>
+            <strong>Alarmes funcionam melhor como administrador</strong>
             <p>
-              Notificações e alarmes funcionam melhor com o app rodando como
-              administrador. Reinicie elevado para garantir que os avisos toquem
-              mesmo com a janela em segundo plano.
+              Opcional — reinicie elevado se os alarmes não tocarem em segundo plano.
             </p>
           </div>
-          <button className="warm" onClick={elevateNow}>
-            Reiniciar como admin
-          </button>
-        </div>
-      )}
-      {needsAdmin && admin && admin.elevated && (
-        <div
-          className="admin-banner ok"
-          style={{ gridColumn: '1 / -1' }}
-        >
-          <strong>App rodando como administrador ✓</strong>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button className="warm" onClick={elevateNow}>
+              Reiniciar como admin
+            </button>
+            <button
+              className="secondary compact"
+              onClick={dismissAdminBanner}
+              title="Não mostrar novamente"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
 

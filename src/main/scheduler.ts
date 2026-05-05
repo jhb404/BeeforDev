@@ -1,8 +1,16 @@
-import { BrowserWindow, Notification } from 'electron';
+import { BrowserWindow, Notification, app } from 'electron';
+import path from 'node:path';
 import { logger } from './logger';
 import { loadSettings } from './sessionStore';
 import { IPC } from '../shared/ipc';
 import type { AppSettings } from '../shared/types';
+
+function appIconPath(): string {
+  const base = app.isPackaged
+    ? path.join(process.resourcesPath, 'icon.png')
+    : path.join(app.getAppPath(), 'build', 'icon.png');
+  return base;
+}
 
 const TICK_MS = 30_000; // 30s — fine grained enough for HH:MM matching
 
@@ -55,7 +63,9 @@ function notify(
       const n = new Notification({
         title,
         body,
+        icon: appIconPath(),
         urgency: 'critical',
+        timeoutType: 'never',
       });
       n.show();
     } else {
@@ -64,7 +74,6 @@ function notify(
   } catch (err) {
     logger.error('Notification failed', err);
   }
-  // ask renderer to play alarm sound (no admin needed)
   if (withAlarm && win && !win.isDestroyed()) {
     win.webContents.send(IPC.EVT_PLAY_ALARM, { title, body });
   }
@@ -123,8 +132,8 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
     if (!weekend) {
       notify(
         win,
-        'Hora do mood',
-        'Marque seu mood do dia no Beefor.',
+        '😊 Mood do dia',
+        'Não esquece de marcar seu mood no Beefor!',
         s.moodAlarm,
       );
       markFired('mood');
@@ -134,7 +143,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
   // Lunch
   if (s.lunchAlarm && s.lunchAlarmTime === hhmm && !alreadyFired('lunch')) {
     if (!weekend) {
-      notify(win, 'Almoço', 'Hora do almoço — bom apetite!', true);
+      notify(win, '🍽️ Hora do almoço', 'Bom apetite! Lembra de bater o ponto.', true);
       markFired('lunch');
     }
   }
@@ -145,8 +154,8 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
     if (days.includes(todayDay) && !alreadyFired('kudocard') && !weekend) {
       notify(
         win,
-        'Kudocard',
-        'Hoje é dia de mandar um kudocard pra alguém!',
+        '🏆 Kudocard',
+        'Hoje é dia de reconhecer alguém — manda um kudocard!',
         false,
       );
       markFired('kudocard');
@@ -160,10 +169,11 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
       const driftedKey = `punch-${idx}`;
       const target = applyDailyDrift(base, s.punchDriftMinutes, idx);
       if (target === hhmm && !alreadyFired(driftedKey)) {
-        const labels = ['Entrada', 'Saída almoço', 'Retorno', 'Saída'];
+        const labels = ['Entrada', 'Saída p/ almoço', 'Retorno do almoço', 'Saída'];
+        const icons = ['🟢', '🟡', '🔵', '🔴'];
         notify(
           win,
-          `Ponto: ${labels[idx]}`,
+          `${icons[idx]} Ponto — ${labels[idx]}`,
           `Hora de bater o ponto (${target})`,
           true,
         );
@@ -222,10 +232,10 @@ export function fireTestNotification(
 ): void {
   if (!win) return;
   const map = {
-    mood: { title: 'Teste · Mood', body: 'Notificação de mood funcionando.', alarm: true },
-    lunch: { title: 'Teste · Almoço', body: 'Alarme de almoço funcionando.', alarm: true },
-    kudocard: { title: 'Teste · Kudocard', body: 'Notificação kudocard funcionando.', alarm: false },
-    punch: { title: 'Teste · Ponto', body: 'Lembrete de batida de ponto.', alarm: true },
+    mood: { title: '😊 Mood do dia', body: 'Não esquece de marcar seu mood no Beefor!', alarm: true },
+    lunch: { title: '🍽️ Hora do almoço', body: 'Bom apetite! Lembra de bater o ponto.', alarm: true },
+    kudocard: { title: '🏆 Kudocard', body: 'Hoje é dia de reconhecer alguém — manda um kudocard!', alarm: false },
+    punch: { title: '🟢 Ponto — Entrada', body: 'Hora de bater o ponto.', alarm: true },
   };
   const cfg = map[kind];
   notify(win, cfg.title, cfg.body, cfg.alarm);

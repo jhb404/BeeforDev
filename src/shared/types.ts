@@ -47,6 +47,9 @@ export interface AppSettings {
 
   hoursPerDay: number;
   hourRate: number;
+
+  /** User dismissed the "run as admin" banner — don't show again */
+  adminBannerDismissed?: boolean;
 }
 
 export interface ActionResult<T = void> {
