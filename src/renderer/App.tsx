@@ -59,7 +59,7 @@ export default function App() {
           <span className="brand-icon" aria-hidden="true">
             <BrandLogo size={28} />
           </span>
-          <span className="brand-name">beefor dev</span>
+          <span className="brand-name">Beefor Dev</span>
         </div>
         <div className="topbar-actions">
           <div className="bell-wrap" ref={bellRef}>
@@ -135,7 +135,7 @@ export default function App() {
       </main>
 
       <footer className="appfoot">
-        beefor dev · uso interno · Playwright + Electron
+        Beefor Dev · JB
       </footer>
     </div>
   );

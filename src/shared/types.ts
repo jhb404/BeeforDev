@@ -55,6 +55,9 @@ export interface AppSettings {
 
   /** User dismissed the "run as admin" banner — don't show again */
   adminBannerDismissed?: boolean;
+
+  /** Home layout: 'classic' (table) | 'minimal' (calendar + day panel) */
+  viewMode?: 'classic' | 'minimal';
 }
 
 export interface TodayAlert {

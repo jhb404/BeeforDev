@@ -9,6 +9,7 @@ import type {
 import { MOODS } from '../../shared/types';
 import { useBeefor } from '../hooks/useBeefor';
 import { MoodPicker } from '../components/MoodPicker';
+import { MinimalView } from '../components/MinimalView';
 import { StatusBadge } from '../components/StatusBadge';
 import { Bolt, Calendar, Clock, Heart, Trophy } from '../components/Icons';
 import {
@@ -469,6 +470,17 @@ export function Home() {
             <strong>Sem sessão ativa</strong>
             <span>Conecte a sessão para carregar os apontamentos do mês.</span>
           </div>
+        ) : settings?.viewMode === 'minimal' ? (
+          <MinimalView
+            rows={rows}
+            year={year}
+            month={month}
+            busy={busy}
+            ready={ready}
+            hoursPerDayMin={hoursPerDayMin}
+            onUpdateRow={updateRow}
+            onLancar={(idx) => void lancar(idx)}
+          />
         ) : (
           <div className="ts-grid" role="table">
             <div className="ts-grid-head" role="row">

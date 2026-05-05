@@ -171,6 +171,32 @@ export function Settings() {
       </div>
 
       <div className="card">
+        <h2>Visualização</h2>
+        <div className="view-mode-row">
+          <label className={`view-mode-opt ${(settings.viewMode ?? 'classic') === 'classic' ? 'active' : ''}`}>
+            <input
+              type="radio"
+              name="viewMode"
+              checked={(settings.viewMode ?? 'classic') === 'classic'}
+              onChange={() => update('viewMode', 'classic')}
+            />
+            <strong>Clássica</strong>
+            <span>Tabela com todos os dias do mês</span>
+          </label>
+          <label className={`view-mode-opt ${settings.viewMode === 'minimal' ? 'active' : ''}`}>
+            <input
+              type="radio"
+              name="viewMode"
+              checked={settings.viewMode === 'minimal'}
+              onChange={() => update('viewMode', 'minimal')}
+            />
+            <strong>Minimalista</strong>
+            <span>Calendário + dia selecionado</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="card">
         <h2>Inicialização</h2>
         <div className="checkbox-row" style={{ marginBottom: 12 }}>
           <input
