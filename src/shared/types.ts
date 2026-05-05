@@ -52,6 +52,7 @@ export interface AppSettings {
 
   hoursPerDay: number;
   hourRate: number;
+  patchJournal: string;
 
   /** User dismissed the "run as admin" banner — don't show again */
   adminBannerDismissed?: boolean;

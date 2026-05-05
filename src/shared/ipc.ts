@@ -24,6 +24,7 @@ export const IPC = {
   // admin / system
   ADMIN_STATUS: 'admin:status',
   ADMIN_RELAUNCH: 'admin:relaunch',
+  APP_RELAUNCH: 'app:relaunch',
 
   // notification testing
   NOTIFY_TEST: 'notify:test',

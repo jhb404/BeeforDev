@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { FunnyLoader } from '../components/FunnyLoader';
 import type {
   AppSettings,
@@ -301,9 +301,6 @@ export function Home() {
 
   const today = todayIso();
   const yearOptions = [now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1];
-  const filledForBatch = rows.filter(
-    (r) => r.entrada || r.int1 || r.ret1 || r.int2 || r.ret2 || r.saida || r.comentario,
-  ).length;
   const batchRows = useMemo(
     () =>
       rows
@@ -364,6 +361,18 @@ export function Home() {
           >
             Abrir Beefor
           </button>
+          <button
+            className="secondary compact"
+            onClick={() =>
+                showToast({
+                  kind: 'ok',
+                  title: 'KudoCard',
+                  msg: 'Botao pronto. Integracao do envio entra na proxima etapa.',
+                })
+              }
+          >
+            Enviar KudoCard
+          </button>
         </div>
       </section>
 
@@ -406,7 +415,6 @@ export function Home() {
             </label>
           </div>
           <div className="ts-actions">
-            <span>{filledForBatch} dia(s) preenchido(s)</span>
             <button
               className="warm"
               disabled={busy || !ready}
@@ -424,7 +432,7 @@ export function Home() {
           </div>
         </div>
 
-        <div className="summary-strip">
+        <div className={`summary-strip ${settings?.viewMode === 'minimal' ? 'compact' : ''}`}>
           <div className="summary-card">
             <span className="summary-label"><Clock size={14} /> Horas trabalhadas</span>
             <strong className="summary-value">{formatMinutes(summary.workedTotal)}</strong>

@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, shell } from 'electron';
+import { BrowserWindow, app, ipcMain, shell } from 'electron';
 import { IPC } from '../shared/ipc';
 import type {
   ActionResult,
@@ -295,6 +295,17 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
       return ok();
     } catch (err) {
       logger.error('Relaunch as admin failed', err);
+      return fail(err);
+    }
+  });
+
+  ipcMain.handle(IPC.APP_RELAUNCH, async () => {
+    try {
+      app.relaunch();
+      app.exit(0);
+      return ok();
+    } catch (err) {
+      logger.error('App relaunch failed', err);
       return fail(err);
     }
   });

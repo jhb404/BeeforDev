@@ -26,6 +26,8 @@ const DEFAULT_SETTINGS: AppSettings = {
 
   hoursPerDay: 8,
   hourRate: 0,
+  patchJournal:
+    '- v0.1.0: base de lancamentos e mood.\n- v0.1.1: melhorias visuais e alertas.',
 };
 
 export function sessionPath(): string {

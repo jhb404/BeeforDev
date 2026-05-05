@@ -7,8 +7,8 @@ export function createMainWindow(): BrowserWindow {
 
   const win = new BrowserWindow({
     title: 'Beefor Dev',
-    width: 960,
-    height: 760,
+    width: 950,
+    height: 950,
     minWidth: 720,
     minHeight: 520,
     backgroundColor: '#0a0d12',

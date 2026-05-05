@@ -59,6 +59,8 @@ const api = {
     ipcRenderer.invoke(IPC.ADMIN_STATUS),
   relaunchAsAdmin: (): Promise<ActionResult> =>
     ipcRenderer.invoke(IPC.ADMIN_RELAUNCH),
+  relaunchApp: (): Promise<ActionResult> =>
+    ipcRenderer.invoke(IPC.APP_RELAUNCH),
 
   // notification testing
   testNotification: (

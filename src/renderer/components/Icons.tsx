@@ -122,3 +122,11 @@ export const Trophy = (p: IconProps) => (
     <path d="M17 5h3v3a3 3 0 0 1-3 3M7 5H4v3a3 3 0 0 0 3 3" />
   </svg>
 );
+
+export const Newspaper = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M4 6h13a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3Z" />
+    <path d="M4 9H2v8a3 3 0 0 0 3 3" />
+    <path d="M8 10h8M8 14h8M8 18h5" />
+  </svg>
+);

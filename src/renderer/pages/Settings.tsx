@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import type { AppSettings, KudocardFrequency } from '../../shared/types';
 
 const DEFAULT_PUNCH: AppSettings['punchTimes'] = ['09:00', '12:00', '13:00', '18:00'];
@@ -19,6 +19,8 @@ const DEFAULTS: AppSettings = {
   kudocardDays: [],
   hoursPerDay: 8,
   hourRate: 0,
+  patchJournal:
+    '- v0.1.0: base de lancamentos e mood.\n- v0.1.1: melhorias visuais e alertas.',
 };
 
 const PUNCH_LABELS = ['Entrada', 'Saída almoço', 'Retorno', 'Saída'];
@@ -62,6 +64,15 @@ export function Settings() {
   };
 
   const dismissAdminBanner = () => update('adminBannerDismissed', true);
+
+  const changeViewMode = async (mode: 'classic' | 'minimal') => {
+    if ((settings.viewMode ?? 'classic') === mode) return;
+    const next = { ...settings, viewMode: mode };
+    setSettings(next);
+    await window.beefor.setSettings(next);
+    setMsg('Reiniciando para aplicar...');
+    setTimeout(() => void window.beefor.relaunchApp(), 400);
+  };
 
   const testNotif = async (kind: 'mood' | 'lunch' | 'kudocard' | 'punch') => {
     const res = await window.beefor.testNotification(kind);
@@ -112,9 +123,9 @@ export function Settings() {
   };
 
   return (
-    <div className="grid cols-2">
+    <div className="settings-page">
       {needsAdmin && admin && !admin.elevated && admin.platform === 'win32' && (
-        <div className="admin-banner" style={{ gridColumn: '1 / -1' }}>
+        <div className="admin-banner">
           <div>
             <strong>Alarmes funcionam melhor como administrador</strong>
             <p>
@@ -136,6 +147,10 @@ export function Settings() {
         </div>
       )}
 
+      <section className="settings-section">
+        <h3 className="settings-section__title">GERAL</h3>
+        <p className="settings-section__hint">CREDENCIAIS | INICIALIZAÇÃO | JORNADA</p>
+        <div className="settings-grid grid-3">
       <div className="card">
         <h2>Credenciais</h2>
         <div className="field">
@@ -168,32 +183,6 @@ export function Settings() {
           </p>
         )}
         {msg && <p style={{ color: 'var(--accent-2)', fontSize: 13, marginTop: 8 }}>{msg}</p>}
-      </div>
-
-      <div className="card">
-        <h2>Visualização</h2>
-        <div className="view-mode-row">
-          <label className={`view-mode-opt ${(settings.viewMode ?? 'classic') === 'classic' ? 'active' : ''}`}>
-            <input
-              type="radio"
-              name="viewMode"
-              checked={(settings.viewMode ?? 'classic') === 'classic'}
-              onChange={() => update('viewMode', 'classic')}
-            />
-            <strong>Clássica</strong>
-            <span>Tabela com todos os dias do mês</span>
-          </label>
-          <label className={`view-mode-opt ${settings.viewMode === 'minimal' ? 'active' : ''}`}>
-            <input
-              type="radio"
-              name="viewMode"
-              checked={settings.viewMode === 'minimal'}
-              onChange={() => update('viewMode', 'minimal')}
-            />
-            <strong>Minimalista</strong>
-            <span>Calendário + dia selecionado</span>
-          </label>
-        </div>
       </div>
 
       <div className="card">
@@ -242,10 +231,18 @@ export function Settings() {
           />
         </div>
       </div>
+        </div>
+      </section>
 
+      <section className="settings-section">
+        <h3 className="settings-section__title">ALERTAS / AUTOMAÇÃO</h3>
+        <p className="settings-section__hint">
+          AUTOMATIZAR BATIDA DE PONTO | ALERTA DE MOOD | ALERTA ALMOÇO | ALERTA KUDOCARD
+        </p>
+        <div className="settings-grid grid-2">
       <div className="card">
         <div className="row between" style={{ marginBottom: 8 }}>
-          <h2 style={{ margin: 0 }}>Automatizar batida de ponto</h2>
+          <h2 style={{ margin: 0 }}>AUTOMATIZAR BATIDA DE PONTO</h2>
           <button className="secondary compact" onClick={() => testNotif('punch')}>
             Testar
           </button>
@@ -295,7 +292,7 @@ export function Settings() {
 
       <div className="card">
         <div className="row between" style={{ marginBottom: 8 }}>
-          <h2 style={{ margin: 0 }}>Mood</h2>
+          <h2 style={{ margin: 0 }}>Alerta de MOOD</h2>
           <button className="secondary compact" onClick={() => testNotif('mood')}>
             Testar
           </button>
@@ -331,7 +328,7 @@ export function Settings() {
 
       <div className="card">
         <div className="row between" style={{ marginBottom: 8 }}>
-          <h2 style={{ margin: 0 }}>Almoço</h2>
+          <h2 style={{ margin: 0 }}>Alerta ALMOÇO</h2>
           <button className="secondary compact" onClick={() => testNotif('lunch')}>
             Testar
           </button>
@@ -356,9 +353,9 @@ export function Settings() {
         </div>
       </div>
 
-      <div className="card" style={{ gridColumn: '1 / -1' }}>
+      <div className="card kudocard-card">
         <div className="row between" style={{ marginBottom: 8 }}>
-          <h2 style={{ margin: 0 }}>Kudocard</h2>
+          <h2 style={{ margin: 0 }}>Alerta KUDOCARD</h2>
           <button className="secondary compact" onClick={() => testNotif('kudocard')}>
             Testar
           </button>
@@ -408,14 +405,77 @@ export function Settings() {
           </div>
         )}
       </div>
+        </div>
+      </section>
 
-      <div className="card" style={{ gridColumn: '1 / -1' }}>
+      <section className="settings-section">
+        <h3 className="settings-section__title">PERSONALIZAÇÃO</h3>
+        <p className="settings-section__hint">VISUALIZAÇÃO</p>
+        <div className="settings-grid grid-1">
+          <div className="card">
+            <h2>Visualização</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
+              Troca aplica reiniciando o app automaticamente.
+            </p>
+            <div className="view-mode-row">
+              <button
+                type="button"
+                className={`view-mode-opt ${(settings.viewMode ?? 'classic') === 'classic' ? 'active' : ''}`}
+                onClick={() => void changeViewMode('classic')}
+              >
+                <svg className="vm-preview" viewBox="0 0 120 70" aria-hidden="true">
+                  <rect x="4" y="4" width="112" height="10" rx="2" fill="var(--bg-3)" />
+                  <rect x="4" y="18" width="112" height="6" rx="1" fill="var(--accent-soft)" />
+                  <rect x="4" y="28" width="112" height="6" rx="1" fill="var(--bg-3)" />
+                  <rect x="4" y="38" width="112" height="6" rx="1" fill="var(--bg-3)" />
+                  <rect x="4" y="48" width="112" height="6" rx="1" fill="var(--bg-3)" />
+                  <rect x="4" y="58" width="112" height="6" rx="1" fill="var(--bg-3)" />
+                </svg>
+                <strong>Clássica</strong>
+                <span>Tabela linha-a-linha com todos os dias</span>
+              </button>
+              <button
+                type="button"
+                className={`view-mode-opt ${settings.viewMode === 'minimal' ? 'active' : ''}`}
+                onClick={() => void changeViewMode('minimal')}
+              >
+                <svg className="vm-preview" viewBox="0 0 120 70" aria-hidden="true">
+                  <rect x="4" y="4" width="54" height="62" rx="3" fill="var(--bg-3)" />
+                  {[0, 1, 2, 3].map((row) =>
+                    [0, 1, 2, 3, 4].map((col) => (
+                      <rect
+                        key={`${row}-${col}`}
+                        x={7 + col * 10}
+                        y={9 + row * 14}
+                        width="8"
+                        height="11"
+                        rx="1.5"
+                        fill={row === 1 && col === 2 ? 'var(--accent)' : 'var(--bg-2)'}
+                      />
+                    )),
+                  )}
+                  <rect x="62" y="4" width="54" height="62" rx="3" fill="var(--bg-3)" />
+                  <rect x="66" y="9" width="30" height="6" rx="1" fill="var(--accent-soft)" />
+                  <rect x="66" y="20" width="46" height="5" rx="1" fill="var(--bg-2)" />
+                  <rect x="66" y="28" width="46" height="5" rx="1" fill="var(--bg-2)" />
+                  <rect x="66" y="36" width="46" height="5" rx="1" fill="var(--bg-2)" />
+                  <rect x="66" y="50" width="20" height="10" rx="2" fill="var(--accent)" />
+                </svg>
+                <strong>Minimalista</strong>
+                <span>Calendário + dia selecionado</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="card settings-security">
         <h2>Segurança</h2>
         <ul style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.8 }}>
           <li>Senha gravada no Windows Credential Manager (via keytar).</li>
           <li>Cookies / localStorage do Beefor salvos em <code>storageState</code> isolado.</li>
           <li>MFA / CAPTCHA pedem login manual — app não burla autenticação.</li>
-          <li>Use “Remover” ao trocar de máquina ou ao sair.</li>
+          <li>Use — app não burla autenticação.</li>
         </ul>
       </div>
     </div>

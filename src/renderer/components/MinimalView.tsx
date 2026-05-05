@@ -40,7 +40,7 @@ function statusOf(r: RowState): 'full' | 'partial' | 'empty' | 'weekend' | 'holi
   if ((r.status ?? '').toLowerCase().includes('feriado')) return 'holiday';
   if (r.weekday === 0 || r.weekday === 6) return 'weekend';
   const filled = [r.entrada, r.int1, r.ret1, r.int2, r.ret2, r.saida].filter(Boolean).length;
-  if (filled === 6) return 'full';
+  if (filled >= 4) return 'full';
   if (filled > 0) return 'partial';
   return 'empty';
 }

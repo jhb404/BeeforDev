@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { Home } from './pages/Home';
 import { Settings as SettingsPage } from './pages/Settings';
-import { Bell, BrandLogo, Moon, Sun } from './components/Icons';
+import { Bell, BrandLogo, Moon, Newspaper, Sun } from './components/Icons';
 import { playAlarm } from './utils/alarm';
 import type { TodayAlert } from '../shared/types';
 
@@ -19,6 +19,9 @@ export default function App() {
   const [theme, setTheme] = useState<ThemeMode>(getStoredTheme);
   const [alerts, setAlerts] = useState<TodayAlert[]>([]);
   const [bellOpen, setBellOpen] = useState(false);
+  const [patchModalOpen, setPatchModalOpen] = useState(false);
+  const [patchJournal, setPatchJournal] = useState('');
+  const [loadingPatchJournal, setLoadingPatchJournal] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,6 +55,14 @@ export default function App() {
 
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
 
+  const openPatchJournal = async () => {
+    setPatchModalOpen(true);
+    setLoadingPatchJournal(true);
+    const res = await window.beefor.getSettings();
+    setPatchJournal(res.patchJournal?.trim() || 'Nenhuma atualizacao publicada ainda.');
+    setLoadingPatchJournal(false);
+  };
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -69,9 +80,7 @@ export default function App() {
               onClick={() => setBellOpen((o) => !o)}
             >
               <Bell size={18} />
-              {alerts.length > 0 && (
-                <span className="bell-badge">{alerts.length}</span>
-              )}
+              {alerts.length > 0 && <span className="bell-badge">{alerts.length}</span>}
             </button>
             {bellOpen && (
               <div className="bell-panel" role="dialog" aria-label="Avisos de hoje">
@@ -92,7 +101,7 @@ export default function App() {
                           aria-label="Dispensar"
                           onClick={() => setAlerts((prev) => prev.filter((_, j) => j !== i))}
                         >
-                          ✕
+                          x
                         </button>
                       </li>
                     ))}
@@ -108,17 +117,19 @@ export default function App() {
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
+          <button
+            className="icon-btn"
+            aria-label="Jornal de patches"
+            title="Jornal de patches"
+            onClick={() => void openPatchJournal()}
+          >
+            <Newspaper size={18} />
+          </button>
           <div className="tabs">
-            <button
-              className={tab === 'home' ? 'active' : ''}
-              onClick={() => setTab('home')}
-            >
-              Início
+            <button className={tab === 'home' ? 'active' : ''} onClick={() => setTab('home')}>
+              Inicio
             </button>
-            <button
-              className={tab === 'settings' ? 'active' : ''}
-              onClick={() => setTab('settings')}
-            >
+            <button className={tab === 'settings' ? 'active' : ''} onClick={() => setTab('settings')}>
               Configurações
             </button>
           </div>
@@ -134,9 +145,30 @@ export default function App() {
         </section>
       </main>
 
-      <footer className="appfoot">
-        Beefor Dev · JB
-      </footer>
+      {patchModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section aria-modal="true" className="modal-card" role="dialog" aria-label="Jornal de patches">
+            <div className="modal-head">
+              <div>
+                <p className="eyebrow">Novidades</p>
+                <h2>Jornal de patches e atualizacoes</h2>
+              </div>
+              <button className="secondary compact" onClick={() => setPatchModalOpen(false)}>
+                Fechar
+              </button>
+            </div>
+            <div style={{ padding: '14px 18px 18px' }}>
+              {loadingPatchJournal ? (
+                <p className="patch-journal-empty">Carregando novidades...</p>
+              ) : (
+                <pre className="patch-journal-copy">{patchJournal}</pre>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+
+      <footer className="appfoot">Beefor Dev - JB</footer>
     </div>
   );
 }
