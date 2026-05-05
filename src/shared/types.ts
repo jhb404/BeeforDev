@@ -44,12 +44,24 @@ export interface AppSettings {
   kudocardFrequency: KudocardFrequency;
   /** Used when frequency === 'custom'. Day numbers 1..28 */
   kudocardDays: number[];
+  /**
+   * Persisted schedule for the current month so restarts don't re-roll.
+   * Key format: "YYYY-M". Value: array of {day, time} sorted by day.
+   */
+  kudocardSchedule?: { ym: string; slots: Array<{ day: number; time: string }> };
 
   hoursPerDay: number;
   hourRate: number;
 
   /** User dismissed the "run as admin" banner — don't show again */
   adminBannerDismissed?: boolean;
+}
+
+export interface TodayAlert {
+  kind: 'kudocard' | 'mood' | 'lunch' | 'punch';
+  title: string;
+  body: string;
+  time?: string; // "HH:MM" when scheduled
 }
 
 export interface ActionResult<T = void> {

@@ -28,6 +28,9 @@ export const IPC = {
   // notification testing
   NOTIFY_TEST: 'notify:test',
 
+  // today alerts
+  ACTION_GET_TODAY_ALERTS: 'action:getTodayAlerts',
+
   // events main → renderer
   EVT_STATUS: 'evt:status',
   EVT_PLAY_ALARM: 'evt:playAlarm',

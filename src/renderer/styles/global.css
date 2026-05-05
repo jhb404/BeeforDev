@@ -308,6 +308,141 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   color: var(--accent);
 }
 
+/* === Bell / Alerts === */
+.bell-wrap {
+  position: relative;
+}
+
+.bell-wrap .icon-btn {
+  position: relative;
+}
+
+.bell-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--warn);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.bell-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 200;
+  width: 280px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: toastIn 0.15s ease;
+}
+
+.bell-panel__header {
+  padding: 10px 14px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.bell-panel__empty {
+  padding: 16px 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.bell-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+.bell-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 32px 8px 14px;
+  border-left: 3px solid transparent;
+  transition: background 0.1s;
+}
+
+.bell-item:hover {
+  background: var(--bg-2);
+}
+
+.bell-item__dismiss {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  min-height: unset;
+  padding: 0;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.1s, background 0.1s, color 0.1s;
+}
+
+.bell-item:hover .bell-item__dismiss {
+  opacity: 1;
+}
+
+.bell-item__dismiss:hover:not(:disabled) {
+  background: var(--err-border);
+  color: var(--err);
+}
+
+.bell-item--kudocard { border-left-color: var(--warn); }
+.bell-item--mood     { border-left-color: var(--ok); }
+.bell-item--lunch    { border-left-color: var(--accent-2); }
+.bell-item--punch    { border-left-color: var(--accent); }
+
+.bell-item__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.bell-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bell-item__time {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-3);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.bell-item__body {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 /* === Settings === */
 .punch-grid {
   display: grid;

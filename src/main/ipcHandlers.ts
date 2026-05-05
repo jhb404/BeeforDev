@@ -36,7 +36,7 @@ import {
 import { withPageLock } from '../automation/beefor/pageLock';
 import { ensureSessionForAction, forceReconnect } from './sessionGuard';
 import { isElevated, relaunchAsAdmin } from './adminCheck';
-import { fireTestNotification } from './scheduler';
+import { fireTestNotification, getTodayAlerts } from './scheduler';
 
 function ok<T>(data?: T): ActionResult<T> {
   return { ok: true, data };
@@ -310,4 +310,13 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
       }
     },
   );
+
+  ipcMain.handle(IPC.ACTION_GET_TODAY_ALERTS, async () => {
+    try {
+      const alerts = await getTodayAlerts();
+      return ok(alerts);
+    } catch (err) {
+      return fail(err);
+    }
+  });
 }

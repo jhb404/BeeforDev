@@ -8,6 +8,7 @@ import type {
   Mood,
   SessionStatus,
   TimesheetEntry,
+  TodayAlert,
 } from '../shared/types';
 
 const api = {
@@ -63,6 +64,9 @@ const api = {
   testNotification: (
     kind: 'mood' | 'lunch' | 'kudocard' | 'punch',
   ): Promise<ActionResult> => ipcRenderer.invoke(IPC.NOTIFY_TEST, kind),
+
+  getTodayAlerts: (): Promise<ActionResult<TodayAlert[]>> =>
+    ipcRenderer.invoke(IPC.ACTION_GET_TODAY_ALERTS),
 
   onPlayAlarm: (cb: (info: { title: string; body: string }) => void): (() => void) => {
     const listener = (_e: unknown, info: { title: string; body: string }) => cb(info);

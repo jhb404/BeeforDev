@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Home } from './pages/Home';
 import { Settings as SettingsPage } from './pages/Settings';
-import { BrandLogo, Moon, Sun } from './components/Icons';
+import { Bell, BrandLogo, Moon, Sun } from './components/Icons';
 import { playAlarm } from './utils/alarm';
+import type { TodayAlert } from '../shared/types';
 
 type Tab = 'home' | 'settings';
 type ThemeMode = 'dark' | 'light';
@@ -16,6 +17,9 @@ function getStoredTheme(): ThemeMode {
 export default function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [theme, setTheme] = useState<ThemeMode>(getStoredTheme);
+  const [alerts, setAlerts] = useState<TodayAlert[]>([]);
+  const [bellOpen, setBellOpen] = useState(false);
+  const bellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -29,6 +33,23 @@ export default function App() {
     return off;
   }, []);
 
+  useEffect(() => {
+    void window.beefor.getTodayAlerts().then((res) => {
+      if (res.ok && res.data) setAlerts(res.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!bellOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
+        setBellOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [bellOpen]);
+
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
 
   return (
@@ -41,6 +62,45 @@ export default function App() {
           <span className="brand-name">beefor dev</span>
         </div>
         <div className="topbar-actions">
+          <div className="bell-wrap" ref={bellRef}>
+            <button
+              className="icon-btn"
+              aria-label="Avisos de hoje"
+              onClick={() => setBellOpen((o) => !o)}
+            >
+              <Bell size={18} />
+              {alerts.length > 0 && (
+                <span className="bell-badge">{alerts.length}</span>
+              )}
+            </button>
+            {bellOpen && (
+              <div className="bell-panel" role="dialog" aria-label="Avisos de hoje">
+                <div className="bell-panel__header">Hoje</div>
+                {alerts.length === 0 ? (
+                  <p className="bell-panel__empty">Nenhum aviso para hoje.</p>
+                ) : (
+                  <ul className="bell-panel__list">
+                    {alerts.map((a, i) => (
+                      <li key={i} className={`bell-item bell-item--${a.kind}`}>
+                        <span className="bell-item__title">{a.title}</span>
+                        <span className="bell-item__meta">
+                          {a.time && <span className="bell-item__time">{a.time}</span>}
+                          <span className="bell-item__body">{a.body}</span>
+                        </span>
+                        <button
+                          className="bell-item__dismiss"
+                          aria-label="Dispensar"
+                          onClick={() => setAlerts((prev) => prev.filter((_, j) => j !== i))}
+                        >
+                          ✕
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
           <button
             className="icon-btn"
             aria-label={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
