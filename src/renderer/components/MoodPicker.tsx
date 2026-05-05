@@ -22,6 +22,7 @@ export function MoodPicker({ current, onSelect, disabled }: Props) {
           className={current === m ? 'active' : ''}
           disabled={disabled}
           onClick={() => onSelect(m)}
+          title={m}
         >
           <span className="mood-emoji">{EMOJI[m]}</span>
           <span className="mood-label">{m}</span>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { FunnyLoader } from '../components/FunnyLoader';
 import type {
   AppSettings,
   FetchedTimesheetRow,
@@ -8,19 +9,20 @@ import type {
 import { MOODS } from '../../shared/types';
 import { useBeefor } from '../hooks/useBeefor';
 import { MoodPicker } from '../components/MoodPicker';
+import { StatusBadge } from '../components/StatusBadge';
 import {
   MONTHS_PT,
   WEEKDAY_SHORT_PT,
   daysInMonth,
   isoDate,
-  pad2,
   todayIso,
   weekdayOf,
 } from '../utils/dates';
-import { formatMinutes, toMinutes, workedMinutes } from '../utils/timeMath';
+import { formatMinutes, workedMinutes } from '../utils/timeMath';
 
 interface Toast {
   kind: 'ok' | 'err';
+  title?: string;
   msg: string;
 }
 
@@ -34,12 +36,15 @@ interface RowState extends TimesheetEntry {
   errMsg?: string;
 }
 
-const FIELDS: Array<{ key: keyof Omit<TimesheetEntry, 'date' | 'comentario'>; label: string }> = [
+const FIELDS: Array<{
+  key: keyof Omit<TimesheetEntry, 'date' | 'comentario'>;
+  label: string;
+}> = [
   { key: 'entrada', label: 'Entrada' },
-  { key: 'int1', label: 'Int 1' },
-  { key: 'ret1', label: 'Ret 1' },
-  { key: 'int2', label: 'Int 2' },
-  { key: 'ret2', label: 'Ret 2' },
+  { key: 'int1', label: 'Int. 1' },
+  { key: 'ret1', label: 'Ret. 1' },
+  { key: 'int2', label: 'Int. 2' },
+  { key: 'ret2', label: 'Ret. 2' },
   { key: 'saida', label: 'Saída' },
 ];
 
@@ -55,7 +60,7 @@ function emptyRow(year: number, month: number, day: number): RowState {
     ret2: '',
     saida: '',
     comentario: '',
-    editable: wd !== 0 && wd !== 6,
+    editable: true,
   };
 }
 
@@ -66,7 +71,11 @@ function buildEmpty(year: number, month: number): RowState[] {
   return out;
 }
 
-function mergeFetched(year: number, month: number, fetched: FetchedTimesheetRow[]): RowState[] {
+function mergeFetched(
+  year: number,
+  month: number,
+  fetched: FetchedTimesheetRow[],
+): RowState[] {
   const base = buildEmpty(year, month);
   const byDate = new Map(fetched.map((f) => [f.date, f]));
   return base.map((r) => {
@@ -82,7 +91,7 @@ function mergeFetched(year: number, month: number, fetched: FetchedTimesheetRow[
       saida: f.saida,
       comentario: f.comentario ?? '',
       status: f.status,
-      editable: f.editable,
+      editable: true,
     };
   });
 }
@@ -99,7 +108,11 @@ export function Home() {
   const [currentMood, setCurrentMood] = useState<Mood | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [loadingTs, setLoadingTs] = useState(false);
+  const [timesheetLoaded, setTimesheetLoaded] = useState(false);
+  const [loadingMood, setLoadingMood] = useState(false);
+  const [moodLoaded, setMoodLoaded] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
+  const [showBatchModal, setShowBatchModal] = useState(false);
 
   const fetchInFlight = useRef(false);
   const lastFetchKey = useRef<string>('');
@@ -111,11 +124,12 @@ export function Home() {
   useEffect(() => {
     if (!ready) return;
     const key = `${year}-${month}`;
-    if (lastFetchKey.current === key) return; // already loaded this month
+    if (lastFetchKey.current === key) return;
     lastFetchKey.current = key;
-    void refreshAll();
+    setTimesheetLoaded(false);
+    void (moodLoaded ? refreshTimesheet() : refreshAll());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, year, month]);
+  }, [ready, year, month, moodLoaded]);
 
   const showToast = (t: Toast) => {
     setToast(t);
@@ -131,22 +145,33 @@ export function Home() {
       if (res.ok && res.data) {
         setRows(mergeFetched(year, month, res.data));
       } else if (!res.ok) {
-        showToast({ kind: 'err', msg: `Carregar timesheet: ${res.error ?? 'falhou'}` });
+        showToast({
+          kind: 'err',
+          title: 'Erro ao carregar',
+          msg: `Apontamentos: ${res.error ?? 'falhou'}`,
+        });
       }
     } finally {
       setLoadingTs(false);
+      setTimesheetLoaded(true);
       fetchInFlight.current = false;
     }
   };
 
   const refreshMood = async () => {
-    const res = await window.beefor.getCurrentMood();
-    if (res.ok) {
-      const m = res.data ?? null;
-      const matched = (MOODS as readonly string[]).includes(m ?? '')
-        ? (m as Mood)
-        : null;
-      setCurrentMood(matched);
+    setLoadingMood(true);
+    try {
+      const res = await window.beefor.getCurrentMood();
+      if (res.ok) {
+        const m = res.data ?? null;
+        const matched = (MOODS as readonly string[]).includes(m ?? '')
+          ? (m as Mood)
+          : null;
+        setCurrentMood(matched);
+      }
+    } finally {
+      setLoadingMood(false);
+      setMoodLoaded(true);
     }
   };
 
@@ -157,7 +182,7 @@ export function Home() {
   const updateRow = (idx: number, patch: Partial<RowState>) =>
     setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
 
-  const lancar = async (idx: number) => {
+  const lancar = async (idx: number, refreshAfter = false) => {
     const r = rows[idx];
     updateRow(idx, { saving: true, saved: false, failed: false, errMsg: undefined });
     await wrap(async () => {
@@ -169,7 +194,7 @@ export function Home() {
         int2: r.int2,
         ret2: r.ret2,
         saida: r.saida,
-        comentario: r.comentario || undefined,
+        comentario: r.comentario ?? '',
       });
       updateRow(idx, {
         saving: false,
@@ -179,21 +204,28 @@ export function Home() {
       });
       showToast(
         res.ok
-          ? { kind: 'ok', msg: `${r.date.slice(8, 10)}/${r.date.slice(5, 7)}: salvo` }
-          : { kind: 'err', msg: `${r.date}: ${res.error ?? 'falhou'}` },
+          ? {
+              kind: 'ok',
+              title: 'Horas salvas',
+              msg: `${r.date.slice(8, 10)}/${r.date.slice(5, 7)} lançado no Beefor.`,
+            }
+          : {
+              kind: 'err',
+              title: 'Não foi possível salvar',
+              msg: `${r.date}: ${res.error ?? 'falhou'}`,
+            },
       );
+      if (res.ok && refreshAfter) await refreshTimesheet();
     });
   };
 
-  const lancarMes = async () => {
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i];
-      if (!r.editable) continue;
-      const hasAny = !!(r.entrada || r.int1 || r.ret1 || r.int2 || r.ret2 || r.saida);
-      if (!hasAny) continue;
-      // skip if already matches what server has? simple approach — always send
-      await lancar(i);
+  const confirmLancarMes = async () => {
+    const pending = batchRows.map((item) => item.index);
+    setShowBatchModal(false);
+    for (const idx of pending) {
+      await lancar(idx, false);
     }
+    await refreshTimesheet();
   };
 
   const autoLancamento = async () => {
@@ -201,8 +233,16 @@ export function Home() {
       const res = await window.beefor.autoLancamento();
       showToast(
         res.ok
-          ? { kind: 'ok', msg: 'Auto lançamento: sucesso' }
-          : { kind: 'err', msg: `Auto lançamento: ${res.error ?? 'falhou'}` },
+          ? {
+              kind: 'ok',
+              title: 'Auto lançamento concluído',
+              msg: 'Os apontamentos automáticos foram enviados.',
+            }
+          : {
+              kind: 'err',
+              title: 'Auto lançamento falhou',
+              msg: res.error ?? 'falhou',
+            },
       );
       if (res.ok) await refreshTimesheet();
     });
@@ -212,266 +252,386 @@ export function Home() {
     if (currentMood === m) return;
     const previous = currentMood;
     setCurrentMood(m);
-    const res = await window.beefor.selectMood(m);
-    if (!res.ok) {
-      setCurrentMood(previous);
-      showToast({ kind: 'err', msg: `Mood: ${res.error ?? 'falhou'}` });
-    } else {
-      showToast({ kind: 'ok', msg: `Mood: ${m}` });
-    }
+    await wrap(async () => {
+      const res = await window.beefor.selectMood(m);
+      if (!res.ok) {
+        setCurrentMood(previous);
+        showToast({
+          kind: 'err',
+          title: 'Mood não salvo',
+          msg: res.error ?? 'falhou',
+        });
+      } else {
+        showToast({ kind: 'ok', title: 'Mood salvo', msg: m });
+        void refreshMood();
+      }
+    });
   };
 
-  // Totals
   const hoursPerDayMin = (settings?.hoursPerDay ?? 8) * 60;
   const hourRate = settings?.hourRate ?? 0;
 
   const summary = useMemo(() => {
     let workedTotal = 0;
-    let diffTotal = 0;
-    let filled = 0;
+    let saldoTotal = 0;
+    let overtimeMin = 0;
+    let expectedTotal = 0;
     for (const r of rows) {
       const w = workedMinutes(r);
-      if (w > 0) {
-        workedTotal += w;
-        filled++;
-      }
-      if (r.editable) {
-        diffTotal += w - hoursPerDayMin * (w > 0 ? 1 : 0);
-      }
+      if (w <= 0) continue;
+      workedTotal += w;
+      expectedTotal += hoursPerDayMin;
+      const diff = w - hoursPerDayMin;
+      saldoTotal += diff;
+      if (diff > 0) overtimeMin += diff;
     }
-    const salary = (workedTotal / 60) * hourRate;
-    return { workedTotal, diffTotal, filled, salary };
+    const overtimeValue = (overtimeMin / 60) * hourRate;
+    const totalSalary = (workedTotal / 60) * hourRate;
+    return {
+      workedTotal,
+      expectedTotal,
+      saldoTotal,
+      overtimeMin,
+      overtimeValue,
+      totalSalary,
+    };
   }, [rows, hoursPerDayMin, hourRate]);
 
   const today = todayIso();
   const yearOptions = [now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1];
   const filledForBatch = rows.filter(
-    (r) => r.editable && (r.entrada || r.int1 || r.ret1 || r.int2 || r.ret2 || r.saida),
+    (r) => r.entrada || r.int1 || r.ret1 || r.int2 || r.ret2 || r.saida || r.comentario,
   ).length;
+  const batchRows = useMemo(
+    () =>
+      rows
+        .map((row, index) => ({ row, index, worked: workedMinutes(row) }))
+        .filter(
+          ({ row }) =>
+            row.editable &&
+            !!(
+              row.entrada ||
+              row.int1 ||
+              row.ret1 ||
+              row.int2 ||
+              row.ret2 ||
+              row.saida ||
+              row.comentario
+            ),
+        ),
+    [rows],
+  );
+  const autoLoginOnLaunch = settings?.autoLoginOnLaunch ?? true;
+  const isBooting =
+    status === 'loading' ||
+    status === 'reconnecting' ||
+    (status === 'idle' && autoLoginOnLaunch);
+  const showMoodLoader = isBooting || (loadingMood && !moodLoaded) || (ready && !moodLoaded);
+  const showTimesheetLoader =
+    isBooting || (loadingTs && !timesheetLoaded) || (ready && !timesheetLoaded);
+  const showDisconnectedState = !ready && !isBooting;
 
   return (
-    <div className="page-stack">
-      {/* Top: actions + mood */}
-      <div className="grid cols-2">
-        <div className="card">
-          <h2>Ações no Beefor</h2>
-          <div className="action-list">
-            <button
-              className="action-card primary-action"
-              disabled={busy || !ready}
-              onClick={autoLancamento}
-            >
-              <div className="action-icon">⚡</div>
-              <div className="action-text">
-                <div className="action-title">Auto lançamento</div>
-                <div className="action-desc">Aciona o botão "Auto lançamento" do Beefor</div>
-              </div>
-            </button>
-
-            <button
-              className="action-card"
-              onClick={async () => {
-                const res = await window.beefor.openBeefor();
-                if (!res.ok) showToast({ kind: 'err', msg: res.error ?? 'falhou' });
-              }}
-            >
-              <div className="action-icon">🌐</div>
-              <div className="action-text">
-                <div className="action-title">Abrir Beefor no navegador</div>
-                <div className="action-desc">Para conferência manual</div>
-              </div>
-            </button>
-
-            <button
-              className="action-card"
-              disabled={busy || !ready || loadingTs}
-              onClick={() => void refreshAll()}
-            >
-              <div className="action-icon">🔄</div>
-              <div className="action-text">
-                <div className="action-title">Recarregar dados</div>
-                <div className="action-desc">Lê do Beefor o mês atual + mood</div>
-              </div>
-            </button>
-          </div>
+    <div className="home-layout">
+      <section className="home-topbar">
+        <div>
+          <p className="eyebrow">Beefor Dev</p>
+          <h1>Lançamento de horas</h1>
         </div>
-
-        <div className="card">
-          <h2>Mood do dia</h2>
-          <p className="card-hint">
-            {currentMood
-              ? `Atualmente: ${currentMood}`
-              : ready
-              ? 'Nenhum mood marcado hoje.'
-              : 'Conectando…'}
-          </p>
-          <MoodPicker
-            current={currentMood}
-            disabled={busy || !ready}
-            onSelect={selectMood}
-          />
-        </div>
-      </div>
-
-      {/* Timesheet */}
-      <div className="card ts-toolbar">
-        <div className="ts-filters">
-          <div className="field-inline">
-            <label className="label">Ano</label>
-            <select
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-            >
-              {yearOptions.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field-inline">
-            <label className="label">Mês</label>
-            <select
-              value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
-            >
-              {MONTHS_PT.map((name, i) => (
-                <option key={name} value={i + 1}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="ts-actions">
-          <span className="ts-summary">
-            {loadingTs ? 'Carregando…' : `${filledForBatch} dia(s) preenchido(s)`}
-          </span>
+        <div className="home-status">
+          <StatusBadge status={status} />
           <button
-            className="secondary"
-            disabled={busy || !ready || loadingTs}
-            onClick={() => void refreshTimesheet()}
+            className="secondary compact"
+            disabled={busy || !ready || loadingTs || loadingMood}
+            onClick={() => void refreshAll()}
           >
             Recarregar
           </button>
           <button
-            disabled={busy || !ready || filledForBatch === 0}
-            onClick={lancarMes}
+            className="secondary compact"
+            onClick={async () => {
+              const res = await window.beefor.openBeefor();
+              if (!res.ok) {
+                showToast({
+                  kind: 'err',
+                  title: 'Não abriu o Beefor',
+                  msg: res.error ?? 'falhou',
+                });
+              }
+            }}
           >
-            Lançar mês inteiro
+            Abrir Beefor
           </button>
         </div>
-      </div>
+      </section>
 
-      <div className="card ts-table-card">
-        <div className="ts-table">
-          <div className="ts-row ts-head">
-            <div className="ts-col-date">Data</div>
-            {FIELDS.map((f) => (
-              <div className="ts-col-time" key={f.key}>
-                {f.label}
-              </div>
-            ))}
-            <div className="ts-col-num">Total</div>
-            <div className="ts-col-num">Diff</div>
-            <div className="ts-col-cmt">Comentário</div>
-            <div className="ts-col-act">Ação</div>
+      <section className="home-commandbar">
+        <div className="mood-panel">
+          <div>
+            <span className="label">Mood do dia</span>
+            <strong>{currentMood ?? 'Não identificado'}</strong>
           </div>
+          {showMoodLoader ? (
+            <FunnyLoader title="Buscando mood" />
+          ) : (
+            <MoodPicker current={currentMood} disabled={busy || !ready} onSelect={selectMood} />
+          )}
+        </div>
+      </section>
 
-          {rows.map((r, i) => {
-            const isWeekend = r.weekday === 0 || r.weekday === 6;
-            const isToday = r.date === today;
-            const worked = workedMinutes(r);
-            const expected = r.editable ? hoursPerDayMin : 0;
-            const diff = worked > 0 ? worked - expected : 0;
-            const totalLabel = worked > 0 ? formatMinutes(worked) : '—';
-            const diffLabel = worked > 0 ? formatMinutes(diff, true) : '—';
-            const diffClass =
-              worked === 0
-                ? ''
-                : diff > 0
-                ? 'diff-pos'
-                : diff < 0
-                ? 'diff-neg'
-                : 'diff-zero';
-
-            return (
-              <div
-                key={r.date}
-                className={`ts-row ${isWeekend ? 'weekend' : ''} ${
-                  isToday ? 'today' : ''
-                } ${r.saved ? 'saved' : ''} ${r.failed ? 'failed' : ''} ${
-                  !r.editable ? 'locked' : ''
-                }`}
-              >
-                <div className="ts-col-date">
-                  <strong>{pad2(Number(r.date.slice(8, 10)))}</strong>
-                  <span className="ts-weekday">
-                    {WEEKDAY_SHORT_PT[r.weekday]}
-                    {r.status ? ` · ${r.status}` : ''}
-                  </span>
-                </div>
-                {FIELDS.map((f) => (
-                  <div className="ts-col-time" key={f.key}>
-                    <input
-                      type="time"
-                      disabled={!r.editable}
-                      value={(r as any)[f.key]}
-                      onChange={(e) =>
-                        updateRow(i, { [f.key]: e.target.value } as Partial<RowState>)
-                      }
-                    />
-                  </div>
+      <section className="timesheet-panel">
+        <div className="ts-toolbar">
+          <div className="ts-filters">
+            <label className="field-inline">
+              <span className="label">Ano</span>
+              <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
+                {yearOptions.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
                 ))}
-                <div className="ts-col-num">{totalLabel}</div>
-                <div className={`ts-col-num ${diffClass}`}>{diffLabel}</div>
-                <div className="ts-col-cmt">
-                  <input
-                    type="text"
-                    disabled={!r.editable}
-                    placeholder="Comentário"
-                    value={r.comentario ?? ''}
-                    onChange={(e) => updateRow(i, { comentario: e.target.value })}
-                  />
-                </div>
-                <div className="ts-col-act">
-                  <button
-                    disabled={busy || !ready || r.saving || !r.editable}
-                    onClick={() => lancar(i)}
-                    title={r.errMsg ?? ''}
-                  >
-                    {r.saving ? '…' : 'Lançar'}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              </select>
+            </label>
+            <label className="field-inline">
+              <span className="label">Mês</span>
+              <select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
+                {MONTHS_PT.map((name, i) => (
+                  <option key={name} value={i + 1}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="ts-actions">
+            <span>{filledForBatch} dia(s) preenchido(s)</span>
+            <button
+              className="secondary"
+              disabled={busy || !ready}
+              onClick={autoLancamento}
+            >
+              Auto lançamento
+            </button>
+            <button
+              className="warm"
+              disabled={busy || !ready || batchRows.length === 0}
+              onClick={() => setShowBatchModal(true)}
+            >
+              Lançar mês
+            </button>
+          </div>
         </div>
 
-        <div className="ts-footer">
+        <div className="summary-strip">
           <div>
-            <span className="label">Horas trabalhadas</span>
+            <span>Horas trabalhadas</span>
             <strong>{formatMinutes(summary.workedTotal)}</strong>
           </div>
           <div>
-            <span className="label">Saldo</span>
-            <strong className={summary.diffTotal >= 0 ? 'diff-pos' : 'diff-neg'}>
-              {formatMinutes(summary.diffTotal, true)}
+            <span>Horas previstas</span>
+            <strong>{formatMinutes(summary.expectedTotal)}</strong>
+          </div>
+          <div>
+            <span>Saldo do mês</span>
+            <strong className={summary.saldoTotal >= 0 ? 'diff-pos' : 'diff-neg'}>
+              {formatMinutes(summary.saldoTotal, true)}
             </strong>
           </div>
           <div>
-            <span className="label">Salário estimado</span>
+            <span>Horas extras</span>
+            <strong>{formatMinutes(summary.overtimeMin)}</strong>
+          </div>
+          <div>
+            <span>Valor extras</span>
             <strong>
-              {summary.salary.toLocaleString('pt-BR', {
+              {summary.overtimeValue.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              })}
+            </strong>
+          </div>
+          <div>
+            <span>Total estimado</span>
+            <strong>
+              {summary.totalSalary.toLocaleString('pt-BR', {
                 style: 'currency',
                 currency: 'BRL',
               })}
             </strong>
           </div>
         </div>
-      </div>
 
-      {toast && <div className={`toast ${toast.kind}`}>{toast.msg}</div>}
+        {showTimesheetLoader ? (
+          <FunnyLoader title="Carregando lançamentos" />
+        ) : showDisconnectedState ? (
+          <div className="ts-empty">
+            <strong>Sem sessão ativa</strong>
+            <span>Conecte a sessão para carregar os apontamentos do mês.</span>
+          </div>
+        ) : (
+          <div className="ts-grid" role="table">
+            <div className="ts-grid-head" role="row">
+              <span>Data</span>
+              {FIELDS.map((f) => (
+                <span key={f.key}>{f.label}</span>
+              ))}
+              <span>Total</span>
+              <span>Saldo</span>
+              <span>Status</span>
+              <span>Comentário</span>
+              <span>Ação</span>
+            </div>
+
+            {rows.map((r, i) => {
+              const isWeekend = r.weekday === 0 || r.weekday === 6;
+              const isHoliday = (r.status ?? '').toLowerCase().includes('feriado');
+              const isToday = r.date === today;
+              const worked = workedMinutes(r);
+              const expected = hoursPerDayMin;
+              const diff = worked > 0 ? worked - expected : 0;
+              const totalLabel = worked > 0 ? formatMinutes(worked) : '00:00';
+              const diffLabel = worked > 0 ? formatMinutes(diff, true) : '00:00';
+              const diffClass =
+                worked === 0
+                  ? ''
+                  : diff > 0
+                  ? 'diff-pos'
+                  : diff < 0
+                  ? 'diff-neg'
+                  : 'diff-zero';
+
+              return (
+                <div
+                  className={`ts-grid-row ${isWeekend ? 'weekend' : ''} ${
+                    isHoliday ? 'holiday' : ''
+                  } ${
+                    isToday ? 'today' : ''
+                  } ${r.saved ? 'saved' : ''} ${r.failed ? 'failed' : ''}`}
+                  key={r.date}
+                  role="row"
+                >
+                  <div className="date-cell">
+                    <strong>{r.date.slice(8, 10)}/{r.date.slice(5, 7)}</strong>
+                    <span>{WEEKDAY_SHORT_PT[r.weekday]}</span>
+                  </div>
+                  {FIELDS.map((f) => (
+                    <label className="time-cell" key={f.key}>
+                      <span className="mobile-label">{f.label}</span>
+                      <input
+                        type="time"
+                        disabled={false}
+                        value={r[f.key]}
+                        aria-label={`${f.label} ${r.date}`}
+                        onChange={(e) =>
+                          updateRow(i, { [f.key]: e.target.value } as Partial<RowState>)
+                        }
+                      />
+                    </label>
+                  ))}
+                  <div className="metric-cell">
+                    <span className="mobile-label">Total</span>
+                    <strong className="mono">{totalLabel}</strong>
+                  </div>
+                  <div className="metric-cell">
+                    <span className="mobile-label">Saldo</span>
+                    <strong className={`mono ${diffClass}`}>{diffLabel}</strong>
+                  </div>
+                  <div className="status-cell">
+                    <span className="mobile-label">Status</span>
+                    {r.status || (isToday ? 'Hoje' : '-')}
+                  </div>
+                  <label className="comment-cell">
+                    <span className="mobile-label">Comentário</span>
+                    <input
+                      type="text"
+                      disabled={false}
+                      placeholder="Observação"
+                      value={r.comentario ?? ''}
+                      onChange={(e) => updateRow(i, { comentario: e.target.value })}
+                    />
+                  </label>
+                  <div className="row-action">
+                    <span className="mobile-label">Ação</span>
+                    <button
+                      disabled={busy || !ready || r.saving}
+                      onClick={() => lancar(i)}
+                      title={r.errMsg ?? ''}
+                    >
+                      {r.saving ? 'Salvando' : 'Lançar'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {showBatchModal && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-labelledby="batch-modal-title"
+            aria-modal="true"
+            className="modal-card"
+            role="dialog"
+          >
+            <div className="modal-head">
+              <div>
+                <p className="eyebrow">Confirmação</p>
+                <h2 id="batch-modal-title">Lançar mês</h2>
+              </div>
+              <button
+                className="secondary compact"
+                onClick={() => setShowBatchModal(false)}
+              >
+                Fechar
+              </button>
+            </div>
+            <p className="modal-copy">
+              O app vai lançar {batchRows.length} dia(s) preenchido(s) em{' '}
+              {MONTHS_PT[month - 1]} de {year}. Confira antes de confirmar.
+            </p>
+            <div className="batch-preview">
+              {batchRows.map(({ row, worked }) => {
+                const filled = FIELDS.map((f) => ({
+                  label: f.label,
+                  value: row[f.key],
+                })).filter((f) => f.value);
+                return (
+                  <div className="batch-preview-row" key={row.date}>
+                    <strong>
+                      {row.date.slice(8, 10)}/{row.date.slice(5, 7)}
+                    </strong>
+                    <span>{filled.map((f) => `${f.label}: ${f.value}`).join(' · ') || 'Sem horários'}</span>
+                    <span>Total: {worked > 0 ? formatMinutes(worked) : '00:00'}</span>
+                    {row.comentario && <span>Comentário: {row.comentario}</span>}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="modal-actions">
+              <button className="secondary" onClick={() => setShowBatchModal(false)}>
+                Cancelar
+              </button>
+              <button className="warm" disabled={busy} onClick={confirmLancarMes}>
+                Confirmar lançamento
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`toast ${toast.kind}`} role={toast.kind === 'err' ? 'alert' : 'status'}>
+          <span className="toast__icon" aria-hidden="true">
+            {toast.kind === 'ok' ? '✓' : '!'}
+          </span>
+          <span className="toast__body">
+            <strong>{toast.title ?? (toast.kind === 'ok' ? 'Tudo certo' : 'Atenção')}</strong>
+            <span>{toast.msg}</span>
+          </span>
+        </div>
+      )}
     </div>
   );
 }

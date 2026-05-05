@@ -34,16 +34,15 @@ async function run(
 ): Promise<SessionStatus> {
   const client = BeeforClient.instance();
   const before = getCurrentStatus();
-  const phase: SessionStatus =
-    opts.announceReconnect && before === 'connected' ? 'reconnecting' : 'loading';
-  emitStatus(win, phase);
 
-  // Trust the cached "connected" status — the watchdog and per-action
-  // failures will demote it back. Avoids hammering page.goto on every action.
+  // Trust cached "connected" — skip work + don't emit so UI stays enabled.
   if (before === 'connected') {
     return 'connected';
   }
-  void before; // referenced above
+
+  // Reached only when before !== 'connected' — ignore announceReconnect.
+  void opts;
+  emitStatus(win, 'loading');
 
   try {
     return await withPageLock(async () => {

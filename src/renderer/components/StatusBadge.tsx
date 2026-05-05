@@ -2,8 +2,8 @@ import type { SessionStatus } from '../../shared/types';
 
 const labels: Record<SessionStatus, string> = {
   idle: 'Inicializando',
-  loading: 'Conectando…',
-  reconnecting: 'Reconectando…',
+  loading: 'Conectando...',
+  reconnecting: 'Reconectando...',
   connected: 'Conectado',
   disconnected: 'Desconectado',
   expired: 'Sessão expirada',

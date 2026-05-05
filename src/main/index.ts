@@ -12,6 +12,10 @@ const getWindow = () => mainWindow;
 
 async function bootstrap() {
   await app.whenReady();
+  app.setName('Beefor Dev');
+  if (process.platform === 'win32') {
+    app.setAppUserModelId('io.beefor.dev');
+  }
 
   mainWindow = createMainWindow();
   bindLoggerWindow(mainWindow);

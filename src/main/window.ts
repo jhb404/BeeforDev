@@ -3,14 +3,17 @@ import path from 'node:path';
 
 export function createMainWindow(): BrowserWindow {
   const isDev = process.env.NODE_ENV === 'development';
+  const iconPath = path.join(__dirname, '../../build/icon.png');
 
   const win = new BrowserWindow({
-    width: 1100,
+    title: 'Beefor Dev',
+    width: 960,
     height: 760,
     minWidth: 720,
     minHeight: 520,
-    backgroundColor: '#0f0a1f',
+    backgroundColor: '#0a0d12',
     autoHideMenuBar: true,
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

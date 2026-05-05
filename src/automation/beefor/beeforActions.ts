@@ -100,7 +100,7 @@ export async function performLogin(
   const ok = await waitForLoggedIn(page, NAV_TIMEOUT_MS);
   if (!ok) {
     throw new Error(
-      'Login não confirmado. Verifique credenciais ou se há MFA/CAPTCHA — faça login manualmente uma vez.',
+      'Login não confirmado. Verifique credenciais ou se há MFA/CAPTCHA - faça login manualmente uma vez.',
     );
   }
   logger.info('Login confirmed');
@@ -148,7 +148,10 @@ export async function doVerifySession(page: Page): Promise<boolean> {
 
 export async function doAutoLancamento(page: Page): Promise<void> {
   logger.info('Triggering Auto lançamento');
-  await ensureOnApp(page);
+  await navigateTimesheet(page);
+  if (!(await isLoggedIn(page, 3000))) {
+    throw new Error('Sessão expirada. Reabra o app.');
+  }
 
   // prefer text-based locator scoped to component
   const componentScope = page.locator(Selectors.autoLancamento.component).first();
@@ -178,24 +181,28 @@ export async function doAutoLancamento(page: Page): Promise<void> {
 
 export async function doSelectMood(page: Page, mood: Mood): Promise<void> {
   logger.info(`Selecting mood: ${mood}`);
-  await ensureOnApp(page);
+  await ensureMoodVisible(page);
 
   const primary = page.locator(Selectors.mood.toggleByText(mood)).first();
   if (await isMoodSelected(primary)) {
-    logger.info(`Mood "${mood}" already selected — skipping click`);
+    logger.info(`Mood "${mood}" already selected - skipping click`);
     return;
   }
   try {
     await primary.click({ timeout: 8000 });
-    logger.info('Mood selected (primary selector)');
-    return;
+    await page.waitForTimeout(350);
+    if (await isMoodSelected(primary)) {
+      logger.info('Mood selected (primary selector)');
+      return;
+    }
+    logger.warn('Primary mood click completed but toggle did not become active');
   } catch {
     logger.warn('Primary mood selector failed, trying fallback');
   }
 
   const fallback = page.locator(Selectors.mood.fallbackButtonByText(mood)).first();
   if (await isMoodSelected(fallback)) {
-    logger.info(`Mood "${mood}" already selected (fallback) — skipping click`);
+    logger.info(`Mood "${mood}" already selected (fallback) - skipping click`);
     return;
   }
   await fallback.click({ timeout: DEFAULT_TIMEOUT_MS });
@@ -242,6 +249,17 @@ const MONTHS_PT = [
   'Novembro',
   'Dezembro',
 ];
+
+const TIME_KEYS = ['entrada', 'int1', 'ret1', 'int2', 'ret2', 'saida'] as const;
+type TimeKey = (typeof TIME_KEYS)[number];
+type PersistedRowValues = Record<TimeKey | 'comentario', string>;
+
+interface SavePayloads {
+  main: unknown | null;
+  comment: unknown | null;
+}
+
+const timesheetMonthCache = new Map<string, any>();
 
 /** Open mat-select then pick option by visible text. No-op if already selected. */
 async function pickMatSelect(
@@ -322,6 +340,18 @@ export async function doFetchTimesheet(
   month: number,
 ): Promise<FetchedRow[]> {
   logger.info(`Fetch timesheet: ${month}/${year}`);
+  try {
+    const rows = await doFetchTimesheetViaApi(page, year, month);
+    logger.info(`Timesheet API: leitura de ${rows.length} dia(s) ${month}/${year}`);
+    return rows;
+  } catch (err) {
+    logger.warn(
+      `Fetch timesheet via API rápida falhou; tentando pela UI: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    );
+  }
+
   await navigateTimesheet(page);
   if (!(await isLoggedIn(page, 3000))) {
     throw new Error('Sessão expirada na tela de Lançamentos. Reabra o app.');
@@ -400,29 +430,178 @@ export async function doFetchTimesheet(
   return out;
 }
 
+async function doFetchTimesheetViaApi(
+  page: Page,
+  year: number,
+  month: number,
+): Promise<FetchedRow[]> {
+  const payload = await fetchMonthPayloadViaApi(page, year, month);
+  return parseFetchedRowsFromApi(payload);
+}
+
+async function fetchMonthPayloadViaApi(
+  page: Page,
+  year: number,
+  month: number,
+): Promise<any> {
+  await ensureBeeforOrigin(page);
+  const payload = await page.evaluate(
+    async ({ year, month }) => {
+      const endpoint =
+        'https://apiteams.goobee.com.br/timesheet-beefor/api/apontamento';
+      const storage = (globalThis as any).localStorage;
+      const user = JSON.parse(storage.getItem('user1') || '{}');
+      if (!user?.token) {
+        throw new Error('Token do Beefor não encontrado no localStorage.');
+      }
+      const response = await fetch(`${endpoint}/${year}/${month}`, {
+        headers: {
+          accept: 'application/json, text/plain, */*',
+          authorization: `Bearer ${user.token}`,
+        },
+      });
+      const text = await response.text();
+      if (!response.ok) {
+        throw new Error(`GET apontamento ${response.status}: ${text.slice(0, 300)}`);
+      }
+      return JSON.parse(text);
+    },
+    { year, month },
+  );
+  cacheMonthPayload(year, month, payload);
+  return payload;
+}
+
+async function ensureBeeforOrigin(page: Page): Promise<void> {
+  if (page.url().startsWith(BEEFOR_URL)) return;
+  await page.goto(BEEFOR_URL, {
+    waitUntil: 'domcontentloaded',
+    timeout: NAV_TIMEOUT_MS,
+  });
+}
+
+function parseFetchedRowsFromApi(payload: unknown): FetchedRow[] {
+  const root = asRecord(payload);
+  const days = Array.isArray(root?.diasLancamento) ? root.diasLancamento : [];
+  const rows: FetchedRow[] = [];
+
+  for (const rawDay of days) {
+    const day = asRecord(rawDay);
+    if (!day) continue;
+    const dia = Number(day.dia);
+    const mes = Number(day.mes);
+    const ano = Number(day.ano);
+    if (!dia || !mes || !ano) continue;
+
+    const apontamentos = Array.isArray(day.apontamentos) ? day.apontamentos : [];
+    const vals = TIME_KEYS.map((_, index) => {
+      const item =
+        apontamentos.map(asRecord).find((ap) => ap?.index === index) ??
+        asRecord(apontamentos[index]);
+      return typeof item?.valor === 'string' ? item.valor : '';
+    });
+
+    rows.push({
+      date: `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`,
+      entrada: vals[0],
+      int1: vals[1],
+      ret1: vals[2],
+      int2: vals[3],
+      ret2: vals[4],
+      saida: vals[5],
+      total:
+        typeof day.totalFormatado === 'string'
+          ? day.totalFormatado.replace(/[^\d:]/g, '') || '00:00'
+          : '00:00',
+      comentario: typeof day.comentario === 'string' ? day.comentario : '',
+      status:
+        typeof day.situacaoFormatada === 'string'
+          ? day.situacaoFormatada
+          : day.feriado
+          ? 'Feriado'
+          : '',
+      editable: true,
+    });
+  }
+
+  return rows;
+}
+
+function monthCacheKey(year: number, month: number): string {
+  return `${year}-${month}`;
+}
+
+function cacheMonthPayload(year: number, month: number, payload: any): void {
+  timesheetMonthCache.set(monthCacheKey(year, month), payload);
+}
+
+function getCachedDayPayload(year: number, month: number, day: number): any | null {
+  const payload = timesheetMonthCache.get(monthCacheKey(year, month));
+  const days = Array.isArray(payload?.diasLancamento) ? payload.diasLancamento : [];
+  return (
+    days.find(
+      (item: any) => item?.dia === day && item?.mes === month && item?.ano === year,
+    ) ?? null
+  );
+}
+
+function replaceCachedDayPayload(
+  year: number,
+  month: number,
+  day: number,
+  savedDay: any,
+): void {
+  const payload = timesheetMonthCache.get(monthCacheKey(year, month));
+  const days = Array.isArray(payload?.diasLancamento) ? payload.diasLancamento : null;
+  if (!days) return;
+  const index = days.findIndex(
+    (item: any) => item?.dia === day && item?.mes === month && item?.ano === year,
+  );
+  if (index >= 0) days[index] = savedDay;
+}
+
 export async function doGetCurrentMood(page: Page): Promise<string | null> {
-  await ensureOnApp(page);
+  logger.info('Get current mood: start');
+  await ensureMoodVisible(page);
 
   const toggles = page.locator(Selectors.mood.allToggles);
   const n = await toggles.count();
+  logger.info(`Get current mood: ${n} toggle(s) found`);
   if (n === 0) return null;
 
-  for (let i = 0; i < n; i++) {
-    const t = toggles.nth(i);
-    if (await isToggleActive(t)) {
-      // try svgicon → mood mapping (most reliable)
-      const svgIcon = await t
-        .locator('mat-icon')
-        .first()
-        .getAttribute('svgicon')
-        .catch(() => null);
-      if (svgIcon && Selectors.mood.svgIconToMood[svgIcon]) {
-        return Selectors.mood.svgIconToMood[svgIcon];
+  const deadline = Date.now() + 3_500;
+  while (Date.now() < deadline) {
+    for (let i = 0; i < n; i++) {
+      const t = toggles.nth(i);
+      const cls = (await t.getAttribute('class').catch(() => '')) ?? '';
+      const active = await isToggleActive(t);
+      logger.debug(`mood toggle[${i}] class="${cls}" active=${active}`);
+      if (!active) continue;
+
+      const resolved = await getMoodFromToggle(t);
+      if (resolved) {
+        logger.info(`Current mood: ${resolved}`);
+        return resolved;
       }
-      const label = (await t.innerText().catch(() => '')).trim();
-      return label || null;
+    }
+    await page.waitForTimeout(250);
+  }
+
+  const group = page.locator(Selectors.mood.toggleGroup).first();
+  const groupAttrs = await Promise.all([
+    group.getAttribute('ng-reflect-value').catch(() => null),
+    group.getAttribute('ng-reflect-model').catch(() => null),
+    group.getAttribute('aria-label').catch(() => null),
+  ]);
+  for (const raw of groupAttrs) {
+    const resolved = canonicalMood(raw);
+    if (resolved) {
+      logger.info(`Current mood (group attr): ${resolved}`);
+      return resolved;
     }
   }
+
+  logger.info('Get current mood: no active toggle');
   return null;
 }
 
@@ -436,13 +615,87 @@ async function isToggleActive(loc: Locator): Promise<boolean> {
       if (re.test(cls)) return true;
     }
     const inner = loc.locator('button.mat-button-toggle-button').first();
+    const hostChecked = await loc
+      .getAttribute('aria-checked')
+      .catch(() => null);
+    if (hostChecked === 'true') return true;
+
+    const hostPressed = await loc
+      .getAttribute('aria-pressed')
+      .catch(() => null);
+    if (hostPressed === 'true') return true;
+
     const pressed = await inner
       .getAttribute('aria-pressed')
       .catch(() => null);
-    return pressed === 'true';
+    if (pressed === 'true') return true;
+
+    const innerChecked = await inner
+      .getAttribute('aria-checked')
+      .catch(() => null);
+    if (innerChecked === 'true') return true;
+
+    const innerClass = (await inner.getAttribute('class').catch(() => '')) ?? '';
+    if (/(?:^|\s)mat-button-toggle-checked(?:\s|$)/.test(innerClass)) return true;
+
+    return (await loc.locator('input:checked').count().catch(() => 0)) > 0;
   } catch {
     return false;
   }
+}
+
+async function getMoodFromToggle(loc: Locator): Promise<Mood | null> {
+  const svgIcon = await loc
+    .locator('mat-icon')
+    .first()
+    .getAttribute('svgicon')
+    .catch(() => null);
+  if (svgIcon && Selectors.mood.svgIconToMood[svgIcon]) {
+    return Selectors.mood.svgIconToMood[svgIcon] as Mood;
+  }
+
+  const button = loc.locator('button.mat-button-toggle-button').first();
+  const candidates = await Promise.all([
+    loc.innerText().catch(() => ''),
+    loc.getAttribute('aria-label').catch(() => null),
+    loc.getAttribute('title').catch(() => null),
+    button.innerText().catch(() => ''),
+    button.getAttribute('aria-label').catch(() => null),
+    button.getAttribute('title').catch(() => null),
+  ]);
+
+  for (const raw of candidates) {
+    const resolved = canonicalMood(raw);
+    if (resolved) return resolved;
+  }
+  return null;
+}
+
+function canonicalMood(raw: string | null | undefined): Mood | null {
+  const normalized = normalizeUiText(raw);
+  if (!normalized) return null;
+
+  const allMoods = Object.keys(Selectors.mood.activeClassByMood) as Mood[];
+  for (const mood of allMoods) {
+    if (normalizeUiText(mood) === normalized) return mood;
+  }
+
+  if (normalized.includes('feliz')) return 'Dia feliz';
+  if (normalized.includes('nao tao bom') || normalized.includes('nao_tao_bom')) {
+    return allMoods.find((m) => normalizeUiText(m).includes('nao')) ?? null;
+  }
+  if (normalized.includes('dia bom') || normalized === 'bom') return 'Dia bom';
+  if (normalized.includes('triste')) return 'Dia triste';
+  return null;
+}
+
+function normalizeUiText(raw: string | null | undefined): string {
+  return (raw ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
 }
 
 export async function doLancarHora(
@@ -450,11 +703,22 @@ export async function doLancarHora(
   entry: TimesheetEntry,
 ): Promise<void> {
   logger.info(`Lançar hora: ${entry.date}`);
+  try {
+    await doLancarHoraViaApi(page, entry);
+    logger.info(`Lançamento salvo via API rápida: ${formatDateLabel(entry.date)}`);
+    return;
+  } catch (err) {
+    logger.warn(
+      `Lançamento via API rápida falhou; tentando pela UI: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    );
+  }
+
   await navigateTimesheet(page);
   if (!(await isLoggedIn(page, 3000))) {
     throw new Error('Sessão expirada. Reabra o app.');
   }
-  await navigateTimesheet(page);
 
   // entry.date = yyyy-mm-dd
   const [y, m, d] = entry.date.split('-').map(Number);
@@ -476,8 +740,8 @@ export async function doLancarHora(
   await row.waitFor({ state: 'visible', timeout: DEFAULT_TIMEOUT_MS });
 
   const inputs = row.locator(Selectors.timesheet.rowTimeInputs);
-  const expected = ['entrada', 'int1', 'ret1', 'int2', 'ret2', 'saida'] as const;
-  const values: Record<(typeof expected)[number], string> = {
+  const expected = TIME_KEYS;
+  const values: Record<TimeKey, string> = {
     entrada: entry.entrada,
     int1: entry.int1,
     ret1: entry.ret1,
@@ -493,44 +757,458 @@ export async function doLancarHora(
     );
   }
 
+  const before = await readTimesheetRowValues(row);
   for (let i = 0; i < 6; i++) {
-    const v = values[expected[i]];
-    const input = inputs.nth(i);
-    if (await input.isDisabled().catch(() => false)) {
-      if (v) {
-        logger.warn(`Campo ${expected[i]} desabilitado em ${dateLabel} — pulando`);
-      }
+    const key = expected[i];
+    const v = values[key];
+    if (normalizeTimeForCompare(before[key]) === normalizeTimeForCompare(v)) {
       continue;
     }
-    await input.fill(v ?? '');
+    const input = inputs.nth(i);
+    if (await input.isDisabled().catch(() => false)) {
+      throw new Error(`Campo ${key} está desabilitado no Beefor em ${dateLabel}.`);
+    }
+    await setTimeInputValue(input, v ?? '');
   }
 
+  const commentChanged =
+    entry.comentario !== undefined &&
+    (before.comentario ?? '').trim() !== entry.comentario.trim();
   if (entry.comentario !== undefined) {
     const cmt = row.locator(Selectors.timesheet.rowCommentInput).first();
     if (await cmt.count()) {
-      await cmt.fill(entry.comentario);
+      await setTextInputValue(cmt, entry.comentario);
     }
   }
 
   // click save (floppy)
   const save = row.locator(Selectors.timesheet.rowSaveButton).first();
-  if (!(await save.count())) {
+  if (!(await save.isVisible({ timeout: 2500 }).catch(() => false))) {
+    const current = await readTimesheetRowValues(row);
+    const alreadyMatches = expected.every(
+      (key) => normalizeTimeForCompare(current[key]) === normalizeTimeForCompare(values[key]),
+    );
+    const commentMatches =
+      entry.comentario === undefined ||
+      (current.comentario ?? '').trim() === entry.comentario.trim();
+    if (alreadyMatches && commentMatches) {
+      logger.info(`Linha de ${dateLabel} já estava com os valores informados`);
+      return;
+    }
+
     throw new Error(
       `Botão salvar não encontrado em ${dateLabel}. Confirme se a linha está editável.`,
     );
   }
+  const saveResponse = waitForSaveResponses(page, commentChanged);
   await save.click();
+  const payloads = await saveResponse;
+  const payloadValues = extractSavedValues(payloads.main);
+  const payloadComment = extractSavedValues(payloads.comment)?.comentario;
+  if (payloadValues && payloadComment !== undefined) {
+    payloadValues.comentario = payloadComment;
+  }
+  const hasCompletePayload =
+    payloadValues &&
+    expected.every((key) => payloadValues[key] !== undefined) &&
+    (entry.comentario === undefined || payloadValues.comentario !== undefined);
+  const persisted = hasCompletePayload
+    ? (payloadValues as PersistedRowValues)
+    : await readPersistedTimesheetRow(page, y, m, dateLabel);
+  if (!hasCompletePayload) {
+    logger.warn('Salvar lançamento: payload incompleto; conferência feita via reload');
+  }
+  const mismatches: string[] = expected.filter(
+    (key) => normalizeTimeForCompare(persisted[key]) !== normalizeTimeForCompare(values[key]),
+  );
+  if (
+    entry.comentario !== undefined &&
+    (persisted.comentario ?? '').trim() !== entry.comentario.trim()
+  ) {
+    mismatches.push('comentario');
+  }
+
+  if (mismatches.length) {
+    throw new Error(
+      `Beefor não persistiu ${mismatches.join(', ')} em ${dateLabel}. ` +
+        'Os campos foram preenchidos, mas a leitura após salvar voltou diferente.',
+    );
+  }
   logger.info(`Lançamento salvo: ${dateLabel}`);
 }
 
-async function ensureOnApp(page: Page): Promise<void> {
-  if (!page.url().startsWith(BEEFOR_URL)) {
-    await page.goto(BEEFOR_URL, {
-      waitUntil: 'domcontentloaded',
-      timeout: NAV_TIMEOUT_MS,
+async function doLancarHoraViaApi(
+  page: Page,
+  entry: TimesheetEntry,
+): Promise<void> {
+  const [y, m, d] = entry.date.split('-').map(Number);
+  if (!y || !m || !d) throw new Error(`Data inválida: ${entry.date}`);
+
+  await ensureBeeforOrigin(page);
+
+  const cachedRow = getCachedDayPayload(y, m, d);
+  const apiResult = await page.evaluate(
+    async ({ year, month, day, values, comentario, cachedRow }) => {
+      const endpoint =
+        'https://apiteams.goobee.com.br/timesheet-beefor/api/apontamento';
+      const storage = (globalThis as any).localStorage;
+      const user = JSON.parse(storage.getItem('user1') || '{}');
+      if (!user?.token) {
+        throw new Error('Token do Beefor não encontrado no localStorage.');
+      }
+      const authHeaders = {
+        accept: 'application/json, text/plain, */*',
+        authorization: `Bearer ${user.token}`,
+      };
+      let monthData = null;
+      let row = cachedRow ? JSON.parse(JSON.stringify(cachedRow)) : null;
+      if (!row) {
+        const monthResponse = await fetch(`${endpoint}/${year}/${month}`, {
+          headers: authHeaders,
+        });
+        const monthText = await monthResponse.text();
+        if (!monthResponse.ok) {
+          throw new Error(`GET apontamento ${monthResponse.status}: ${monthText.slice(0, 300)}`);
+        }
+
+        monthData = JSON.parse(monthText);
+        row = monthData?.diasLancamento?.find(
+          (item: any) => item?.dia === day && item?.mes === month && item?.ano === year,
+        );
+      }
+      if (!row) throw new Error(`Dia ${day}/${month}/${year} não encontrado no apontamento.`);
+      if (!Array.isArray(row.apontamentos) || row.apontamentos.length < 6) {
+        throw new Error('Payload do Beefor sem os 6 apontamentos esperados.');
+      }
+
+      const keys = ['entrada', 'int1', 'ret1', 'int2', 'ret2', 'saida'] as const;
+      keys.forEach((key, index) => {
+        const apontamento =
+          row.apontamentos.find((item: any) => item?.index === index) ??
+          row.apontamentos[index];
+        if (!apontamento) return;
+        const next = values[key] || null;
+        if ((apontamento.valor ?? null) !== next) {
+          apontamento.valor = next;
+          apontamento.manual = !!next;
+        }
+      });
+
+      if (comentario !== undefined) {
+        row.comentario = comentario;
+      }
+
+      const saveResponse = await fetch(endpoint, {
+        method: 'POST',
+        headers: { ...authHeaders, 'content-type': 'application/json' },
+        body: JSON.stringify(row),
+      });
+      const saveText = await saveResponse.text();
+      if (!saveResponse.ok) {
+        throw new Error(`POST apontamento ${saveResponse.status}: ${saveText.slice(0, 300)}`);
+      }
+      const saved = JSON.parse(saveText);
+      let commentSaved = null;
+      if (comentario !== undefined) {
+        const commentPayload = { ...saved, comentario };
+        const commentResponse = await fetch(`${endpoint}/comentario`, {
+          method: 'POST',
+          headers: { ...authHeaders, 'content-type': 'application/json' },
+          body: JSON.stringify(commentPayload),
+        });
+        const commentText = await commentResponse.text();
+        if (!commentResponse.ok) {
+          throw new Error(
+            `POST apontamento/comentario ${commentResponse.status}: ${commentText.slice(0, 300)}`,
+          );
+        }
+        if (commentText) {
+          try {
+            commentSaved = JSON.parse(commentText);
+          } catch {
+            commentSaved = commentText;
+          }
+        }
+      }
+
+      return { saved, commentSaved, monthData };
+    },
+    {
+      year: y,
+      month: m,
+      day: d,
+      values: {
+        entrada: entry.entrada,
+        int1: entry.int1,
+        ret1: entry.ret1,
+        int2: entry.int2,
+        ret2: entry.ret2,
+        saida: entry.saida,
+      },
+      comentario: entry.comentario,
+      cachedRow,
+    },
+  );
+  if (apiResult.monthData) cacheMonthPayload(y, m, apiResult.monthData);
+  const savedDay =
+    extractDayPayload(apiResult.commentSaved) ??
+    extractDayPayload(apiResult.saved) ??
+    asRecord(apiResult.saved);
+  const persisted = extractSavedValues(savedDay ?? apiResult.saved);
+  const expected: Record<TimeKey, string> = {
+    entrada: entry.entrada,
+    int1: entry.int1,
+    ret1: entry.ret1,
+    int2: entry.int2,
+    ret2: entry.ret2,
+    saida: entry.saida,
+  };
+  const mismatches: string[] = TIME_KEYS.filter(
+    (key) => normalizeTimeForCompare(persisted?.[key]) !== normalizeTimeForCompare(expected[key]),
+  );
+  if (
+    entry.comentario !== undefined &&
+    (persisted?.comentario ?? '').trim() !== entry.comentario.trim()
+  ) {
+    mismatches.push('comentario');
+  }
+
+  if (mismatches.length) {
+    throw new Error(`API rápida não confirmou ${mismatches.join(', ')}.`);
+  }
+
+  replaceCachedDayPayload(y, m, d, savedDay ?? apiResult.saved);
+}
+
+async function setTextInputValue(input: Locator, value: string): Promise<void> {
+  await input.waitFor({ state: 'visible', timeout: DEFAULT_TIMEOUT_MS });
+  await input.scrollIntoViewIfNeeded().catch(() => {});
+  await input.click({ timeout: DEFAULT_TIMEOUT_MS, force: true });
+  await input.press(process.platform === 'darwin' ? 'Meta+A' : 'Control+A');
+  if (value) {
+    await input.pressSequentially(value, { delay: 8 });
+  } else {
+    await input.press('Backspace');
+  }
+  await input.blur().catch(() => {});
+
+  const actual = await input.inputValue().catch(() => '');
+  if (actual.trim() !== value.trim()) {
+    throw new Error(
+      `Falha ao preencher comentário: esperado "${value}", ficou "${actual}".`,
+    );
+  }
+}
+
+async function setTimeInputValue(input: Locator, value: string): Promise<void> {
+  await input.waitFor({ state: 'visible', timeout: DEFAULT_TIMEOUT_MS });
+  await input.scrollIntoViewIfNeeded().catch(() => {});
+
+  // Beefor's Angular model only updates reliably when the native time input
+  // receives real keyboard events. `fill()` changes the DOM but leaves
+  // `apontamentos[index].valor` null for some fields (ex.: Ret. 1).
+  await input.click({ timeout: DEFAULT_TIMEOUT_MS, force: true });
+  await input.press(process.platform === 'darwin' ? 'Meta+A' : 'Control+A');
+  if (value) {
+    const typedValue = value.replace(/\D/g, '');
+    if (typedValue.length !== 4) {
+      throw new Error(`Horário inválido: ${value}`);
+    }
+    await input.pressSequentially(typedValue, { delay: 25 });
+  } else {
+    await input.press('Backspace');
+  }
+  await input.blur().catch(() => {});
+
+  const actual = await input.inputValue().catch(() => '');
+  if (normalizeTimeForCompare(actual) !== normalizeTimeForCompare(value)) {
+    throw new Error(`Falha ao preencher horário: esperado ${value || '(vazio)'}, ficou ${actual || '(vazio)'}.`);
+  }
+}
+
+async function waitForSaveResponses(
+  page: Page,
+  expectCommentResponse: boolean,
+): Promise<SavePayloads> {
+  const main = waitForSaveEndpoint(page, '/timesheet-beefor/api/apontamento');
+  let comment: Promise<unknown | null> = Promise.resolve(null);
+  if (expectCommentResponse) {
+    comment = waitForSaveEndpoint(
+      page,
+      '/timesheet-beefor/api/apontamento/comentario',
+    );
+  }
+  const [mainPayload, commentPayload] = await Promise.all([main, comment]);
+  return { main: mainPayload, comment: commentPayload };
+}
+
+async function waitForSaveEndpoint(
+  page: Page,
+  endpointPath: string,
+): Promise<unknown | null> {
+  const response = await page
+    .waitForResponse(
+      (response) => {
+        const method = response.request().method();
+        const pathname = new URL(response.url()).pathname;
+        return ['POST', 'PUT', 'PATCH'].includes(method) && pathname === endpointPath;
+      },
+      { timeout: 15_000 },
+    )
+    .catch(() => {
+      logger.warn(
+        `Salvar lançamento: nenhuma resposta HTTP detectada para ${endpointPath}`,
+      );
+      return null;
     });
+
+  if (!response) return null;
+
+  const body = await response.text().catch(() => '');
+  if (response.status() >= 400) {
+    throw new Error(
+      `Beefor recusou ${endpointPath} (${response.status()}): ${body.slice(0, 300)}`,
+    );
   }
+
+  if (!body) return null;
+  try {
+    return JSON.parse(body) as unknown;
+  } catch {
+    return body;
+  }
+}
+
+function extractSavedValues(payload: unknown): Partial<PersistedRowValues> | null {
+  const day = extractDayPayload(payload);
+  if (!day) return null;
+
+  const out: Partial<PersistedRowValues> = {};
+  if (typeof day.comentario === 'string') {
+    out.comentario = day.comentario;
+  }
+
+  const apontamentos = Array.isArray(day.apontamentos) ? day.apontamentos : [];
+  for (const raw of apontamentos) {
+    const item = asRecord(raw);
+    if (!item) continue;
+    const index = typeof item?.index === 'number' ? item.index : -1;
+    const key = TIME_KEYS[index];
+    if (!key) continue;
+    out[key] = typeof item.valor === 'string' ? item.valor : '';
+  }
+
+  return out;
+}
+
+function extractDayPayload(payload: unknown): Record<string, unknown> | null {
+  const root = asRecord(payload);
+  if (!root) return null;
+  if (Array.isArray(root.apontamentos)) return root;
+
+  const diaApontamento = asRecord(root.diaApontamento);
+  if (diaApontamento && Array.isArray(diaApontamento.apontamentos)) {
+    return diaApontamento;
+  }
+
+  const stateMachine = asRecord(root.stateMachine);
+  const stateDay = asRecord(stateMachine?.diaApontamento);
+  if (stateDay && Array.isArray(stateDay.apontamentos)) {
+    return stateDay;
+  }
+
+  return null;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object'
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+async function readPersistedTimesheetRow(
+  page: Page,
+  year: number,
+  month: number,
+  dateLabel: string,
+): Promise<PersistedRowValues> {
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS });
+  await navigateTimesheet(page);
+  await pickMatSelect(page, Selectors.timesheet.yearSelect, String(year));
+  await pickMatSelect(page, Selectors.timesheet.monthSelect, MONTHS_PT[month - 1]);
+
+  const row = page
+    .locator(Selectors.timesheet.dayRow)
+    .filter({ hasText: dateLabel })
+    .first();
+  await row.waitFor({ state: 'visible', timeout: DEFAULT_TIMEOUT_MS });
+  await page.waitForTimeout(500);
+
+  return readTimesheetRowValues(row);
+}
+
+function normalizeTimeForCompare(value: string | null | undefined): string {
+  return (value ?? '').trim();
+}
+
+function formatDateLabel(date: string): string {
+  const [yyyy, mm, dd] = date.split('-');
+  return yyyy && mm && dd ? `${dd}/${mm}/${yyyy}` : date;
+}
+
+async function readTimesheetRowValues(
+  row: Locator,
+): Promise<PersistedRowValues> {
+  const inputs = row.locator(Selectors.timesheet.rowTimeInputs);
+  const comentario = await row
+    .locator(Selectors.timesheet.rowCommentInput)
+    .first()
+    .inputValue()
+    .catch(() => '');
+
+  return {
+    entrada: await inputs.nth(0).inputValue().catch(() => ''),
+    int1: await inputs.nth(1).inputValue().catch(() => ''),
+    ret1: await inputs.nth(2).inputValue().catch(() => ''),
+    int2: await inputs.nth(3).inputValue().catch(() => ''),
+    ret2: await inputs.nth(4).inputValue().catch(() => ''),
+    saida: await inputs.nth(5).inputValue().catch(() => ''),
+    comentario,
+  };
+}
+
+/**
+ * Ensures the mood card (app-personal-mood-card) is rendered.
+ * Mood card lives on the dashboard root, NOT on the timesheet page.
+ */
+async function ensureMoodVisible(page: Page): Promise<void> {
+  const card = page.locator(Selectors.mood.component).first();
+  if (await card.isVisible({ timeout: 1500 }).catch(() => false)) {
+    await waitMoodHydrated(page);
+    return;
+  }
+
+  await page.goto(BEEFOR_URL, {
+    waitUntil: 'domcontentloaded',
+    timeout: NAV_TIMEOUT_MS,
+  });
   if (!(await isLoggedIn(page, 4000))) {
-    throw new Error('Sessão expirada. Faça login novamente.');
+    throw new Error('Sessão expirada. Reabra o app.');
   }
+  await card.waitFor({ state: 'visible', timeout: 10_000 });
+  await waitMoodHydrated(page);
+}
+
+/**
+ * Wait for the toggle group to actually have toggles inside (Angular hydration).
+ * Without this we may inspect class lists before Angular applies the active class.
+ */
+async function waitMoodHydrated(page: Page): Promise<void> {
+  await page
+    .locator(Selectors.mood.allToggles)
+    .first()
+    .waitFor({ state: 'visible', timeout: 6000 })
+    .catch(() => {});
+  // small settle so the active-state class is committed
+  await page.waitForTimeout(400);
 }

@@ -8,6 +8,11 @@ import { logger } from './logger';
 const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
   autoLoginOnLaunch: true,
+  automatePunch: false,
+  lunchAlarm: false,
+  moodNotification: false,
+  kudocardNotification: false,
+  adjustInitialLayout: true,
   hoursPerDay: 8,
   hourRate: 0,
 };

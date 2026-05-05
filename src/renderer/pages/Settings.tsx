@@ -8,6 +8,11 @@ export function Settings() {
   const [settings, setSettings] = useState<AppSettings>({
     autoStart: true,
     autoLoginOnLaunch: true,
+    automatePunch: false,
+    lunchAlarm: false,
+    moodNotification: false,
+    kudocardNotification: false,
+    adjustInitialLayout: true,
     hoursPerDay: 8,
     hourRate: 0,
   });
@@ -116,6 +121,58 @@ export function Settings() {
           />
           <label htmlFor="autologin">Restaurar sessão automaticamente ao abrir</label>
         </div>
+      </div>
+
+      <div className="card">
+        <h2>Automação e avisos</h2>
+        <div className="checkbox-row" style={{ marginBottom: 12 }}>
+          <input
+            id="automatePunch"
+            type="checkbox"
+            checked={settings.automatePunch}
+            onChange={(e) => updateSetting('automatePunch', e.target.checked)}
+          />
+          <label htmlFor="automatePunch">Automatizar batida de ponto</label>
+        </div>
+        <div className="checkbox-row" style={{ marginBottom: 12 }}>
+          <input
+            id="lunchAlarm"
+            type="checkbox"
+            checked={settings.lunchAlarm}
+            onChange={(e) => updateSetting('lunchAlarm', e.target.checked)}
+          />
+          <label htmlFor="lunchAlarm">Alarme de almoço</label>
+        </div>
+        <div className="checkbox-row" style={{ marginBottom: 12 }}>
+          <input
+            id="moodNotification"
+            type="checkbox"
+            checked={settings.moodNotification}
+            onChange={(e) => updateSetting('moodNotification', e.target.checked)}
+          />
+          <label htmlFor="moodNotification">Ativar notificação mood</label>
+        </div>
+        <div className="checkbox-row" style={{ marginBottom: 12 }}>
+          <input
+            id="kudocardNotification"
+            type="checkbox"
+            checked={settings.kudocardNotification}
+            onChange={(e) => updateSetting('kudocardNotification', e.target.checked)}
+          />
+          <label htmlFor="kudocardNotification">Ativar notificação kudocard</label>
+        </div>
+        <div className="checkbox-row">
+          <input
+            id="adjustInitialLayout"
+            type="checkbox"
+            checked={settings.adjustInitialLayout}
+            onChange={(e) => updateSetting('adjustInitialLayout', e.target.checked)}
+          />
+          <label htmlFor="adjustInitialLayout">Ajustar layout inicial</label>
+        </div>
+        <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '12px 0 0' }}>
+          Configurações preparadas para a próxima etapa de lógica.
+        </p>
       </div>
 
       <div className="card">

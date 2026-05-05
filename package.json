@@ -52,6 +52,7 @@
     },
     "files": [
       "dist/**/*",
+      "build/**/*",
       "package.json"
     ],
     "asar": true,
@@ -65,7 +66,8 @@
     },
     "mac": {
       "target": "dmg",
-      "category": "public.app-category.developer-tools"
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.png"
     },
     "nsis": {
       "oneClick": false,

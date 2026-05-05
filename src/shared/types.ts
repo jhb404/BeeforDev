@@ -24,6 +24,11 @@ export interface Credentials {
 export interface AppSettings {
   autoStart: boolean;
   autoLoginOnLaunch: boolean;
+  automatePunch: boolean;
+  lunchAlarm: boolean;
+  moodNotification: boolean;
+  kudocardNotification: boolean;
+  adjustInitialLayout: boolean;
   /** Hours per workday (e.g. 8). Used to compute diff vs total. */
   hoursPerDay: number;
   /** Hourly rate in BRL. Used for salary estimate. */
