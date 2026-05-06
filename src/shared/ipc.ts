@@ -20,6 +20,8 @@ export const IPC = {
   ACTION_LANCAR_HORA: 'action:lancarHora',
   ACTION_FETCH_TIMESHEET: 'action:fetchTimesheet',
   ACTION_GET_CURRENT_MOOD: 'action:getCurrentMood',
+  ACTION_SEND_KUDO_CARD: 'action:sendKudoCard',
+  ACTION_SEARCH_KUDO_RECIPIENT: 'action:searchKudoRecipient',
 
   // admin / system
   ADMIN_STATUS: 'admin:status',

@@ -6,10 +6,10 @@
   --accent: #7c5cbf;
   --accent-hover: #6a4daa;
   --accent-soft: rgba(124, 92, 191, 0.14);
-  --accent-2: #e6a817;
-  --accent-2-soft: rgba(230, 168, 23, 0.12);
-  --warm: #e6a817;
-  --warm-hover: #c98f10;
+  --accent-2: #ff9400;
+  --accent-2-soft: rgba(255, 148, 0, 0.12);
+  --warm: #ff9400;
+  --warm-hover: #e07f00;
   --text: #f0f4f8;
   --text-muted: #8a97a8;
   --ok: #27b899;
@@ -1989,4 +1989,186 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 .theme-color-wrap input[type="text"] {
   flex: 1;
+}
+
+.kudo-modal {
+  max-width: 600px;
+  width: min(600px, calc(100vw - 32px));
+}
+.kudo-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.kudo-card-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px 8px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.12s, border 0.12s, transform 0.08s;
+  min-height: 92px;
+}
+.kudo-card-pick:hover:not(:disabled) {
+  background: var(--bg-3);
+  transform: translateY(-1px);
+}
+.kudo-card-pick.active {
+  background: var(--accent-2-soft);
+  border-color: var(--warm);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--warm) inset;
+}
+.kudo-card-pick:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.kudo-card-emoji {
+  font-size: 26px;
+  line-height: 1;
+}
+.kudo-card-name {
+  font-weight: 500;
+}
+
+.kudo-segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+}
+.kudo-segmented button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 9px 12px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.kudo-segmented button:hover:not(:disabled):not(.active) {
+  background: var(--bg-3);
+  color: var(--text);
+}
+.kudo-segmented button.active {
+  background: var(--warm);
+  color: var(--button-text);
+  box-shadow: 0 1px 6px rgba(255, 148, 0, 0.3);
+}
+.kudo-segmented button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.kudo-seg-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.kudo-autocomplete {
+  position: relative;
+}
+.kudo-autocomplete input[type="text"] {
+  width: 100%;
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  font-size: 13px;
+}
+.kudo-autocomplete input[type="text"]:focus {
+  outline: none;
+  border-color: var(--warm);
+  box-shadow: 0 0 0 3px rgba(255, 148, 0, 0.18);
+}
+.kudo-suggest {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  max-height: 240px;
+  overflow-y: auto;
+}
+.kudo-suggest-empty {
+  padding: 10px 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.kudo-suggest-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.kudo-suggest-item:last-child {
+  border-bottom: none;
+}
+.kudo-suggest-item:hover {
+  background: var(--bg-3);
+}
+.kudo-suggest-item span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.kudo-modal textarea {
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  min-height: 88px;
+}
+.kudo-modal textarea:focus {
+  outline: none;
+  border-color: var(--warm);
+  box-shadow: 0 0 0 3px rgba(255, 148, 0, 0.18);
+}
+.kudo-err {
+  background: rgba(224, 84, 112, 0.1);
+  border: 1px solid var(--err-border);
+  color: var(--err);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+@media (max-width: 540px) {
+  .kudo-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

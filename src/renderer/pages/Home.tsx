@@ -11,6 +11,7 @@ import { useBeefor } from '../hooks/useBeefor';
 import { MoodPicker } from '../components/MoodPicker';
 import { MinimalView } from '../components/MinimalView';
 import { StatusBadge } from '../components/StatusBadge';
+import { KudoCardModal } from '../components/KudoCardModal';
 import { Bolt, Calendar, Clock, Heart, Trophy } from '../components/Icons';
 import {
   MONTHS_PT,
@@ -119,6 +120,7 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
   const [moodLoaded, setMoodLoaded] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
   const [showBatchModal, setShowBatchModal] = useState(false);
+  const [showKudoModal, setShowKudoModal] = useState(false);
 
   const fetchInFlight = useRef(false);
   const lastFetchKey = useRef<string>('');
@@ -408,13 +410,8 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
           </button>
           <button
             className="secondary compact"
-            onClick={() =>
-                showToast({
-                  kind: 'ok',
-                  title: 'KudoCard',
-                  msg: 'Botao pronto. Integracao do envio entra na proxima etapa.',
-                })
-              }
+            disabled={busy || !ready}
+            onClick={() => setShowKudoModal(true)}
           >
             Enviar KudoCard
           </button>
@@ -687,6 +684,17 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
           </section>
         </div>
       )}
+
+      <KudoCardModal
+        open={showKudoModal}
+        onClose={() => setShowKudoModal(false)}
+        onSent={(msg) =>
+          showToast({ kind: 'ok', title: 'KudoCard enviado', msg })
+        }
+        onError={(msg) =>
+          showToast({ kind: 'err', title: 'Falha ao enviar KudoCard', msg })
+        }
+      />
 
       {toast && (
         <div className={`toast ${toast.kind}`} role={toast.kind === 'err' ? 'alert' : 'status'}>

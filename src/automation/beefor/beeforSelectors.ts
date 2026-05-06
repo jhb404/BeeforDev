@@ -54,6 +54,26 @@ export const Selectors = {
     rowCommentInput: '.teste2 input[type="text"]',
   },
 
+  kudoCard: {
+    profileSection: 'app-card-kudo-card, [class*="kudo"]',
+    addButtonByIcon: 'button:has(mat-icon:has-text("add"))',
+    addButtonAria: [
+      'button[aria-label*="kudo" i]',
+      'button[aria-label*="adicionar" i]',
+    ],
+    dialog: 'mat-dialog-container, .mat-dialog-container, [role="dialog"]',
+    dialogTitleText: 'Enviar Kudo Card',
+    radioPerson: 'Enviar para uma pessoa',
+    radioTeam: 'Enviar para um time',
+    autocompleteInput:
+      'input[type="text"][role="combobox"], input[aria-autocomplete="list"], mat-form-field input[type="text"]',
+    autocompleteOption: '.cdk-overlay-container .mat-option, .mat-autocomplete-panel mat-option',
+    messageTextarea: 'textarea',
+    sendButtonText: 'Enviar',
+    closeButtonText: 'Fechar',
+    cardImageBySrc: (slug: string) => `img[src*="${slug}"]`,
+  },
+
   mood: {
     component: 'app-personal-mood-card',
     toggleGroup: 'mat-button-toggle-group.sentimento',

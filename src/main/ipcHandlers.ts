@@ -7,6 +7,7 @@ import type {
   AppSettings,
   Credentials,
   Mood,
+  SendKudoCardRequest,
   TimesheetEntry,
 } from '../shared/types';
 import { emitStatus, getCurrentStatus } from './statusBus';
@@ -34,6 +35,8 @@ import {
   doLancarHora,
   doFetchTimesheet,
   doGetCurrentMood,
+  doSendKudoCard,
+  doSearchKudoRecipient,
 } from '../automation/beefor/beeforActions';
 import { withPageLock } from '../automation/beefor/pageLock';
 import { ensureSessionForAction, forceReconnect } from './sessionGuard';
@@ -286,6 +289,67 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
       return fail(err);
     }
   });
+
+  ipcMain.handle(
+    IPC.ACTION_SEARCH_KUDO_RECIPIENT,
+    async (_e, type: 'person' | 'team', query: string) => {
+      const win = getWindow();
+      if (type !== 'person' && type !== 'team') {
+        return fail(new Error('Tipo inválido.'));
+      }
+      try {
+        await ensureSessionForAction(win);
+        const results = await withPageLock(async () => {
+          const page = await client.getPage();
+          return doSearchKudoRecipient(page, type, query ?? '');
+        });
+        return ok(results);
+      } catch (err) {
+        logger.warn(
+          `Search kudo recipient failed: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        return fail(err);
+      }
+    },
+  );
+
+  ipcMain.handle(
+    IPC.ACTION_SEND_KUDO_CARD,
+    async (_e, req: SendKudoCardRequest) => {
+      const win = getWindow();
+      if (!req || typeof req !== 'object') return fail(new Error('Payload inválido.'));
+      if (!req.recipientName?.trim()) return fail(new Error('Informe o destinatário.'));
+      if (!req.message?.trim()) return fail(new Error('Mensagem não pode ser vazia.'));
+      if (req.recipientType !== 'person' && req.recipientType !== 'team') {
+        return fail(new Error('Tipo de destinatário inválido.'));
+      }
+      try {
+        await ensureSessionForAction(win);
+        try {
+          const result = await withPageLock(async () => {
+            const page = await client.getPage();
+            return doSendKudoCard(page, req);
+          });
+          return ok(result);
+        } catch (actionErr) {
+          const msg = actionErr instanceof Error ? actionErr.message : String(actionErr);
+          if (/Sess|expirou|expirada/i.test(msg)) {
+            logger.warn('KudoCard: session stale, reconnecting and retrying');
+            await forceReconnect(win);
+            const result = await withPageLock(async () => {
+              const page = await client.getPage();
+              return doSendKudoCard(page, req);
+            });
+            return ok(result);
+          }
+          throw actionErr;
+        }
+      } catch (err) {
+        logger.error('Send KudoCard failed', err);
+        return fail(err);
+      }
+    },
+  );
 
   ipcMain.handle(IPC.ADMIN_STATUS, async () => ({
     elevated: isElevated(),

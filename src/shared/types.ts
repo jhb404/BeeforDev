@@ -122,3 +122,59 @@ export interface FetchedTimesheetRow extends TimesheetEntry {
   status: string;      // "Feriado", etc
   editable: boolean;
 }
+
+export type KudoCardRecipientType = 'person' | 'team';
+
+export const KUDO_CARD_TYPES = [
+  'Forca_Prancheta_1',
+  'Mestre_Prancheta_1',
+  'Maravilha_Prancheta_1',
+  'Incrivel_Prancheta_1',
+  'Imbativel_Prancheta_1',
+  'Super_Prancheta_1',
+  'Time_Prancheta_1',
+  'Parabens_Prancheta_1',
+] as const;
+
+export type KudoCardType = (typeof KUDO_CARD_TYPES)[number];
+
+export const KUDO_CARD_LABELS: Record<KudoCardType, string> = {
+  Forca_Prancheta_1: 'Obrigado pela força',
+  Mestre_Prancheta_1: 'Você é um mestre',
+  Maravilha_Prancheta_1: 'Você é uma maravilha',
+  Incrivel_Prancheta_1: 'Você é incrível',
+  Imbativel_Prancheta_1: 'Você é imbatível',
+  Super_Prancheta_1: 'Você é super',
+  Time_Prancheta_1: 'Time poderoso',
+  Parabens_Prancheta_1: 'Parabéns',
+};
+
+export const KUDO_CARD_EMOJI: Record<KudoCardType, string> = {
+  Forca_Prancheta_1: '💪',
+  Mestre_Prancheta_1: '🧠',
+  Maravilha_Prancheta_1: '✨',
+  Incrivel_Prancheta_1: '🌟',
+  Imbativel_Prancheta_1: '🏆',
+  Super_Prancheta_1: '🚀',
+  Time_Prancheta_1: '🤝',
+  Parabens_Prancheta_1: '🎉',
+};
+
+export interface KudoSearchResult {
+  id: string;
+  name: string;
+  subtitle?: string;
+}
+
+export interface SendKudoCardRequest {
+  recipientType: KudoCardRecipientType;
+  recipientName: string;
+  message: string;
+  cardType: KudoCardType;
+}
+
+export interface SendKudoCardResult {
+  success: boolean;
+  message: string;
+  details?: unknown;
+}

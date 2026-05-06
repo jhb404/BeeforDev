@@ -5,7 +5,11 @@ import type {
   AppSettings,
   Credentials,
   FetchedTimesheetRow,
+  KudoCardRecipientType,
+  KudoSearchResult,
   Mood,
+  SendKudoCardRequest,
+  SendKudoCardResult,
   SessionStatus,
   TimesheetEntry,
   TodayAlert,
@@ -45,6 +49,15 @@ const api = {
     ipcRenderer.invoke(IPC.ACTION_FETCH_TIMESHEET, year, month),
   getCurrentMood: (): Promise<ActionResult<string | null>> =>
     ipcRenderer.invoke(IPC.ACTION_GET_CURRENT_MOOD),
+  sendKudoCard: (
+    req: SendKudoCardRequest,
+  ): Promise<ActionResult<SendKudoCardResult>> =>
+    ipcRenderer.invoke(IPC.ACTION_SEND_KUDO_CARD, req),
+  searchKudoRecipient: (
+    type: KudoCardRecipientType,
+    query: string,
+  ): Promise<ActionResult<KudoSearchResult[]>> =>
+    ipcRenderer.invoke(IPC.ACTION_SEARCH_KUDO_RECIPIENT, type, query),
 
   onStatus: (cb: (status: SessionStatus) => void): (() => void) => {
     const listener = (_e: unknown, status: SessionStatus) => cb(status);
