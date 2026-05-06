@@ -22,6 +22,9 @@ export const IPC = {
   ACTION_GET_CURRENT_MOOD: 'action:getCurrentMood',
   ACTION_SEND_KUDO_CARD: 'action:sendKudoCard',
   ACTION_SEARCH_KUDO_RECIPIENT: 'action:searchKudoRecipient',
+  ACTION_KUDO_COUNTS: 'action:kudoCounts',
+  ACTION_KUDO_LISTS: 'action:kudoLists',
+  ACTION_KUDO_DETAIL: 'action:kudoDetail',
 
   // admin / system
   ADMIN_STATUS: 'admin:status',

@@ -5,6 +5,25 @@ import { SESSION_FILE, SETTINGS_FILE } from '../shared/constants';
 import type { AppSettings } from '../shared/types';
 import { logger } from './logger';
 
+const FALLBACK_PATCH_JOURNAL = '- v0.1.0: base de lançamentos e mood.';
+
+function patchJournalPath(): string {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, 'patch-journal.md');
+  }
+  return path.join(app.getAppPath(), 'patch-journal.md');
+}
+
+async function readPatchJournal(): Promise<string> {
+  try {
+    const txt = await fs.readFile(patchJournalPath(), 'utf-8');
+    return txt.trim() || FALLBACK_PATCH_JOURNAL;
+  } catch (err: any) {
+    logger.warn(`patch-journal read failed: ${err?.message}`);
+    return FALLBACK_PATCH_JOURNAL;
+  }
+}
+
 const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
   autoLoginOnLaunch: true,
@@ -26,8 +45,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 
   hoursPerDay: 8,
   hourRate: 0,
-  patchJournal:
-    '- v0.1.0: base de lancamentos e mood.\n- v0.1.1: melhorias visuais e alertas.',
+  patchJournal: FALLBACK_PATCH_JOURNAL,
 };
 
 export function sessionPath(): string {
@@ -57,14 +75,17 @@ export async function clearSession(): Promise<void> {
 }
 
 export async function loadSettings(): Promise<AppSettings> {
+  const journal = await readPatchJournal();
   try {
     const raw = await fs.readFile(settingsPath(), 'utf-8');
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    return { ...DEFAULT_SETTINGS, ...parsed, patchJournal: journal };
   } catch {
-    return { ...DEFAULT_SETTINGS };
+    return { ...DEFAULT_SETTINGS, patchJournal: journal };
   }
 }
 
 export async function saveSettings(s: AppSettings): Promise<void> {
-  await fs.writeFile(settingsPath(), JSON.stringify(s, null, 2), 'utf-8');
+  const { patchJournal: _omit, ...rest } = s;
+  await fs.writeFile(settingsPath(), JSON.stringify(rest, null, 2), 'utf-8');
 }

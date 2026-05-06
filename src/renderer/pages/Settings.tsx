@@ -20,7 +20,7 @@ const DEFAULTS: AppSettings = {
   hoursPerDay: 8,
   hourRate: 0,
   patchJournal:
-    '- v0.1.0: base de lancamentos e mood.\n- v0.1.1: melhorias visuais e alertas.',
+  '- v0.1.0: Oiiieee aaaa 👋😊\n\nSe tu abriu isso aqui, parabéns 🎉 tu oficialmente virou beta tester da primeira versão desse app kkk.\n\nAinda tem bastante coisa vindo por aí (eu espero… se eu não tomar processo antes 😳🙏).\n\nAh, e se tiver ideia, sugestão ou achar alguma coisa meio torta, me chama no Discord pf 😄\nVou adorar ouvir tua opinião… ou talvez não… vai que tu pede pra eu refazer o app inteiro né 😭\n\nMas manda mesmo assim kk ❤️',
 };
 
 const PUNCH_LABELS = ['Entrada', 'Saída almoço', 'Retorno', 'Saída'];

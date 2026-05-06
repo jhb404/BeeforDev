@@ -568,6 +568,17 @@ function replaceCachedDayPayload(
 
 export async function doGetCurrentMood(page: Page): Promise<string | null> {
   logger.info('Get current mood: start');
+  try {
+    const apiMood = await doGetCurrentMoodViaApi(page);
+    if (apiMood) {
+      logger.info(`Current mood (API): ${apiMood}`);
+      return apiMood;
+    }
+  } catch (err) {
+    logger.warn(
+      `Mood via API falhou, caindo para DOM: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
   await ensureMoodVisible(page);
 
   const toggles = page.locator(Selectors.mood.allToggles);
@@ -1340,6 +1351,80 @@ export async function doSearchKudoRecipient(
     })
     .slice(0, 15);
   return filtered;
+}
+
+async function beeforApiGet<T = unknown>(
+  page: Page,
+  url: string,
+): Promise<T> {
+  await ensureBeeforOrigin(page);
+  return page.evaluate(async (u) => {
+    const storage = (globalThis as any).localStorage;
+    const user = JSON.parse(storage.getItem('user1') || '{}');
+    const token = user?.token;
+    if (!token) throw new Error('Token não encontrado.');
+    const r = await fetch(u, {
+      headers: {
+        accept: 'application/json, text/plain, */*',
+        authorization: `Bearer ${token}`,
+      },
+    });
+    if (!r.ok) {
+      const txt = await r.text().catch(() => '');
+      throw new Error(`${r.status} ${u} ${txt.slice(0, 200)}`);
+    }
+    const txt = await r.text();
+    if (!txt) return null as any;
+    return JSON.parse(txt);
+  }, url);
+}
+
+export async function doFetchKudoCounts(
+  page: Page,
+): Promise<{ enviados: number; recebidos: number }> {
+  const idPessoa = await getIdPessoa(page);
+  const url = `https://apiteams.goobee.com.br/api/KudoCard/RecebidosEnviadosPessoa?idPessoa=${idPessoa}`;
+  const data = await beeforApiGet<any>(page, url);
+  return {
+    enviados: Number(data?.enviados ?? 0),
+    recebidos: Number(data?.recebidos ?? 0),
+  };
+}
+
+export async function doFetchKudoLists(page: Page): Promise<{
+  enviados: any[];
+  recebidos: any[];
+}> {
+  const idPessoa = await getIdPessoa(page);
+  const url = `https://apiteams.goobee.com.br/api/KudoCard/ListaRecebidosEnviadosPessoa?idPessoa=${idPessoa}`;
+  const data = await beeforApiGet<any>(page, url);
+  return {
+    enviados: Array.isArray(data?.enviados) ? data.enviados : [],
+    recebidos: Array.isArray(data?.recebidos) ? data.recebidos : [],
+  };
+}
+
+export async function doFetchKudoDetail(page: Page, id: string): Promise<any> {
+  if (!id) throw new Error('id obrigatório.');
+  const url = `https://apiteams.goobee.com.br/api/KudoCard/Buscar/${encodeURIComponent(id)}`;
+  return beeforApiGet<any>(page, url);
+}
+
+export async function doGetCurrentMoodViaApi(
+  page: Page,
+): Promise<Mood | null> {
+  const idPessoa = await getIdPessoa(page);
+  const url = `https://apiteams.goobee.com.br/api/Home/InformaHumor?idPessoa=${idPessoa}`;
+  const data = await beeforApiGet<any>(page, url);
+  const sentimento = Number(data?.sentimento);
+  if (!sentimento) return null;
+  const map: Record<number, Mood> = {
+    1: 'Dia feliz',
+    2: 'Dia bom',
+    3: 'Dia não tão bom',
+    4: 'Dia triste',
+  };
+  return map[sentimento] ?? null;
 }
 
 async function getIdPessoa(page: Page): Promise<string> {

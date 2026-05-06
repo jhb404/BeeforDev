@@ -60,6 +60,12 @@
       "node_modules/playwright/**",
       "node_modules/playwright-core/**"
     ],
+    "extraResources": [
+      {
+        "from": "patch-journal.md",
+        "to": "patch-journal.md"
+      }
+    ],
     "win": {
       "target": "nsis",
       "icon": "build/icon.ico"

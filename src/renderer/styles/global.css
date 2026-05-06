@@ -27,7 +27,7 @@
   --row-bg: #0f1420;
   --row-alt: #111620;
   --weekend-bg: rgba(124, 92, 191, 0.08);
-  --holiday-bg: rgba(124, 92, 191, 0.12);
+  --holiday-bg: rgba(124, 92, 191, 0.22);
   --today-bg: rgba(230, 168, 23, 0.1);
   --today-accent: #e6a817;
   --input-bg: #0c1018;
@@ -88,7 +88,7 @@
   --row-bg: #ffffff;
   --row-alt: #fafafc;
   --weekend-bg: rgba(94, 61, 179, 0.05);
-  --holiday-bg: rgba(94, 61, 179, 0.08);
+  --holiday-bg: rgba(94, 61, 179, 0.18);
   --today-bg: rgba(191, 101, 0, 0.08);
   --today-accent: #bf6500;
   --input-bg: #ffffff;
@@ -696,10 +696,21 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 500;
 }
 
+.tabs button:hover:not(:disabled):not(.active) {
+  background: var(--bg-2);
+  color: var(--text);
+}
+
 .tabs button.active {
   background: var(--tab-active-bg);
   color: var(--tab-active-text);
   border-color: var(--tab-active-border);
+}
+
+.tabs button.active:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--button-text);
+  border-color: var(--accent);
 }
 
 .content {
@@ -1665,6 +1676,13 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
+.cal-cell.today.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.cal-cell.today.selected .cal-num {
+  color: var(--text);
+}
 .cal-cell.saved {
   border-color: var(--ok-border);
 }
@@ -2023,10 +2041,10 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   transform: translateY(-1px);
 }
 .kudo-card-pick.active {
-  background: var(--accent-2-soft);
-  border-color: var(--warm);
+  background: var(--accent-soft);
+  border-color: var(--accent);
   color: var(--text);
-  box-shadow: 0 0 0 1px var(--warm) inset;
+  box-shadow: 0 0 0 1px var(--accent) inset;
 }
 .kudo-card-pick:disabled {
   opacity: 0.6;
@@ -2096,8 +2114,8 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 .kudo-autocomplete input[type="text"]:focus {
   outline: none;
-  border-color: var(--warm);
-  box-shadow: 0 0 0 3px rgba(255, 148, 0, 0.18);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .kudo-suggest {
   position: absolute;
@@ -2137,6 +2155,10 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 .kudo-suggest-item:hover {
   background: var(--bg-3);
+  color: #fff;
+}
+.kudo-suggest-item:hover span {
+  color: #fff;
 }
 .kudo-suggest-item span {
   font-size: 11px;
@@ -2152,12 +2174,13 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   font-family: inherit;
   font-size: 13px;
   resize: vertical;
-  min-height: 88px;
+  min-height: 120px;
+  max-height: 320px;
 }
 .kudo-modal textarea:focus {
   outline: none;
-  border-color: var(--warm);
-  box-shadow: 0 0 0 3px rgba(255, 148, 0, 0.18);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .kudo-err {
   background: rgba(224, 84, 112, 0.1);
@@ -2170,5 +2193,222 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 @media (max-width: 540px) {
   .kudo-card-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.kudo-history-modal {
+  max-width: 880px;
+  width: min(880px, calc(100vw - 32px));
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+.kudo-history-body {
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+.kudo-history-counts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.kudo-count-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.kudo-count-card strong {
+  font-size: 22px;
+  color: var(--warm);
+}
+.kudo-history-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  width: fit-content;
+}
+.kudo-history-tabs button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 7px 14px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.kudo-history-tabs button:hover:not(.active) {
+  background: var(--bg-3);
+  color: var(--text);
+}
+.kudo-history-tabs button.active {
+  background: var(--warm);
+  color: var(--button-text);
+}
+.kudo-history-empty {
+  padding: 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+.kudo-history-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+.kudo-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  max-height: 480px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-1);
+}
+.kudo-history-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.kudo-history-item:hover {
+  background: var(--bg-3);
+  color: #fff;
+}
+.kudo-history-item:hover .kudo-history-meta,
+.kudo-history-item:hover .kudo-history-date {
+  color: #fff;
+}
+.kudo-history-item.active {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  padding-left: 9px;
+}
+.kudo-history-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+.kudo-history-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.kudo-history-info strong {
+  font-size: 13px;
+}
+.kudo-history-meta,
+.kudo-history-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.kudo-history-detail {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  overflow-y: auto;
+  max-height: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.kudo-detail-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.kudo-detail-emoji {
+  font-size: 36px;
+  line-height: 1;
+}
+.kudo-detail-head strong {
+  display: block;
+  font-size: 15px;
+}
+.kudo-detail-head span {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.kudo-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13px;
+}
+.kudo-detail-row .label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.kudo-detail-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+.kudo-history-loader-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.kudo-slow-hint {
+  color: var(--warm);
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+}
+.kudo-detail-loading {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+}
+.kudo-detail-msg p {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin: 0;
+  font-size: 13px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+@media (max-width: 720px) {
+  .kudo-history-grid {
+    grid-template-columns: 1fr;
+  }
+  .kudo-history-list,
+  .kudo-history-detail {
+    max-height: 280px;
   }
 }

@@ -12,6 +12,7 @@ import { MoodPicker } from '../components/MoodPicker';
 import { MinimalView } from '../components/MinimalView';
 import { StatusBadge } from '../components/StatusBadge';
 import { KudoCardModal } from '../components/KudoCardModal';
+import { KudoCardHistoryModal } from '../components/KudoCardHistoryModal';
 import { Bolt, Calendar, Clock, Heart, Trophy } from '../components/Icons';
 import {
   MONTHS_PT,
@@ -121,6 +122,7 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
   const [toast, setToast] = useState<Toast | null>(null);
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [showKudoModal, setShowKudoModal] = useState(false);
+  const [showKudoHistory, setShowKudoHistory] = useState(false);
 
   const fetchInFlight = useRef(false);
   const lastFetchKey = useRef<string>('');
@@ -386,13 +388,15 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
         </div>
         <div className="home-status">
           <StatusBadge status={status} />
-          <button
-            className="secondary compact"
-            disabled={busy || !ready || loadingTs || loadingMood}
-            onClick={() => void refreshAll()}
-          >
-            Recarregar
-          </button>
+          {(status === 'error' || status === 'expired' || status === 'disconnected') && (
+            <button
+              className="secondary compact"
+              disabled={busy || loadingTs || loadingMood}
+              onClick={() => void refreshAll()}
+            >
+              Recarregar
+            </button>
+          )}
           <button
             className="secondary compact"
             onClick={async () => {
@@ -414,6 +418,13 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
             onClick={() => setShowKudoModal(true)}
           >
             Enviar KudoCard
+          </button>
+          <button
+            className="secondary compact"
+            disabled={busy || !ready}
+            onClick={() => setShowKudoHistory(true)}
+          >
+            Histórico KudoCards
           </button>
         </div>
       </section>
@@ -694,6 +705,11 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
         onError={(msg) =>
           showToast({ kind: 'err', title: 'Falha ao enviar KudoCard', msg })
         }
+      />
+
+      <KudoCardHistoryModal
+        open={showKudoHistory}
+        onClose={() => setShowKudoHistory(false)}
       />
 
       {toast && (

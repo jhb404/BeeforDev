@@ -171,7 +171,7 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
           </button>
         </div>
 
-        <div style={{ padding: '14px 18px 18px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ padding: '14px 18px 18px', display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', flex: 1, minHeight: 0 }}>
           <div>
             <span className="label" style={{ marginBottom: 8, display: 'block' }}>
               Escolha o card

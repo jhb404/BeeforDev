@@ -5,6 +5,9 @@ import type {
   AppSettings,
   Credentials,
   FetchedTimesheetRow,
+  KudoCardCounts,
+  KudoCardDetail,
+  KudoCardLists,
   KudoCardRecipientType,
   KudoSearchResult,
   Mood,
@@ -58,6 +61,12 @@ const api = {
     query: string,
   ): Promise<ActionResult<KudoSearchResult[]>> =>
     ipcRenderer.invoke(IPC.ACTION_SEARCH_KUDO_RECIPIENT, type, query),
+  getKudoCounts: (): Promise<ActionResult<KudoCardCounts>> =>
+    ipcRenderer.invoke(IPC.ACTION_KUDO_COUNTS),
+  getKudoLists: (): Promise<ActionResult<KudoCardLists>> =>
+    ipcRenderer.invoke(IPC.ACTION_KUDO_LISTS),
+  getKudoDetail: (id: string): Promise<ActionResult<KudoCardDetail>> =>
+    ipcRenderer.invoke(IPC.ACTION_KUDO_DETAIL, id),
 
   onStatus: (cb: (status: SessionStatus) => void): (() => void) => {
     const listener = (_e: unknown, status: SessionStatus) => cb(status);

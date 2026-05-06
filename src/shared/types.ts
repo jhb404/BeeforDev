@@ -160,6 +160,72 @@ export const KUDO_CARD_EMOJI: Record<KudoCardType, string> = {
   Parabens_Prancheta_1: '🎉',
 };
 
+/** Beefor uses 1-based numeric ids for tipoKudoCard, ordered as KUDO_CARD_TYPES. */
+export const KUDO_CARD_TIPO_BY_TYPE: Record<KudoCardType, number> = {
+  Forca_Prancheta_1: 1,
+  Mestre_Prancheta_1: 2,
+  Maravilha_Prancheta_1: 3,
+  Incrivel_Prancheta_1: 4,
+  Imbativel_Prancheta_1: 5,
+  Super_Prancheta_1: 6,
+  Time_Prancheta_1: 7,
+  Parabens_Prancheta_1: 8,
+};
+
+export const KUDO_CARD_TYPE_BY_TIPO: Record<number, KudoCardType> = {
+  1: 'Forca_Prancheta_1',
+  2: 'Mestre_Prancheta_1',
+  3: 'Maravilha_Prancheta_1',
+  4: 'Incrivel_Prancheta_1',
+  5: 'Imbativel_Prancheta_1',
+  6: 'Super_Prancheta_1',
+  7: 'Time_Prancheta_1',
+  8: 'Parabens_Prancheta_1',
+};
+
+export interface KudoCardCounts {
+  enviados: number;
+  recebidos: number;
+}
+
+export interface KudoCardListItem {
+  id: string;
+  mensagemBoxKudoCard: string;
+  mensagemKudoCard: string;
+  nomeOrganizacao: string;
+  destinatario?: string;
+  remetente?: string;
+  tipoKudoCard: number;
+  dataEnvio: string;
+}
+
+export interface KudoCardLists {
+  enviados: KudoCardListItem[];
+  recebidos: KudoCardListItem[];
+}
+
+export interface KudoCardDetail {
+  id: string | null;
+  mensagemBoxKudoCard: string;
+  mensagemKudoCard: string;
+  nomeOrganizacao: string;
+  remetente?: string;
+  destinatario?: string;
+  imagem?: string | null;
+  nomeTraducao?: string | null;
+  tipoKudoCard: number;
+  times?: unknown[];
+  dataEnvio: string;
+}
+
+/** Beefor "sentimento" numeric → Mood. Order matches MOODS. */
+export const MOOD_BY_SENTIMENTO: Record<number, Mood> = {
+  1: 'Dia feliz',
+  2: 'Dia bom',
+  3: 'Dia não tão bom',
+  4: 'Dia triste',
+};
+
 export interface KudoSearchResult {
   id: string;
   name: string;

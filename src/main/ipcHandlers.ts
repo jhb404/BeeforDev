@@ -37,6 +37,9 @@ import {
   doGetCurrentMood,
   doSendKudoCard,
   doSearchKudoRecipient,
+  doFetchKudoCounts,
+  doFetchKudoLists,
+  doFetchKudoDetail,
 } from '../automation/beefor/beeforActions';
 import { withPageLock } from '../automation/beefor/pageLock';
 import { ensureSessionForAction, forceReconnect } from './sessionGuard';
@@ -286,6 +289,52 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
       }
     } catch (err) {
       logger.error('Get current mood failed', err);
+      return fail(err);
+    }
+  });
+
+  ipcMain.handle(IPC.ACTION_KUDO_COUNTS, async () => {
+    const win = getWindow();
+    try {
+      await ensureSessionForAction(win);
+      const data = await withPageLock(async () => {
+        const page = await client.getPage();
+        return doFetchKudoCounts(page);
+      });
+      return ok(data);
+    } catch (err) {
+      logger.error('Kudo counts failed', err);
+      return fail(err);
+    }
+  });
+
+  ipcMain.handle(IPC.ACTION_KUDO_LISTS, async () => {
+    const win = getWindow();
+    try {
+      await ensureSessionForAction(win);
+      const data = await withPageLock(async () => {
+        const page = await client.getPage();
+        return doFetchKudoLists(page);
+      });
+      return ok(data);
+    } catch (err) {
+      logger.error('Kudo lists failed', err);
+      return fail(err);
+    }
+  });
+
+  ipcMain.handle(IPC.ACTION_KUDO_DETAIL, async (_e, id: string) => {
+    const win = getWindow();
+    if (!id || typeof id !== 'string') return fail(new Error('id inválido.'));
+    try {
+      await ensureSessionForAction(win);
+      const data = await withPageLock(async () => {
+        const page = await client.getPage();
+        return doFetchKudoDetail(page, id);
+      });
+      return ok(data);
+    } catch (err) {
+      logger.error('Kudo detail failed', err);
       return fail(err);
     }
   });
