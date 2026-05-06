@@ -67,7 +67,7 @@
     "mac": {
       "target": "dmg",
       "category": "public.app-category.developer-tools",
-      "icon": "build/icon.png"
+      "icon": "build/icon.icns"
     },
     "nsis": {
       "oneClick": false,

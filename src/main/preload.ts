@@ -85,6 +85,11 @@ const api = {
   winMinimize: () => ipcRenderer.send(IPC.WIN_MINIMIZE),
   winMaximize: () => ipcRenderer.send(IPC.WIN_MAXIMIZE),
   winClose: () => ipcRenderer.send(IPC.WIN_CLOSE),
+
+  // App info
+  getAssetPath: (): Promise<string> => ipcRenderer.invoke(IPC.APP_GET_ASSET_PATH),
+  readAsset: (fileName: string): Promise<string | null> =>
+    ipcRenderer.invoke(IPC.APP_READ_ASSET, fileName),
 };
 
 contextBridge.exposeInMainWorld('beefor', api);

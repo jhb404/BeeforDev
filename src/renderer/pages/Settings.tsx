@@ -25,7 +25,11 @@ const DEFAULTS: AppSettings = {
 
 const PUNCH_LABELS = ['Entrada', 'Saída almoço', 'Retorno', 'Saída'];
 
-export function Settings() {
+interface SettingsProps {
+  onSettingsChanged?: () => void;
+}
+
+export function Settings({ onSettingsChanged }: SettingsProps = {}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [savedEmail, setSavedEmail] = useState<string | null>(null);
@@ -106,6 +110,7 @@ export function Settings() {
     const next = { ...settings, [k]: v };
     setSettings(next);
     await window.beefor.setSettings(next);
+    onSettingsChanged?.();
   };
 
   const updatePunchTime = async (idx: 0 | 1 | 2 | 3, value: string) => {
@@ -476,6 +481,151 @@ export function Settings() {
               </button>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3 className="settings-section__title">APARÊNCIA</h3>
+        <p className="settings-section__hint">LOGO | DENSIDADE | TEMA</p>
+        <div className="settings-grid grid-1">
+
+          {/* Logo variant */}
+          <div className="card">
+            <h2>Logo do app</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
+              Escolha a variante de cor da logo. Aplica na titlebar e ícone da bandeja.
+            </p>
+            <div className="logo-variant-row">
+              <button
+                type="button"
+                className={`logo-variant-opt ${(settings.logoVariant ?? 'orange') === 'orange' ? 'active' : ''}`}
+                onClick={() => void update('logoVariant', 'orange')}
+              >
+                <span className="logo-variant-swatch" style={{ background: '#e6a817' }} />
+                <strong>Laranja</strong>
+                <span>Padrão</span>
+              </button>
+              <button
+                type="button"
+                className={`logo-variant-opt ${settings.logoVariant === 'purple' ? 'active' : ''}`}
+                onClick={() => void update('logoVariant', 'purple')}
+              >
+                <span className="logo-variant-swatch" style={{ background: '#7c5cbf' }} />
+                <strong>Roxo</strong>
+                <span>Alternativo</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Density */}
+          <div className="card">
+            <h2>Densidade da interface</h2>
+            <div className="density-row">
+              {(['compact', 'normal', 'comfortable'] as const).map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  className={`density-opt ${(settings.uiDensity ?? 'normal') === d ? 'active' : ''}`}
+                  onClick={() => void update('uiDensity', d)}
+                >
+                  <span className="density-bars">
+                    {d === 'compact' && <><i/><i/><i/><i/><i/></>}
+                    {d === 'normal' && <><i/><i/><i/></>}
+                    {d === 'comfortable' && <><i/><i/></>}
+                  </span>
+                  <strong>{d === 'compact' ? 'Compacto' : d === 'normal' ? 'Normal' : 'Confortável'}</strong>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Theme editor */}
+          <div className="card">
+            <h2>Editor de tema</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 14px' }}>
+              Personaliza cores e visual. Deixe vazio para usar o padrão.
+            </p>
+            <div className="theme-editor-grid">
+              {([
+                { key: 'accent',      label: 'Cor de destaque',  placeholder: '#7c5cbf' },
+                { key: 'warm',        label: 'Cor quente',       placeholder: '#e6a817' },
+                { key: 'ok',          label: 'Cor de sucesso',   placeholder: '#27b899' },
+                { key: 'err',         label: 'Cor de erro',      placeholder: '#e05470' },
+              ] as const).map(({ key, label, placeholder }) => (
+                <div className="theme-editor-field" key={key}>
+                  <label className="label">{label}</label>
+                  <div className="theme-color-wrap">
+                    <input
+                      type="color"
+                      className="theme-color-picker"
+                      value={(settings.themeOverrides?.[key]) || placeholder}
+                      onChange={(e) => void update('themeOverrides', {
+                        ...settings.themeOverrides,
+                        [key]: e.target.value,
+                      })}
+                    />
+                    <input
+                      type="text"
+                      value={settings.themeOverrides?.[key] ?? ''}
+                      placeholder={placeholder}
+                      onChange={(e) => void update('themeOverrides', {
+                        ...settings.themeOverrides,
+                        [key]: e.target.value || undefined,
+                      })}
+                    />
+                  </div>
+                </div>
+              ))}
+              <div className="theme-editor-field">
+                <label className="label">Raio de borda</label>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    type="range"
+                    min={0}
+                    max={20}
+                    step={1}
+                    value={parseInt(settings.themeOverrides?.radius ?? '10')}
+                    style={{ flex: 1, minHeight: 'auto', padding: 0 }}
+                    onChange={(e) => void update('themeOverrides', {
+                      ...settings.themeOverrides,
+                      radius: `${e.target.value}px`,
+                    })}
+                  />
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)', minWidth: 32 }}>
+                    {settings.themeOverrides?.radius ?? '10px'}
+                  </span>
+                </div>
+              </div>
+              <div className="theme-editor-field">
+                <label className="label">Tamanho de fonte</label>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    type="range"
+                    min={0.8}
+                    max={1.3}
+                    step={0.05}
+                    value={parseFloat(settings.themeOverrides?.fontScale ?? '1')}
+                    style={{ flex: 1, minHeight: 'auto', padding: 0 }}
+                    onChange={(e) => void update('themeOverrides', {
+                      ...settings.themeOverrides,
+                      fontScale: e.target.value,
+                    })}
+                  />
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)', minWidth: 32 }}>
+                    {Math.round(parseFloat(settings.themeOverrides?.fontScale ?? '1') * 100)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button
+              className="secondary compact"
+              style={{ marginTop: 12 }}
+              onClick={() => void update('themeOverrides', {})}
+            >
+              Resetar tema
+            </button>
+          </div>
+
         </div>
       </section>
 

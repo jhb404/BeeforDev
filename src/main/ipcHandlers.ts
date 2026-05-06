@@ -1,4 +1,6 @@
 import { BrowserWindow, app, ipcMain, shell } from 'electron';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { IPC } from '../shared/ipc';
 import type {
   ActionResult,
@@ -37,6 +39,7 @@ import { withPageLock } from '../automation/beefor/pageLock';
 import { ensureSessionForAction, forceReconnect } from './sessionGuard';
 import { isElevated, relaunchAsAdmin } from './adminCheck';
 import { fireTestNotification, getTodayAlerts } from './scheduler';
+import { getBuildAssetPath, getBuildAssetsDir } from './window';
 
 function ok<T>(data?: T): ActionResult<T> {
   return { ok: true, data };
@@ -338,4 +341,21 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
     win.isMaximized() ? win.unmaximize() : win.maximize();
   });
   ipcMain.on(IPC.WIN_CLOSE, () => getWindow()?.hide());
+
+  ipcMain.handle(IPC.APP_GET_ASSET_PATH, () => {
+    return getBuildAssetsDir();
+  });
+
+  ipcMain.handle(IPC.APP_READ_ASSET, async (_e, fileName: string) => {
+    const safe = path.basename(fileName);
+    const fullPath = getBuildAssetPath(safe);
+    try {
+      const buf = await fs.readFile(fullPath);
+      const ext = path.extname(safe).slice(1).toLowerCase() || 'png';
+      return `data:image/${ext};base64,${buf.toString('base64')}`;
+    } catch (err) {
+      logger.warn(`readAsset failed for ${safe}: ${err instanceof Error ? err.message : String(err)}`);
+      return null;
+    }
+  });
 }

@@ -40,6 +40,10 @@ export const IPC = {
   WIN_MAXIMIZE: 'win:maximize',
   WIN_CLOSE: 'win:close',
 
+  // app info
+  APP_GET_ASSET_PATH: 'app:getAssetPath',
+  APP_READ_ASSET: 'app:readAsset',
+
   // events main → renderer
   EVT_STATUS: 'evt:status',
   EVT_PLAY_ALARM: 'evt:playAlarm',

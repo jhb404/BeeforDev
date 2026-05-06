@@ -62,6 +62,25 @@ export interface AppSettings {
 
   /** Calendar cells show daily diff (+23m / -10m) instead of status dot */
   calendarShowDiff?: boolean;
+
+  /** Logo variant: 'orange' (default) | 'purple' */
+  logoVariant?: 'orange' | 'purple';
+
+  /** UI density */
+  uiDensity?: 'compact' | 'normal' | 'comfortable';
+
+  /** Custom theme overrides (CSS variable values) */
+  themeOverrides?: Partial<ThemeOverrides>;
+}
+
+export interface ThemeOverrides {
+  accent: string;
+  accentHover: string;
+  warm: string;
+  ok: string;
+  err: string;
+  radius: string;
+  fontScale: string; // e.g. "0.9" | "1" | "1.1"
 }
 
 export interface TodayAlert {

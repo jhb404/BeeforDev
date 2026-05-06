@@ -1,7 +1,6 @@
 import { Notification, app, BrowserWindow, Menu, Tray } from 'electron';
-import path from 'node:path';
 import type { Page } from 'playwright';
-import { createMainWindow } from './window';
+import { createMainWindow, getBuildIconPath } from './window';
 import { registerIpcHandlers } from './ipcHandlers';
 import { bindLoggerWindow, logger } from './logger';
 import { loadSettings } from './sessionStore';
@@ -48,9 +47,9 @@ function wireMainWindow(win: BrowserWindow) {
   });
 }
 
-function ensureTray() {
+function ensureTray(variant: 'orange' | 'purple' = 'orange') {
   if (tray) return;
-  const iconPath = path.join(__dirname, '../../build/icon.png');
+  const iconPath = getBuildIconPath(variant);
   tray = new Tray(iconPath);
   tray.setToolTip('Beefor Dev');
   tray.setContextMenu(
@@ -167,13 +166,15 @@ async function bootstrap() {
     app.setAppUserModelId('io.beefor.dev');
   }
 
-  mainWindow = createMainWindow();
+  const settings = await loadSettings();
+  const variant = settings.logoVariant ?? 'orange';
+
+  mainWindow = createMainWindow(variant);
   bindLoggerWindow(mainWindow);
   wireMainWindow(mainWindow);
   registerIpcHandlers(getWindow);
-  ensureTray();
+  ensureTray(variant);
 
-  const settings = await loadSettings();
   setAutoStart(settings.autoStart);
 
   if (settings.autoLoginOnLaunch) {

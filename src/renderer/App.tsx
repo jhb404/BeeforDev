@@ -4,7 +4,7 @@ import { Settings as SettingsPage } from './pages/Settings';
 import { Bell, Moon, Newspaper, Sun } from './components/Icons';
 import { TitleBar } from './components/TitleBar';
 import { playAlarmByKind } from './utils/alarm';
-import type { TodayAlert } from '../shared/types';
+import type { AppSettings, TodayAlert } from '../shared/types';
 
 type Tab = 'home' | 'settings';
 type ThemeMode = 'dark' | 'light';
@@ -27,6 +27,22 @@ function addMinutes(hhmm: string, mins: number): string {
   return `${String(Math.floor(clamped / 60)).padStart(2, '0')}:${String(clamped % 60).padStart(2, '0')}`;
 }
 
+function applyDensity(density: AppSettings['uiDensity']) {
+  document.documentElement.dataset.density = density ?? 'normal';
+}
+
+function applyThemeOverrides(overrides: AppSettings['themeOverrides']) {
+  const el = document.documentElement;
+  if (!overrides) return;
+  if (overrides.accent) el.style.setProperty('--accent', overrides.accent);
+  if (overrides.accentHover) el.style.setProperty('--accent-hover', overrides.accentHover);
+  if (overrides.warm) el.style.setProperty('--warm', overrides.warm);
+  if (overrides.ok) el.style.setProperty('--ok', overrides.ok);
+  if (overrides.err) el.style.setProperty('--err', overrides.err);
+  if (overrides.radius) el.style.setProperty('--radius', overrides.radius);
+  if (overrides.fontScale) el.style.setProperty('font-size', `${Number(overrides.fontScale) * 14}px`);
+}
+
 export default function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [theme, setTheme] = useState<ThemeMode>(getStoredTheme);
@@ -36,12 +52,35 @@ export default function App() {
   const [patchJournal, setPatchJournal] = useState('');
   const [loadingPatchJournal, setLoadingPatchJournal] = useState(false);
   const [currentMoodExternal, setCurrentMoodExternal] = useState<string | null>(null);
+  const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
   const bellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem('beefor-theme', theme);
   }, [theme]);
+
+  // Load settings → apply density + theme overrides
+  useEffect(() => {
+    void window.beefor.getSettings().then((s) => {
+      setAppSettings(s);
+      applyDensity(s.uiDensity);
+      applyThemeOverrides(s.themeOverrides);
+    });
+  }, []);
+
+  // Re-apply when settings change (emitted from Settings page via storage event)
+  useEffect(() => {
+    const handler = () => {
+      void window.beefor.getSettings().then((s) => {
+        setAppSettings(s);
+        applyDensity(s.uiDensity);
+        applyThemeOverrides(s.themeOverrides);
+      });
+    };
+    window.addEventListener('beefor:settings-changed', handler);
+    return () => window.removeEventListener('beefor:settings-changed', handler);
+  }, []);
 
   // Sons por tipo
   useEffect(() => {
@@ -56,22 +95,18 @@ export default function App() {
     return off;
   }, []);
 
-  // Carregar alertas e mood atual para filtrar
   useEffect(() => {
     void window.beefor.getTodayAlerts().then((res) => {
       if (res.ok && res.data) setAlerts(res.data);
     });
-    // Buscar mood atual para filtrar alerta de mood se já marcado
     void window.beefor.getCurrentMood().then((res) => {
       if (res.ok) setCurrentMoodExternal(res.data ?? null);
     });
   }, []);
 
-  // Atualizar mood externo quando mudanças acontecem
   useEffect(() => {
     const off = window.beefor.onNotify((info) => {
       if (info.title === 'sync:autoLancamento' && info.body === 'ok') return;
-      // Quando mood é salvo com sucesso, re-buscar
     });
     return off;
   }, []);
@@ -108,7 +143,6 @@ export default function App() {
     );
   };
 
-  // Alertas visíveis: excluir mood se já marcado, excluir snoozed que ainda não passou
   const now = nowHHMM();
   const visibleAlerts = alerts.filter((a) => {
     if (a.kind === 'mood' && currentMoodExternal) return false;
@@ -116,10 +150,28 @@ export default function App() {
     return true;
   });
 
+  const logoVariant = appSettings?.logoVariant ?? 'orange';
+
+  // Topbar left: current month + session quick info
+  const today = new Date();
+  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const topbarLeft = `${monthNames[today.getMonth()]} ${today.getFullYear()}`;
+
   return (
     <div className="app-shell">
-      <TitleBar />
+      <TitleBar logoVariant={logoVariant} />
       <header className="topbar">
+        <div className="topbar-left">
+          <span className="topbar-date">{topbarLeft}</span>
+          <div className="tabs">
+            <button className={tab === 'home' ? 'active' : ''} onClick={() => setTab('home')}>
+              Início
+            </button>
+            <button className={tab === 'settings' ? 'active' : ''} onClick={() => setTab('settings')}>
+              Configurações
+            </button>
+          </div>
+        </div>
         <div className="topbar-actions">
           <div className="bell-wrap" ref={bellRef}>
             <button
@@ -216,14 +268,6 @@ export default function App() {
           >
             <Newspaper size={18} />
           </button>
-          <div className="tabs">
-            <button className={tab === 'home' ? 'active' : ''} onClick={() => setTab('home')}>
-              Inicio
-            </button>
-            <button className={tab === 'settings' ? 'active' : ''} onClick={() => setTab('settings')}>
-              Configurações
-            </button>
-          </div>
         </div>
       </header>
 
@@ -232,7 +276,7 @@ export default function App() {
           <Home onMoodChanged={(mood) => setCurrentMoodExternal(mood)} />
         </section>
         <section className="tab-panel" hidden={tab !== 'settings'}>
-          <SettingsPage />
+          <SettingsPage onSettingsChanged={() => window.dispatchEvent(new Event('beefor:settings-changed'))} />
         </section>
       </main>
 

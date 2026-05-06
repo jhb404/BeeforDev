@@ -1,11 +1,22 @@
+import { useAppLogo } from '../hooks/useAppLogo';
 import { BrandLogo } from './Icons';
 
-export function TitleBar() {
+interface Props {
+  logoVariant?: 'orange' | 'purple';
+}
+
+export function TitleBar({ logoVariant = 'orange' }: Props) {
+  const logoSrc = useAppLogo(logoVariant, 'icon');
+
   return (
     <div className="titlebar">
       <div className="titlebar-drag">
         <span className="titlebar-icon" aria-hidden="true">
-          <BrandLogo size={16} />
+          {logoSrc ? (
+            <img src={logoSrc} width={18} height={18} alt="" style={{ objectFit: 'contain' }} />
+          ) : (
+            <BrandLogo size={16} />
+          )}
         </span>
         <span className="titlebar-label">Beefor Dev</span>
       </div>

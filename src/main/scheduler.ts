@@ -1,15 +1,12 @@
-import { BrowserWindow, Notification, app } from 'electron';
-import path from 'node:path';
+import { BrowserWindow, Notification } from 'electron';
 import { logger } from './logger';
 import { loadSettings, saveSettings } from './sessionStore';
 import { IPC } from '../shared/ipc';
 import type { AppSettings, TodayAlert } from '../shared/types';
+import { getBuildAssetPath } from './window';
 
 function appIconPath(): string {
-  const base = app.isPackaged
-    ? path.join(process.resourcesPath, 'icon.png')
-    : path.join(app.getAppPath(), 'build', 'icon.png');
-  return base;
+  return getBuildAssetPath('icon.png');
 }
 
 const TICK_MS = 30_000; // 30s — fine grained enough for HH:MM matching
