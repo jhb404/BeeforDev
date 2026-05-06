@@ -98,7 +98,11 @@ function mergeFetched(
   });
 }
 
-export function Home() {
+interface HomeProps {
+  onMoodChanged?: (mood: string | null) => void;
+}
+
+export function Home({ onMoodChanged }: HomeProps = {}) {
   const { status, busy, wrap } = useBeefor();
   const ready = status === 'connected';
 
@@ -160,6 +164,10 @@ export function Home() {
     }
   };
 
+  const notifyMoodChanged = (mood: string | null) => {
+    onMoodChanged?.(mood);
+  };
+
   const refreshMood = async () => {
     setLoadingMood(true);
     try {
@@ -170,6 +178,7 @@ export function Home() {
           ? (m as Mood)
           : null;
         setCurrentMood(matched);
+        notifyMoodChanged(matched);
       }
     } finally {
       setLoadingMood(false);
@@ -285,6 +294,7 @@ export function Home() {
       const res = await window.beefor.selectMood(m);
       if (!res.ok) {
         setCurrentMood(previous);
+        notifyMoodChanged(previous);
         showToast({
           kind: 'err',
           title: 'Mood não salvo',
@@ -292,6 +302,7 @@ export function Home() {
         });
       } else {
         showToast({ kind: 'ok', title: 'Mood salvo', msg: m });
+        notifyMoodChanged(m);
         void refreshMood();
       }
     });
@@ -305,16 +316,22 @@ export function Home() {
     let saldoTotal = 0;
     let overtimeMin = 0;
     let expectedTotal = 0;
+    let workedDays = 0;
     for (const r of rows) {
       const w = workedMinutes(r);
       if (w <= 0) continue;
       workedTotal += w;
+      workedDays += 1;
       expectedTotal += hoursPerDayMin;
       const diff = w - hoursPerDayMin;
       saldoTotal += diff;
       if (diff > 0) overtimeMin += diff;
     }
-    const overtimeValue = (overtimeMin / 60) * hourRate;
+    // Total estimado = horas normais trabalhadas × rate + valor das extras
+    // = workedTotal × rate (pois workedTotal já inclui extras)
+    // Valor extras baseado no saldo total positivo do mês (não soma dias individualmente)
+    const netOvertimeMin = Math.max(0, saldoTotal);
+    const overtimeValue = (netOvertimeMin / 60) * hourRate;
     const totalSalary = (workedTotal / 60) * hourRate;
     return {
       workedTotal,
@@ -323,6 +340,7 @@ export function Home() {
       overtimeMin,
       overtimeValue,
       totalSalary,
+      workedDays,
     };
   }, [rows, hoursPerDayMin, hourRate]);
 
@@ -474,11 +492,11 @@ export function Home() {
               {formatMinutes(summary.saldoTotal, true)}
             </strong>
           </div>
-          <div className="summary-card warm">
-            <span className="summary-label"><Trophy size={14} /> Horas extras</span>
-            <strong className="summary-value">{formatMinutes(summary.overtimeMin)}</strong>
+          <div className="summary-card">
+            <span className="summary-label"><Bolt size={14} /> Dias trabalhados</span>
+            <strong className="summary-value">{summary.workedDays}d</strong>
           </div>
-          <div className="summary-card warm">
+          <div className={`summary-card ${summary.overtimeMin > 0 ? 'pos' : ''}`}>
             <span className="summary-label"><Trophy size={14} /> Valor extras</span>
             <strong className="summary-value">
               {summary.overtimeValue.toLocaleString('pt-BR', {
@@ -513,6 +531,7 @@ export function Home() {
             busy={busy}
             ready={ready}
             hoursPerDayMin={hoursPerDayMin}
+            showDiff={settings?.calendarShowDiff ?? false}
             onUpdateRow={updateRow}
             onLancar={(idx) => void lancar(idx)}
           />

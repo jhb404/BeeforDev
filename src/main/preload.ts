@@ -80,6 +80,11 @@ const api = {
     ipcRenderer.on(IPC.EVT_NOTIFY, listener);
     return () => ipcRenderer.removeListener(IPC.EVT_NOTIFY, listener);
   },
+
+  // Window controls (frameless)
+  winMinimize: () => ipcRenderer.send(IPC.WIN_MINIMIZE),
+  winMaximize: () => ipcRenderer.send(IPC.WIN_MAXIMIZE),
+  winClose: () => ipcRenderer.send(IPC.WIN_CLOSE),
 };
 
 contextBridge.exposeInMainWorld('beefor', api);

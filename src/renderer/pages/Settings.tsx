@@ -417,6 +417,16 @@ export function Settings() {
             <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
               Troca aplica reiniciando o app automaticamente.
             </p>
+            {settings.viewMode === 'minimal' && (
+              <label className="checkbox-row" style={{ marginBottom: 12 }}>
+                <input
+                  type="checkbox"
+                  checked={settings.calendarShowDiff ?? false}
+                  onChange={(e) => void update('calendarShowDiff', e.target.checked)}
+                />
+                <span>Mostrar saldo diário nas células do calendário </span>
+              </label>
+            )}
             <div className="view-mode-row">
               <button
                 type="button"

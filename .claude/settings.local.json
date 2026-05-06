@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Joao Batista\\\\Desktop\\\\BeeforDev\\\\src\\\\renderer\\\\pages\" -Recurse -Force | ForEach-Object { $_.FullName })",
+      "Bash(npm run *)"
+    ]
+  }
+}

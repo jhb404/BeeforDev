@@ -330,4 +330,12 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
       return fail(err);
     }
   });
+
+  ipcMain.on(IPC.WIN_MINIMIZE, () => getWindow()?.minimize());
+  ipcMain.on(IPC.WIN_MAXIMIZE, () => {
+    const win = getWindow();
+    if (!win) return;
+    win.isMaximized() ? win.unmaximize() : win.maximize();
+  });
+  ipcMain.on(IPC.WIN_CLOSE, () => getWindow()?.hide());
 }

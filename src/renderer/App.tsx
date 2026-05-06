@@ -1,8 +1,9 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Home } from './pages/Home';
 import { Settings as SettingsPage } from './pages/Settings';
-import { Bell, BrandLogo, Moon, Newspaper, Sun } from './components/Icons';
-import { playAlarm } from './utils/alarm';
+import { Bell, Moon, Newspaper, Sun } from './components/Icons';
+import { TitleBar } from './components/TitleBar';
+import { playAlarmByKind } from './utils/alarm';
 import type { TodayAlert } from '../shared/types';
 
 type Tab = 'home' | 'settings';
@@ -14,6 +15,18 @@ function getStoredTheme(): ThemeMode {
   return saved === 'light' ? 'light' : 'dark';
 }
 
+function nowHHMM(): string {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function addMinutes(hhmm: string, mins: number): string {
+  const [h, m] = hhmm.split(':').map(Number);
+  const total = h * 60 + m + mins;
+  const clamped = Math.min(total, 23 * 60 + 59);
+  return `${String(Math.floor(clamped / 60)).padStart(2, '0')}:${String(clamped % 60).padStart(2, '0')}`;
+}
+
 export default function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [theme, setTheme] = useState<ThemeMode>(getStoredTheme);
@@ -22,6 +35,7 @@ export default function App() {
   const [patchModalOpen, setPatchModalOpen] = useState(false);
   const [patchJournal, setPatchJournal] = useState('');
   const [loadingPatchJournal, setLoadingPatchJournal] = useState(false);
+  const [currentMoodExternal, setCurrentMoodExternal] = useState<string | null>(null);
   const bellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,17 +43,37 @@ export default function App() {
     window.localStorage.setItem('beefor-theme', theme);
   }, [theme]);
 
+  // Sons por tipo
   useEffect(() => {
-    const off = window.beefor.onPlayAlarm(() => {
-      void playAlarm();
+    const off = window.beefor.onPlayAlarm((info) => {
+      const kind = info.title.includes('Mood') ? 'mood'
+        : info.title.includes('almoço') || info.title.includes('Almoço') ? 'lunch'
+        : info.title.includes('Ponto') ? 'punch'
+        : info.title.includes('Kudocard') || info.title.includes('kudocard') ? 'kudocard'
+        : 'default';
+      void playAlarmByKind(kind);
     });
     return off;
   }, []);
 
+  // Carregar alertas e mood atual para filtrar
   useEffect(() => {
     void window.beefor.getTodayAlerts().then((res) => {
       if (res.ok && res.data) setAlerts(res.data);
     });
+    // Buscar mood atual para filtrar alerta de mood se já marcado
+    void window.beefor.getCurrentMood().then((res) => {
+      if (res.ok) setCurrentMoodExternal(res.data ?? null);
+    });
+  }, []);
+
+  // Atualizar mood externo quando mudanças acontecem
+  useEffect(() => {
+    const off = window.beefor.onNotify((info) => {
+      if (info.title === 'sync:autoLancamento' && info.body === 'ok') return;
+      // Quando mood é salvo com sucesso, re-buscar
+    });
+    return off;
   }, []);
 
   useEffect(() => {
@@ -63,15 +97,29 @@ export default function App() {
     setLoadingPatchJournal(false);
   };
 
+  const dismissAlert = (i: number) => {
+    setAlerts((prev) => prev.filter((_, j) => j !== i));
+  };
+
+  const snoozeAlert = (i: number, mins: number) => {
+    const until = addMinutes(nowHHMM(), mins);
+    setAlerts((prev) =>
+      prev.map((a, j) => (j === i ? { ...a, snoozedUntil: until } : a)),
+    );
+  };
+
+  // Alertas visíveis: excluir mood se já marcado, excluir snoozed que ainda não passou
+  const now = nowHHMM();
+  const visibleAlerts = alerts.filter((a) => {
+    if (a.kind === 'mood' && currentMoodExternal) return false;
+    if (a.snoozedUntil && a.snoozedUntil > now) return false;
+    return true;
+  });
+
   return (
     <div className="app-shell">
+      <TitleBar />
       <header className="topbar">
-        <div className="brand">
-          <span className="brand-icon" aria-hidden="true">
-            <BrandLogo size={28} />
-          </span>
-          <span className="brand-name">Beefor Dev</span>
-        </div>
         <div className="topbar-actions">
           <div className="bell-wrap" ref={bellRef}>
             <button
@@ -80,31 +128,74 @@ export default function App() {
               onClick={() => setBellOpen((o) => !o)}
             >
               <Bell size={18} />
-              {alerts.length > 0 && <span className="bell-badge">{alerts.length}</span>}
+              {visibleAlerts.length > 0 && (
+                <span className="bell-badge">{visibleAlerts.length}</span>
+              )}
             </button>
             {bellOpen && (
               <div className="bell-panel" role="dialog" aria-label="Avisos de hoje">
-                <div className="bell-panel__header">Hoje</div>
-                {alerts.length === 0 ? (
-                  <p className="bell-panel__empty">Nenhum aviso para hoje.</p>
+                <div className="bell-panel__header">Avisos de hoje</div>
+                {visibleAlerts.length === 0 ? (
+                  <p className="bell-panel__empty">Nenhum aviso pendente.</p>
                 ) : (
                   <ul className="bell-panel__list">
-                    {alerts.map((a, i) => (
-                      <li key={i} className={`bell-item bell-item--${a.kind}`}>
-                        <span className="bell-item__title">{a.title}</span>
-                        <span className="bell-item__meta">
-                          {a.time && <span className="bell-item__time">{a.time}</span>}
-                          <span className="bell-item__body">{a.body}</span>
-                        </span>
-                        <button
-                          className="bell-item__dismiss"
-                          aria-label="Dispensar"
-                          onClick={() => setAlerts((prev) => prev.filter((_, j) => j !== i))}
-                        >
-                          x
-                        </button>
-                      </li>
-                    ))}
+                    {visibleAlerts.map((a, i) => {
+                      const realIdx = alerts.indexOf(a);
+                      return (
+                        <li key={i} className={`bell-item bell-item--${a.kind}`}>
+                          <div className="bell-item__main">
+                            <span className="bell-item__title">{a.title}</span>
+                            <span className="bell-item__meta">
+                              {a.time && (
+                                <span className="bell-item__time">{a.time}</span>
+                              )}
+                              <span className="bell-item__body">{a.body}</span>
+                            </span>
+                          </div>
+                          <div className="bell-item__actions">
+                            <button
+                              className="bell-action bell-action--snooze"
+                              title="Adiar 5 min"
+                              onClick={() => snoozeAlert(realIdx, 5)}
+                            >
+                              +5m
+                            </button>
+                            <button
+                              className="bell-action bell-action--snooze"
+                              title="Adiar 10 min"
+                              onClick={() => snoozeAlert(realIdx, 10)}
+                            >
+                              +10m
+                            </button>
+                            <button
+                              className="bell-action bell-action--snooze"
+                              title="Adiar 15 min"
+                              onClick={() => snoozeAlert(realIdx, 15)}
+                            >
+                              +15m
+                            </button>
+                            {a.kind === 'mood' && (
+                              <button
+                                className="bell-action bell-action--primary"
+                                onClick={() => {
+                                  setTab('home');
+                                  setBellOpen(false);
+                                }}
+                              >
+                                Marcar agora
+                              </button>
+                            )}
+                            <button
+                              className="bell-action bell-action--dismiss"
+                              aria-label="Dispensar"
+                              onClick={() => dismissAlert(realIdx)}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
@@ -138,7 +229,7 @@ export default function App() {
 
       <main className="content">
         <section className="tab-panel" hidden={tab !== 'home'}>
-          <Home />
+          <Home onMoodChanged={(mood) => setCurrentMoodExternal(mood)} />
         </section>
         <section className="tab-panel" hidden={tab !== 'settings'}>
           <SettingsPage />

@@ -59,6 +59,9 @@ export interface AppSettings {
 
   /** Home layout: 'classic' (table) | 'minimal' (calendar + day panel) */
   viewMode?: 'classic' | 'minimal';
+
+  /** Calendar cells show daily diff (+23m / -10m) instead of status dot */
+  calendarShowDiff?: boolean;
 }
 
 export interface TodayAlert {
@@ -66,6 +69,7 @@ export interface TodayAlert {
   title: string;
   body: string;
   time?: string; // "HH:MM" when scheduled
+  snoozedUntil?: string; // "HH:MM" — set client-side to suppress until that time
 }
 
 export interface ActionResult<T = void> {

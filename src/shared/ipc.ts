@@ -32,6 +32,14 @@ export const IPC = {
   // today alerts
   ACTION_GET_TODAY_ALERTS: 'action:getTodayAlerts',
 
+  // snooze
+  ACTION_SNOOZE_ALERT: 'action:snoozeAlert',
+
+  // window controls (frameless)
+  WIN_MINIMIZE: 'win:minimize',
+  WIN_MAXIMIZE: 'win:maximize',
+  WIN_CLOSE: 'win:close',
+
   // events main → renderer
   EVT_STATUS: 'evt:status',
   EVT_PLAY_ALARM: 'evt:playAlarm',
