@@ -3,7 +3,8 @@ import { Home } from './pages/Home';
 import { Settings as SettingsPage } from './pages/Settings';
 import { Bell, Moon, Newspaper, Sun } from './components/Icons';
 import { TitleBar } from './components/TitleBar';
-import { playAlarmByKind } from './utils/alarm';
+import { PatchJournal } from './components/PatchJournal';
+import { playAlarmByKind, playUiClick } from './utils/alarm';
 import type { AppSettings, TodayAlert } from '../shared/types';
 
 type Tab = 'home' | 'settings';
@@ -81,6 +82,21 @@ export default function App() {
     window.addEventListener('beefor:settings-changed', handler);
     return () => window.removeEventListener('beefor:settings-changed', handler);
   }, []);
+
+  // UI click sounds (global delegate)
+  useEffect(() => {
+    if (!appSettings?.uiSounds) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const btn = target.closest('button, [role="button"]');
+      if (!btn) return;
+      if ((btn as HTMLButtonElement).disabled) return;
+      void playUiClick();
+    };
+    document.addEventListener('click', handler, true);
+    return () => document.removeEventListener('click', handler, true);
+  }, [appSettings?.uiSounds]);
 
   // Sons por tipo
   useEffect(() => {
@@ -292,18 +308,18 @@ export default function App() {
                 Fechar
               </button>
             </div>
-            <div style={{ padding: '14px 18px 18px' }}>
+            <div className="patch-journal-modal-body">
               {loadingPatchJournal ? (
                 <p className="patch-journal-empty">Carregando novidades...</p>
               ) : (
-                <pre className="patch-journal-copy">{patchJournal}</pre>
+                <PatchJournal text={patchJournal} />
               )}
             </div>
           </section>
         </div>
       )}
 
-      <footer className="appfoot">Beefor Dev - JB</footer>
+      <footer className="appfoot">Beefor U - JB</footer>
     </div>
   );
 }

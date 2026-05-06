@@ -46,6 +46,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   hoursPerDay: 8,
   hourRate: 0,
   patchJournal: FALLBACK_PATCH_JOURNAL,
+  uiSounds: false,
 };
 
 export function sessionPath(): string {

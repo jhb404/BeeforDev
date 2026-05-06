@@ -121,6 +121,43 @@ async function playKudocardAlarm(): Promise<void> {
   sub.stop(start + 0.8);
 }
 
+// UI click: Nintendo-style coin blip (short two-note up)
+export async function playUiClick(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const start = audio.currentTime;
+  const notes = [988, 1319]; // B5 E6
+  notes.forEach((freq, i) => {
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+    osc.frequency.value = freq;
+    osc.type = 'square';
+    gain.gain.setValueAtTime(0.0001, start + i * 0.06);
+    gain.gain.exponentialRampToValueAtTime(0.08, start + i * 0.06 + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + i * 0.06 + 0.12);
+    osc.connect(gain).connect(audio.destination);
+    osc.start(start + i * 0.06);
+    osc.stop(start + i * 0.06 + 0.14);
+  });
+}
+
+// UI hover: subtle blip
+export async function playUiHover(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const start = audio.currentTime;
+  const osc = audio.createOscillator();
+  const gain = audio.createGain();
+  osc.frequency.value = 1568;
+  osc.type = 'sine';
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(0.04, start + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.06);
+  osc.connect(gain).connect(audio.destination);
+  osc.start(start);
+  osc.stop(start + 0.08);
+}
+
 export type AlarmKind = 'mood' | 'lunch' | 'punch' | 'kudocard' | 'default';
 
 export async function playAlarmByKind(kind: AlarmKind): Promise<void> {

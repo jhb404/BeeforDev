@@ -71,6 +71,9 @@ export interface AppSettings {
 
   /** Custom theme overrides (CSS variable values) */
   themeOverrides?: Partial<ThemeOverrides>;
+
+  /** UI click/hover sound effects */
+  uiSounds?: boolean;
 }
 
 export interface ThemeOverrides {

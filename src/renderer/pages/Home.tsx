@@ -383,7 +383,7 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
     <div className="home-layout">
       <section className="home-topbar">
         <div>
-          <p className="eyebrow">Beefor Dev</p>
+          <p className="eyebrow">Beefor U</p>
           <h1>Lançamento de horas</h1>
         </div>
         <div className="home-status">
@@ -431,14 +431,19 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
 
       <section className="home-commandbar">
         <div className="mood-panel">
-          <div>
-            <span className="label">Mood do dia</span>
-            <strong>{currentMood ?? 'Não identificado'}</strong>
-          </div>
           {showMoodLoader ? (
-            <FunnyLoader title="Buscando mood" />
+            <>
+              <div />
+              <FunnyLoader title="Buscando mood" />
+            </>
           ) : (
-            <MoodPicker current={currentMood} disabled={busy || !ready} onSelect={selectMood} />
+            <>
+              <div>
+                <span className="label">Mood do dia</span>
+                <strong>{currentMood ?? 'Não identificado'}</strong>
+              </div>
+              <MoodPicker current={currentMood} disabled={busy || !ready} onSelect={selectMood} />
+            </>
           )}
         </div>
       </section>
