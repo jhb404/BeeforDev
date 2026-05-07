@@ -128,6 +128,31 @@ export interface Coin2uLog {
   Log: Coin2uTransaction[];
 }
 
+export interface Coin2uShopCategory {
+  Id: number;
+  Decription: string;
+  BitActive?: boolean;
+}
+
+export interface Coin2uShopItem {
+  Id: number;
+  Name: string;
+  Imagem: string | null;
+  Price: number;
+  PriceInReal: number;
+  LastUpdate: string | null;
+  Active: boolean;
+  Stock: number;
+  Description: string;
+  PurchaseInstruction: string | null;
+  category?: Coin2uShopCategory | null;
+}
+
+export interface Coin2uShop {
+  Coins: number;
+  ShopItems: Coin2uShopItem[];
+}
+
 export interface Coin2uTransferRequest {
   To: number;
   Amount: number;

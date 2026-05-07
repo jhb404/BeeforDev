@@ -6,6 +6,7 @@ import type {
   Coin2uCredentials,
   Coin2uDashboard,
   Coin2uLog,
+  Coin2uShop,
   Coin2uTransferRequest,
   Credentials,
   FetchedTimesheetRow,
@@ -134,6 +135,8 @@ const api = {
     ipcRenderer.invoke(IPC.COIN2U_GET_DASHBOARD),
   getCoin2uLog: (): Promise<ActionResult<Coin2uLog>> =>
     ipcRenderer.invoke(IPC.COIN2U_GET_LOG),
+  getCoin2uShop: (): Promise<ActionResult<Coin2uShop>> =>
+    ipcRenderer.invoke(IPC.COIN2U_GET_SHOP),
   transferCoin2uCoins: (payload: Coin2uTransferRequest): Promise<ActionResult<boolean>> =>
     ipcRenderer.invoke(IPC.COIN2U_TRANSFER, payload),
   verifyCoin2u: (): Promise<ActionResult<{ userId: number; email: string }>> =>

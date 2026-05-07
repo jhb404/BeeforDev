@@ -190,3 +190,18 @@ export const Check = (p: IconProps) => (
     <path d="M20 6 9 17l-5-5" />
   </svg>
 );
+
+export const ShoppingBag = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M6 8h12l-1 13H7L6 8Z" />
+    <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+  </svg>
+);
+
+export const Package = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M21 8v8a2 2 0 0 1-1 1.73l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.73l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8Z" />
+    <path d="M3.3 7 12 12l8.7-5" />
+    <path d="M12 22V12" />
+  </svg>
+);

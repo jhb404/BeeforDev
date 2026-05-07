@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { AppSettings, Coin2uDashboard, Coin2uMember, Coin2uTransaction } from '../../shared/types';
+import type { AppSettings, Coin2uDashboard, Coin2uMember, Coin2uShopItem, Coin2uTransaction } from '../../shared/types';
 import { loadCoin2uCache, saveCoin2uCache, transactionSignature } from '../utils/coin2uCache';
 import { playUiSound } from '../utils/alarm';
-import { Check, Clock, Refresh, Search, Users } from './Icons';
+import { Check, Clock, Package, Refresh, Search, ShoppingBag, Users } from './Icons';
 import { CoinIcon } from './Coin2uCoinIcon';
 
-type Tab = 'send' | 'history';
+type Tab = 'send' | 'shop' | 'history';
 type HistoryFilter = 'all' | 'sent' | 'received';
 type Toast = { kind: 'ok' | 'err'; msg: string };
 const MEMBERS_PER_PAGE = 48;
@@ -33,18 +33,39 @@ function matchesMember(member: Coin2uMember, query: string): boolean {
   return member.Text.toLowerCase().includes(query.trim().toLowerCase());
 }
 
+function formatReal(value: number): string {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function itemCategory(item: Coin2uShopItem): string {
+  if (/^C&A\b/i.test(item.Name.trim())) return 'Lojas virtuais';
+  return item.category?.Decription || 'Outros';
+}
+
+function matchesShopItem(item: Coin2uShopItem, query: string, category: string): boolean {
+  const q = query.trim().toLowerCase();
+  const byCategory = category === 'all' || itemCategory(item) === category;
+  if (!q) return byCategory;
+  return byCategory && `${item.Name} ${item.Description} ${itemCategory(item)}`.toLowerCase().includes(q);
+}
+
 export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
   const cached = useMemo(() => loadCoin2uCache(), []);
   const [dashboard, setDashboard] = useState<Coin2uDashboard | null>(cached.dashboard);
   const [log, setLog] = useState<Coin2uTransaction[]>(cached.log);
+  const [shopItems, setShopItems] = useState<Coin2uShopItem[]>([]);
   const [userId, setUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [shopLoading, setShopLoading] = useState(false);
   const [transferring, setTransferring] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [tab, setTab] = useState<Tab>('send');
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('all');
   const [query, setQuery] = useState('');
+  const [shopQuery, setShopQuery] = useState('');
+  const [shopCategory, setShopCategory] = useState('all');
+  const [confirmItem, setConfirmItem] = useState<Coin2uShopItem | null>(null);
   const [memberPage, setMemberPage] = useState(1);
   const [selected, setSelected] = useState<Coin2uMember | null>(null);
   const [amount, setAmount] = useState('1');
@@ -68,6 +89,20 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
       return true;
     });
   }, [log, historyFilter, userId]);
+
+  const activeShopItems = useMemo(
+    () => shopItems.filter((item) => item.Active && item.Stock > 0),
+    [shopItems],
+  );
+
+  const shopCategories = useMemo(() => {
+    return ['all', ...Array.from(new Set(activeShopItems.map(itemCategory))).sort((a, b) => a.localeCompare(b, 'pt-BR'))];
+  }, [activeShopItems]);
+
+  const filteredShopItems = useMemo(
+    () => activeShopItems.filter((item) => matchesShopItem(item, shopQuery, shopCategory)),
+    [activeShopItems, shopQuery, shopCategory],
+  );
 
   const persist = (nextDashboard: Coin2uDashboard | null, nextLog: Coin2uTransaction[]) => {
     saveCoin2uCache({
@@ -94,11 +129,27 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
       setDashboard(dashRes.data);
       setLog(logRes.data.Log);
       persist(dashRes.data, logRes.data.Log);
+      void refreshShop(false);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshShop = async (showLoading = true) => {
+    if (showLoading) setShopLoading(true);
+    try {
+      const res = await window.beefor.getCoin2uShop();
+      if (!res.ok || !res.data) throw new Error(res.error ?? 'Falha ao carregar loja.');
+      setShopItems(res.data.ShopItems);
+      setDashboard((prev) => prev ? { ...prev, Coins: res.data.Coins } : prev);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg);
+    } finally {
+      if (showLoading) setShopLoading(false);
     }
   };
 
@@ -173,6 +224,12 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
     }
   };
 
+  const confirmPurchase = () => {
+    if (!confirmItem) return;
+    setToast({ kind: 'ok', msg: 'Loja pronta. Endpoint de compra pendente.' });
+    setConfirmItem(null);
+  };
+
   return (
     <div className="modal-backdrop" role="presentation">
       <section
@@ -237,6 +294,19 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
               data-sound="tab-home"
             >
               Enviar
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'shop'}
+              className={tab === 'shop' ? 'active' : ''}
+              onClick={() => {
+                setTab('shop');
+                if (shopItems.length === 0) void refreshShop();
+              }}
+              data-sound="tab-home"
+            >
+              Loja
             </button>
             <button
               type="button"
@@ -362,6 +432,79 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
                 </button>
               </aside>
             </div>
+          ) : tab === 'shop' ? (
+            <div className="coin2u-shop-wrap">
+              <div className="coin2u-shop-controls">
+                <label className="coin2u-search">
+                  <Search size={14} />
+                  <input
+                    type="search"
+                    placeholder="Buscar item"
+                    value={shopQuery}
+                    onChange={(e) => setShopQuery(e.target.value)}
+                  />
+                </label>
+                <div className="coin2u-history-filters" role="tablist" aria-label="Categorias da loja">
+                  {shopCategories.slice(0, 6).map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      role="tab"
+                      aria-selected={shopCategory === category}
+                      className={shopCategory === category ? 'active' : ''}
+                      onClick={() => setShopCategory(category)}
+                      data-sound="tab-home"
+                    >
+                      {category === 'all' ? 'Todos' : category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="coin2u-shop-grid">
+                {shopLoading && shopItems.length === 0 ? (
+                  <p className="coin2u-empty">Carregando loja...</p>
+                ) : filteredShopItems.length === 0 ? (
+                  <p className="coin2u-empty">Nenhum item na loja.</p>
+                ) : (
+                  filteredShopItems.map((item) => {
+                    const canBuy = (dashboard?.Coins ?? 0) >= item.Price;
+                    return (
+                      <article key={item.Id} className="coin2u-shop-card">
+                        <div className="coin2u-shop-card__media">
+                          {item.Imagem ? (
+                            <img src={item.Imagem} alt="" loading="lazy" />
+                          ) : (
+                            <Package size={34} />
+                          )}
+                          <span className="coin2u-shop-card__badge">{itemCategory(item)}</span>
+                        </div>
+                        <div className="coin2u-shop-card__body">
+                          <div>
+                            <h3 title={item.Name}>{item.Name}</h3>
+                            <p title={item.Description || 'Sem descricao.'}>{item.Description || 'Sem descricao.'}</p>
+                          </div>
+                          <div className="coin2u-shop-card__meta">
+                            <span>{formatReal(item.PriceInReal)}</span>
+                            <strong><CoinIcon variant="gold" /> {item.Price}</strong>
+                          </div>
+                          <button
+                            type="button"
+                            className="warm"
+                            disabled={!canBuy}
+                            onClick={() => setConfirmItem(item)}
+                            data-sound="coin"
+                          >
+                            <ShoppingBag size={15} />
+                            Comprar
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           ) : (
             <div className="coin2u-history-wrap">
               <div className="coin2u-history-filters" role="tablist">
@@ -416,6 +559,41 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
               <strong>{toast.kind === 'ok' ? 'Tudo certo' : 'Atencao'}</strong>
               <span>{toast.msg}</span>
             </span>
+          </div>
+        )}
+
+        {confirmItem && (
+          <div className="coin2u-confirm-backdrop" role="presentation">
+            <section
+              className="coin2u-confirm"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="coin2u-confirm-title"
+            >
+              <div className="coin2u-confirm__head">
+                <ShoppingBag size={18} />
+                <div>
+                  <h3 id="coin2u-confirm-title">Deseja confirmar compra?</h3>
+                  <p>{confirmItem.Name}</p>
+                </div>
+              </div>
+              <div className="coin2u-confirm__ledger">
+                <div><span>Saldo Atual</span><strong>{dashboard?.Coins ?? 0}</strong></div>
+                <div><span>{confirmItem.Name}</span><strong>-{confirmItem.Price}</strong></div>
+                <div className="coin2u-confirm__total">
+                  <span>Saldo Final</span>
+                  <strong>{(dashboard?.Coins ?? 0) - confirmItem.Price}</strong>
+                </div>
+              </div>
+              <div className="coin2u-confirm__actions">
+                <button type="button" className="secondary" onClick={() => setConfirmItem(null)} data-sound="close">
+                  Cancelar
+                </button>
+                <button type="button" className="warm" onClick={confirmPurchase} data-sound="success">
+                  Confirmar
+                </button>
+              </div>
+            </section>
           </div>
         )}
       </section>

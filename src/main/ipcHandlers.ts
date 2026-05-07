@@ -53,6 +53,7 @@ import {
   fetchCoin2uOrgs,
   getCoin2uDashboard,
   getCoin2uLog,
+  getCoin2uShop,
   getMaskedCoin2uCreds,
   onCoin2uLogin,
   saveCoin2uCredentials,
@@ -573,6 +574,16 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
     try {
       const settings = await loadSettings();
       const data = await getCoin2uLog(settings.coin2uUserId);
+      return ok(data);
+    } catch (err) {
+      return fail(err);
+    }
+  });
+
+  ipcMain.handle(IPC.COIN2U_GET_SHOP, async () => {
+    try {
+      const settings = await loadSettings();
+      const data = await getCoin2uShop(settings.coin2uUserId, settings.coin2uInfo);
       return ok(data);
     } catch (err) {
       return fail(err);

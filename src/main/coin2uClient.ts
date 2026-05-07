@@ -15,6 +15,8 @@ import type {
   Coin2uDashboard,
   Coin2uLog,
   Coin2uMember,
+  Coin2uShop,
+  Coin2uShopItem,
   Coin2uTransaction,
   Coin2uTransferRequest,
 } from '../shared/types';
@@ -545,6 +547,31 @@ function parseTransactions(value: unknown): Coin2uTransaction[] {
     .filter((t) => Number.isFinite(t.TransactionId) && t.TransactionId > 0);
 }
 
+function parseShopItems(value: unknown): Coin2uShopItem[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item: any) => ({
+      Id: Number(item?.Id ?? item?.id ?? 0),
+      Name: String(item?.Name ?? item?.name ?? '').trim(),
+      Imagem: item?.Imagem || item?.imagem || item?.Image || null,
+      Price: Number(item?.Price ?? item?.price ?? 0),
+      PriceInReal: Number(item?.PriceInReal ?? item?.priceInReal ?? 0),
+      LastUpdate: item?.LastUpdate ?? item?.lastUpdate ?? null,
+      Active: Boolean(item?.Active ?? item?.active ?? false),
+      Stock: Number(item?.Stock ?? item?.stock ?? 0),
+      Description: String(item?.Description ?? item?.description ?? '').trim(),
+      PurchaseInstruction: item?.PurchaseInstruction ?? item?.purchaseInstruction ?? null,
+      category: item?.category
+        ? {
+            Id: Number(item.category.Id ?? item.category.id ?? 0),
+            Decription: String(item.category.Decription ?? item.category.Description ?? '').trim(),
+            BitActive: item.category.BitActive,
+          }
+        : null,
+    }))
+    .filter((item) => Number.isFinite(item.Id) && item.Id > 0 && item.Name);
+}
+
 export async function getCoin2uDashboard(
   fallbackUserId?: number,
 ): Promise<Coin2uDashboard> {
@@ -605,6 +632,40 @@ export async function getCoin2uLog(fallbackUserId?: number): Promise<Coin2uLog> 
   }
 
   return { Log: parseTransactions(json.Log ?? json.log) };
+}
+
+export async function getCoin2uShop(
+  fallbackUserId?: number,
+  fallbackInfo?: Record<string, unknown>,
+): Promise<Coin2uShop> {
+  await auth.loadFromDisk();
+  await auth.ensureFresh();
+
+  const userId = auth.getUserId() ?? fallbackUserId;
+  const token = auth.getTokenApi();
+  const info = auth.getInfo() ?? fallbackInfo ?? null;
+  const organizationId = Number(
+    info?.OrganizationId ?? info?.organizationId ?? info?.OrgId ?? info?.orgId ?? 0,
+  );
+  if (!userId) throw new Error('Coin2U: userId indisponível (faça login)');
+  if (!organizationId) throw new Error('Coin2U: organizationId indisponível (faça login)');
+
+  const url = `/VentronCoins/GetShop?organizationId=${encodeURIComponent(organizationId)}&userId=${encodeURIComponent(userId)}&token=${encodeURIComponent(token ?? '')}`;
+  const res = await coin2uAuthedGet(url);
+  if (res.status >= 400) throw new Error(`Coin2U shop HTTP ${res.status}`);
+
+  const text = await res.text();
+  let json: any;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error('Coin2U shop: resposta inválida (não-JSON)');
+  }
+
+  return {
+    Coins: Number(json.Coins ?? 0),
+    ShopItems: parseShopItems(json.ShopItems ?? json.shopItems ?? json.Items ?? json.items),
+  };
 }
 
 export async function transferCoin2uCoins(
