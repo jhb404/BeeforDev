@@ -159,6 +159,11 @@ export interface Coin2uTransferRequest {
   Message: string;
 }
 
+export interface Coin2uBuyItemRequest {
+  shopItemId: number;
+  price: number;
+}
+
 /** Org row as returned by /User/GetOrgList. Kept loose since schema may grow. */
 export interface Coin2uOrg {
   id?: number;

@@ -58,6 +58,7 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
   const [loading, setLoading] = useState(false);
   const [shopLoading, setShopLoading] = useState(false);
   const [transferring, setTransferring] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [tab, setTab] = useState<Tab>('send');
@@ -100,7 +101,9 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
   }, [activeShopItems]);
 
   const filteredShopItems = useMemo(
-    () => activeShopItems.filter((item) => matchesShopItem(item, shopQuery, shopCategory)),
+    () => activeShopItems
+      .filter((item) => matchesShopItem(item, shopQuery, shopCategory))
+      .sort((a, b) => a.Price - b.Price || a.Name.localeCompare(b.Name, 'pt-BR')),
     [activeShopItems, shopQuery, shopCategory],
   );
 
@@ -224,10 +227,25 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
     }
   };
 
-  const confirmPurchase = () => {
+  const confirmPurchase = async () => {
     if (!confirmItem) return;
-    setToast({ kind: 'ok', msg: 'Loja pronta. Endpoint de compra pendente.' });
-    setConfirmItem(null);
+    setPurchasing(true);
+    try {
+      const res = await window.beefor.buyCoin2uItem({
+        shopItemId: confirmItem.Id,
+        price: Math.floor(confirmItem.Price),
+      });
+      if (!res.ok || !res.data) throw new Error(res.error ?? 'Compra recusada.');
+      if (settings?.uiSounds) playUiSound('success');
+      setToast({ kind: 'ok', msg: 'Compra realizada.' });
+      setConfirmItem(null);
+      await refresh();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setToast({ kind: 'err', msg });
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   return (
@@ -586,11 +604,23 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
                 </div>
               </div>
               <div className="coin2u-confirm__actions">
-                <button type="button" className="secondary" onClick={() => setConfirmItem(null)} data-sound="close">
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => setConfirmItem(null)}
+                  disabled={purchasing}
+                  data-sound="close"
+                >
                   Cancelar
                 </button>
-                <button type="button" className="warm" onClick={confirmPurchase} data-sound="success">
-                  Confirmar
+                <button
+                  type="button"
+                  className="warm"
+                  onClick={() => void confirmPurchase()}
+                  disabled={purchasing}
+                  data-sound="success"
+                >
+                  {purchasing ? 'Comprando...' : 'Confirmar'}
                 </button>
               </div>
             </section>

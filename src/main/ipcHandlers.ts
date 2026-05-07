@@ -51,6 +51,7 @@ import {
   clearCoin2uCredentials,
   coin2uVerifyLogin,
   fetchCoin2uOrgs,
+  buyCoin2uItem,
   getCoin2uDashboard,
   getCoin2uLog,
   getCoin2uShop,
@@ -584,6 +585,16 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
     try {
       const settings = await loadSettings();
       const data = await getCoin2uShop(settings.coin2uUserId, settings.coin2uInfo);
+      return ok(data);
+    } catch (err) {
+      return fail(err);
+    }
+  });
+
+  ipcMain.handle(IPC.COIN2U_BUY_ITEM, async (_e, payload: { shopItemId: number; price: number }) => {
+    try {
+      const settings = await loadSettings();
+      const data = await buyCoin2uItem(payload, settings.coin2uUserId);
       return ok(data);
     } catch (err) {
       return fail(err);

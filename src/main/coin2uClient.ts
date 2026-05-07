@@ -12,6 +12,7 @@ import {
 } from '../shared/constants';
 import type {
   Coin2uCredentials,
+  Coin2uBuyItemRequest,
   Coin2uDashboard,
   Coin2uLog,
   Coin2uMember,
@@ -666,6 +667,34 @@ export async function getCoin2uShop(
     Coins: Number(json.Coins ?? 0),
     ShopItems: parseShopItems(json.ShopItems ?? json.shopItems ?? json.Items ?? json.items),
   };
+}
+
+export async function buyCoin2uItem(
+  req: Coin2uBuyItemRequest,
+  fallbackUserId?: number,
+): Promise<boolean> {
+  await auth.loadFromDisk();
+  await auth.ensureFresh();
+
+  const from = auth.getUserId() ?? fallbackUserId;
+  if (!from) throw new Error('Coin2U: userId indisponível (faça login)');
+  if (!Number.isFinite(req.shopItemId) || req.shopItemId <= 0) throw new Error('Item inválido.');
+  if (!Number.isFinite(req.price) || req.price <= 0) throw new Error('Preço inválido.');
+
+  const url = `/VentronCoins/BuyItem?shopItemId=${encodeURIComponent(req.shopItemId)}&from=${encodeURIComponent(from)}&price=${encodeURIComponent(Math.floor(req.price))}&token=undefined`;
+  const res = await coin2uAuthedGet(url);
+  // TODO: Validar pq uma compra que deu sucesso no COIN2U retorna um raios de HTTP 500
+  // Tipo, foi o sucesso mas retornou erro...q sacola
+  if (res.status === 500) return true;
+  if (res.status >= 400) throw new Error(`Coin2U compra HTTP ${res.status}`);
+
+  const text = (await res.text()).trim();
+  const normalized = text.toLowerCase();
+  if (normalized === '0' || normalized === 'false') return false;
+  if (/login|isthereloginerror|unauthorized|não autorizado|nao autorizado/i.test(text)) {
+    throw new Error('Coin2U compra recusada pela sessão.');
+  }
+  return true;
 }
 
 export async function transferCoin2uCoins(

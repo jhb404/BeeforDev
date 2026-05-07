@@ -3,6 +3,7 @@ import { IPC } from '../shared/ipc';
 import type {
   ActionResult,
   AppSettings,
+  Coin2uBuyItemRequest,
   Coin2uCredentials,
   Coin2uDashboard,
   Coin2uLog,
@@ -137,6 +138,8 @@ const api = {
     ipcRenderer.invoke(IPC.COIN2U_GET_LOG),
   getCoin2uShop: (): Promise<ActionResult<Coin2uShop>> =>
     ipcRenderer.invoke(IPC.COIN2U_GET_SHOP),
+  buyCoin2uItem: (payload: Coin2uBuyItemRequest): Promise<ActionResult<boolean>> =>
+    ipcRenderer.invoke(IPC.COIN2U_BUY_ITEM, payload),
   transferCoin2uCoins: (payload: Coin2uTransferRequest): Promise<ActionResult<boolean>> =>
     ipcRenderer.invoke(IPC.COIN2U_TRANSFER, payload),
   verifyCoin2u: (): Promise<ActionResult<{ userId: number; email: string }>> =>
