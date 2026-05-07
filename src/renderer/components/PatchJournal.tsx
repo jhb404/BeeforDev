@@ -1,23 +1,70 @@
 import { Fragment, type ReactNode } from 'react';
 
 const ROADMAP: string[] = [
-  'Ajustar sistema de notificação (Pra puxar do beefor tambem :D)',
-  'Melhoria de UI/UX',
-  'Melhorar desempenho e reduzir consumo de CPU e RAM',
-  'Refatorar código para melhor manutenção',
-  'Implementar cache para melhorar tempo de resposta',
-  'Melhorar Tempo de loadings, etc...',
-  'Atualizar o app sem a pessoa se preocupar com isso (Animação de atualização, etc...)',
-  'Melhorar tempo do Auto Lançamento',
-  'Ajustar sistema de notificação - Puxar do Beefor',
-  'Retry automático caso erro',
-  'Auto lançamento para preguiçosos de plantão',
-  'Backup automático das configs',
-  'Melhorias visuais e mais opções de customização',
-  'PT-PT / EN-GB / EN-US',
-  'Possibilidade de enviar o coin direto pelo app',
-  'Porte para macbook está em andamento',
+'Sistema de notificações reformulado',
+'Melhorias gerais de UI/UX',
+'Redução de consumo de CPU e RAM',
+'Refatoração de código',
+'Implementação de cache',
+'Melhorias de loading e inicialização',
+'Atualizações automáticas do app',
+'Retry automático configurável',
+'Backup automático de configurações',
+'Novas opções de customização',
+'Suporte multi-idioma (PT-BR / EN-US / EN-GB)',
+'Envio de coins direto pelo app',
+'Porte para MacBook em andamento 🍎',
+
+// 🎨 Customização
+'Escolha da cor do ícone do Beefor',
+'Tema totalmente dinâmico',
+'Customização de dark/light mode',
+'Layouts Minimalista e Padrão',
+'Atalhos de teclado configuráveis',
+'Home customizável via drag-and-drop',
+'Menu da bandeja editável',
+'Sons personalizados para ações',
+
+// 🚀 Performance
+'Nova animação de loading',
+'Splash screen animada',
+'Asas animadas na inicialização 🪽',
+'Som especial ao abrir o app 🎮',
+'Inicialização mais rápida e inteligente',
+
+// 🫂 Social
+'Meme Center™',
+'Envio de memes entre amigos',
+'Mensagens internas divertidas',
+'Urso pidão pedindo coin2u 🐻💸',
+'Meu Timão Lindo 💛',
+
+// ⚙️ Melhorias úteis
+'Auto lançamento mais rápido',
+'Atualização automática do calendário',
+'Integração com notificações do Niko',
+'Melhorias no Kudocard e histórico',
+'Integração com coin2u',
+'Correções nas notificações do Kudocard',
+
+// 🔮 Futuro
+'App extremamente otimizado',
+'Uso mínimo de memória RAM',
+'Integração com Lark/Teams/LocalWeb',
+'Automação de batida de ponto',
+'Histórico salarial',
+'Armazenamento de documentos importantes',
+'Integração com assessments/cards',
+'Exportar/importar configurações em JSON',
+'API local para automações externas',
+'Backup automático de sessão/config',
+
+// 🎨 White Mode
+'Revamp completo do White Mode',
+'Melhor contraste e legibilidade',
+'Visual mais moderno e premium ✨',
 ];
+
 
 const URL_RE = /(https?:\/\/[^\s)]+)/g;
 const IMG_EXT = /\.(gif|png|jpe?g|webp|svg)(\?.*)?$/i;

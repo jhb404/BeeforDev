@@ -127,7 +127,7 @@ export interface ThemeOverrides {
 }
 
 export interface TodayAlert {
-  kind: 'kudocard' | 'mood' | 'lunch' | 'punch';
+  kind: 'kudocard' | 'mood' | 'lunch' | 'punch' | 'birthday';
   title: string;
   body: string;
   time?: string; // "HH:MM" when scheduled
@@ -286,4 +286,20 @@ export interface SendKudoCardResult {
   success: boolean;
   message: string;
   details?: unknown;
+}
+
+export interface TeamChecklistAnswer {
+  titulo: string;
+  resposta: string;
+}
+
+export interface TeamMember {
+  nome: string;
+  foto: string;
+  funcaoPrincipal: string;
+  email: string;
+  status: boolean;
+  ultimoCliente: string | null;
+  ultimoCheckpoint: string | null;
+  respostasUltimoChecklist: TeamChecklistAnswer[];
 }

@@ -16,6 +16,7 @@ import type {
   SendKudoCardRequest,
   SendKudoCardResult,
   SessionStatus,
+  TeamMember,
   TimesheetEntry,
   TodayAlert,
 } from '../shared/types';
@@ -69,6 +70,9 @@ const api = {
     ipcRenderer.invoke(IPC.ACTION_KUDO_LISTS),
   getKudoDetail: (id: string): Promise<ActionResult<KudoCardDetail>> =>
     ipcRenderer.invoke(IPC.ACTION_KUDO_DETAIL, id),
+
+  fetchTeamMembers: (): Promise<ActionResult<TeamMember[]>> =>
+    ipcRenderer.invoke(IPC.ACTION_FETCH_TEAM_MEMBERS),
 
   onStatus: (cb: (status: SessionStatus) => void): (() => void) => {
     const listener = (_e: unknown, status: SessionStatus) => cb(status);

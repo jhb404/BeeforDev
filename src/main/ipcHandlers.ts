@@ -40,6 +40,7 @@ import {
   doFetchKudoCounts,
   doFetchKudoLists,
   doFetchKudoDetail,
+  doFetchTeamMembers,
 } from '../automation/beefor/beeforActions';
 import { withPageLock } from '../automation/beefor/pageLock';
 import { ensureSessionForAction, forceReconnect } from './sessionGuard';
@@ -431,6 +432,25 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
       }
     },
   );
+
+  ipcMain.handle(IPC.ACTION_FETCH_TEAM_MEMBERS, async () => {
+    const win = getWindow();
+    try {
+      await ensureSessionForAction(win);
+      const data = await withTimeout(
+        withPageLock(async () => {
+          const page = await client.getPage();
+          return doFetchTeamMembers(page);
+        }),
+        45_000,
+        'Fetch team',
+      );
+      return ok(data);
+    } catch (err) {
+      logger.error('Fetch team members failed', err);
+      return fail(err);
+    }
+  });
 
   ipcMain.handle(IPC.ADMIN_STATUS, async () => ({
     elevated: isElevated(),

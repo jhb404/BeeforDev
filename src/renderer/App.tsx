@@ -5,7 +5,11 @@ import { Bell, Moon, Newspaper, Sun } from './components/Icons';
 import { TitleBar } from './components/TitleBar';
 import { PatchJournal } from './components/PatchJournal';
 import { Coin2uBadge } from './components/Coin2uBadge';
-import { playAlarmByKind, playUiClick, playUiSound, type UiSoundKind } from './utils/alarm';
+import { TeamButton } from './components/team/TeamButton';
+import { TeamModal } from './components/team/TeamModal';
+import { loadBirthdayCache, loadMembersCache, birthdayKey } from './utils/teamCache';
+import { isBirthdayToday } from './utils/dateUtils';
+import { playAlarmByKind, playUiBirthdayAlert, playUiClick, playUiSound, type UiSoundKind } from './utils/alarm';
 import type { AppSettings, TodayAlert } from '../shared/types';
 
 type Tab = 'home' | 'settings';
@@ -55,6 +59,11 @@ export default function App() {
   const [loadingPatchJournal, setLoadingPatchJournal] = useState(false);
   const [currentMoodExternal, setCurrentMoodExternal] = useState<string | null>(null);
   const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
+  const [teamModalOpen, setTeamModalOpen] = useState(false);
+  const [teamPartyCount, setTeamPartyCount] = useState(0);
+  const [teamPartyBadge, setTeamPartyBadge] = useState(0);
+  const birthdayAlertsInjected = useRef(false);
+  const birthdaySoundPlayed = useRef(false);
   const bellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -131,6 +140,46 @@ export default function App() {
     });
     return off;
   }, []);
+
+  useEffect(() => {
+    const recompute = () => {
+      const cache = loadMembersCache();
+      const bdays = loadBirthdayCache();
+      if (!cache) {
+        setTeamPartyCount(0);
+        return;
+      }
+      const todayBirthdays: typeof cache.members = [];
+      for (const m of cache.members) {
+        const b = bdays[birthdayKey(m)]?.birthday;
+        if (isBirthdayToday(b)) todayBirthdays.push(m);
+      }
+      if (todayBirthdays.length > 0 && !birthdayAlertsInjected.current) {
+        birthdayAlertsInjected.current = true;
+        window.setTimeout(() => {
+          setTeamPartyCount(todayBirthdays.length);
+          setTeamPartyBadge(todayBirthdays.length);
+        }, 9000);
+      }
+    };
+    recompute();
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key) return;
+      if (e.key === 'beefor-team-members' || e.key === 'beefor-team-birthdays') recompute();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [teamModalOpen]);
+
+  // Play birthday sound when badge appears (teamPartyCount set inside the 2s timeout)
+  useEffect(() => {
+    if (!appSettings?.uiSounds) return;
+    if (birthdaySoundPlayed.current) return;
+    if (teamPartyCount > 0) {
+      birthdaySoundPlayed.current = true;
+      void playUiBirthdayAlert();
+    }
+  }, [teamPartyCount, appSettings]);
 
   useEffect(() => {
     if (!bellOpen) return;
@@ -233,27 +282,42 @@ export default function App() {
                             </span>
                           </div>
                           <div className="bell-item__actions">
-                            <button
-                              className="bell-action bell-action--snooze"
-                              title="Adiar 5 min"
-                              onClick={() => snoozeAlert(realIdx, 5)}
-                            >
-                              +5m
-                            </button>
-                            <button
-                              className="bell-action bell-action--snooze"
-                              title="Adiar 10 min"
-                              onClick={() => snoozeAlert(realIdx, 10)}
-                            >
-                              +10m
-                            </button>
-                            <button
-                              className="bell-action bell-action--snooze"
-                              title="Adiar 15 min"
-                              onClick={() => snoozeAlert(realIdx, 15)}
-                            >
-                              +15m
-                            </button>
+                            {a.kind !== 'birthday' && (
+                              <>
+                                <button
+                                  className="bell-action bell-action--snooze"
+                                  title="Adiar 5 min"
+                                  onClick={() => snoozeAlert(realIdx, 5)}
+                                >
+                                  +5m
+                                </button>
+                                <button
+                                  className="bell-action bell-action--snooze"
+                                  title="Adiar 10 min"
+                                  onClick={() => snoozeAlert(realIdx, 10)}
+                                >
+                                  +10m
+                                </button>
+                                <button
+                                  className="bell-action bell-action--snooze"
+                                  title="Adiar 15 min"
+                                  onClick={() => snoozeAlert(realIdx, 15)}
+                                >
+                                  +15m
+                                </button>
+                              </>
+                            )}
+                            {a.kind === 'birthday' && (
+                              <button
+                                className="bell-action bell-action--primary"
+                                onClick={() => {
+                                  setTeamModalOpen(true);
+                                  setBellOpen(false);
+                                }}
+                              >
+                                Ver time
+                              </button>
+                            )}
                             {a.kind === 'mood' && (
                               <button
                                 className="bell-action bell-action--primary"
@@ -281,6 +345,13 @@ export default function App() {
               </div>
             )}
           </div>
+          <TeamButton
+            onOpen={() => {
+              setTeamModalOpen(true);
+              setTeamPartyBadge(0);
+            }}
+            partyCount={teamPartyBadge}
+          />
           <span className="topbar-divider" aria-hidden="true" />
           <Coin2uBadge settings={appSettings} />
           <span className="topbar-divider" aria-hidden="true" />
@@ -312,6 +383,8 @@ export default function App() {
           <SettingsPage onSettingsChanged={() => window.dispatchEvent(new Event('beefor:settings-changed'))} />
         </section>
       </main>
+
+      <TeamModal open={teamModalOpen} onClose={() => setTeamModalOpen(false)} />
 
       {patchModalOpen && (
         <div className="modal-backdrop" role="presentation">

@@ -26,6 +26,8 @@ export const IPC = {
   ACTION_KUDO_LISTS: 'action:kudoLists',
   ACTION_KUDO_DETAIL: 'action:kudoDetail',
 
+  ACTION_FETCH_TEAM_MEMBERS: 'action:fetchTeamMembers',
+
   // admin / system
   ADMIN_STATUS: 'admin:status',
   ADMIN_RELAUNCH: 'admin:relaunch',
