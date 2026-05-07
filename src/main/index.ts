@@ -132,10 +132,14 @@ function ensureTray(variant: 'orange' | 'purple' = 'orange') {
   tray.on('double-click', () => showMainWindow());
 }
 
-function notifyWindows(title: string, body: string) {
+function notifyWindows(title: string, body: string, variant: 'orange' | 'purple' = 'orange') {
   try {
     if (Notification.isSupported()) {
-      new Notification({ title, body }).show();
+      new Notification({
+        title,
+        body,
+        icon: getBuildIconPath(variant),
+      }).show();
       return;
     }
   } catch (err) {
@@ -168,13 +172,13 @@ async function runActionWithReconnect<T>(action: (page: Page) => Promise<T>): Pr
 }
 
 async function runAutoLancamentoFromTray() {
-  const title = 'Auto lancamento';
+  const title = 'Auto lançamento';
   try {
-    notifyWindows('Beefor U', `${title} iniciado.`);
+    notifyWindows('Beefor U', 'Auto lançamento iniciado. Vou avisar quando terminar.');
     await runActionWithReconnect(async (page) => {
       await doAutoLancamento(page);
     });
-    notifyWindows('Beefor U', `${title} concluido com sucesso.`);
+    notifyWindows('Beefor U', 'Auto lançamento concluído. Calendário será atualizado.');
     const win = getWindow();
     win?.webContents.send(IPC.EVT_NOTIFY, {
       title: 'sync:autoLancamento',
@@ -183,7 +187,12 @@ async function runAutoLancamentoFromTray() {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.error(`${title} via tray falhou`, err);
-    notifyWindows('Beefor U', `${title} falhou: ${msg}`);
+    notifyWindows('Beefor U', `Auto lançamento falhou: ${msg}`);
+    const win = getWindow();
+    win?.webContents.send(IPC.EVT_NOTIFY, {
+      title: 'sync:autoLancamento',
+      body: 'failed',
+    });
   }
 }
 

@@ -132,7 +132,7 @@ export function MinimalView({
                   </span>
                 )}
                 <span className="cal-num">{cell.date.slice(8, 10)}</span>
-                {!showDiff && <span className="cal-dot" />}
+                <span className="cal-dot" />
               </button>
             );
           })}

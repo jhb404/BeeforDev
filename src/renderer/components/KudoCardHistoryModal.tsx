@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   KUDO_CARD_EMOJI,
   KUDO_CARD_LABELS,
@@ -103,7 +104,7 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
 
   const items = lists ? lists[tab] : [];
 
-  return (
+  return createPortal(
     <div className="modal-backdrop" role="presentation">
       <section
         aria-labelledby="kudo-history-title"
@@ -241,6 +242,7 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
           )}
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -3,12 +3,13 @@ import { useEffect, useState } from 'react';
 interface Props {
   logoVariant?: 'orange' | 'purple';
   ready: boolean;
+  onComplete?: () => void;
 }
 
 const MIN_VISIBLE_MS = 5000;
 const MAX_VISIBLE_MS = 12000;
 
-export function StartupOverlay({ logoVariant = 'orange', ready }: Props) {
+export function StartupOverlay({ logoVariant = 'orange', ready, onComplete }: Props) {
   const [canClose, setCanClose] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -26,9 +27,12 @@ export function StartupOverlay({ logoVariant = 'orange', ready }: Props) {
   useEffect(() => {
     if (!(ready || timedOut) || !canClose) return;
     setClosing(true);
-    const timer = window.setTimeout(() => setHidden(true), 420);
+    const timer = window.setTimeout(() => {
+      setHidden(true);
+      onComplete?.();
+    }, 420);
     return () => window.clearTimeout(timer);
-  }, [ready, timedOut, canClose]);
+  }, [ready, timedOut, canClose, onComplete]);
 
   if (hidden) return null;
 

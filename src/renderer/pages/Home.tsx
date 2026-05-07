@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FunnyLoader } from '../components/FunnyLoader';
 import type {
   AppSettings,
@@ -99,6 +100,14 @@ function mergeFetched(
       editable: true,
     };
   });
+}
+
+function rowStatusKind(r: RowState): 'full' | 'partial' | 'empty' | 'holiday' {
+  if ((r.status ?? '').toLowerCase().includes('feriado')) return 'holiday';
+  const filled = [r.entrada, r.int1, r.ret1, r.int2, r.ret2, r.saida].filter(Boolean).length;
+  if (filled >= 4) return 'full';
+  if (filled > 0) return 'partial';
+  return 'empty';
 }
 
 interface HomeProps {
@@ -218,6 +227,14 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
     const off = window.beefor.onNotify((info) => {
       if (info.title === 'sync:autoLancamento' && info.body === 'ok') {
         void refreshAll();
+        showToast({
+          kind: 'ok',
+          title: 'Auto lançamento',
+          msg: 'Calendário atualizado após conclusão.',
+        });
+      }
+      if (info.title === 'sync:autoLancamento' && info.body === 'failed') {
+        void refreshMood();
       }
     });
     return off;
@@ -575,6 +592,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
               const isWeekend = r.weekday === 0 || r.weekday === 6;
               const isHoliday = (r.status ?? '').toLowerCase().includes('feriado');
               const isToday = r.date === today;
+              const statusKind = rowStatusKind(r);
               const worked = workedMinutes(r);
               const expected = hoursPerDayMin;
               const diff = worked > 0 ? worked - expected : 0;
@@ -627,7 +645,8 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
                   </div>
                   <div className="status-cell">
                     <span className="mobile-label">Status</span>
-                    {r.status || (isToday ? 'Hoje' : '-')}
+                    <span className={`status-pill status-pill--${statusKind}`} aria-hidden="true" />
+                    <span>{r.status || (isToday ? 'Hoje' : '-')}</span>
                   </div>
                   <label className="comment-cell">
                     <span className="mobile-label">Comentário</span>
@@ -657,59 +676,61 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
         )}
       </section>
 
-      {showBatchModal && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-labelledby="batch-modal-title"
-            aria-modal="true"
-            className="modal-card"
-            role="dialog"
-          >
-            <div className="modal-head">
-              <div>
-                <p className="eyebrow">Confirmação</p>
-                <h2 id="batch-modal-title">Lançar mês</h2>
+      {showBatchModal &&
+        createPortal(
+          <div className="modal-backdrop" role="presentation">
+            <section
+              aria-labelledby="batch-modal-title"
+              aria-modal="true"
+              className="modal-card"
+              role="dialog"
+            >
+              <div className="modal-head">
+                <div>
+                  <p className="eyebrow">Confirmação</p>
+                  <h2 id="batch-modal-title">Lançar mês</h2>
+                </div>
+                <button
+                  className="secondary compact"
+                  onClick={() => setShowBatchModal(false)}
+                >
+                  Fechar
+                </button>
               </div>
-              <button
-                className="secondary compact"
-                onClick={() => setShowBatchModal(false)}
-              >
-                Fechar
-              </button>
-            </div>
-            <p className="modal-copy">
-              O app vai lançar {batchRows.length} dia(s) preenchido(s) em{' '}
-              {MONTHS_PT[month - 1]} de {year}. Confira antes de confirmar.
-            </p>
-            <div className="batch-preview">
-              {batchRows.map(({ row, worked }) => {
-                const filled = FIELDS.map((f) => ({
-                  label: f.label,
-                  value: row[f.key],
-                })).filter((f) => f.value);
-                return (
-                  <div className="batch-preview-row" key={row.date}>
-                    <strong>
-                      {row.date.slice(8, 10)}/{row.date.slice(5, 7)}
-                    </strong>
-                    <span>{filled.map((f) => `${f.label}: ${f.value}`).join(' · ') || 'Sem horários'}</span>
-                    <span>Total: {worked > 0 ? formatMinutes(worked) : '00:00'}</span>
-                    {row.comentario && <span>Comentário: {row.comentario}</span>}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="modal-actions">
-              <button className="secondary" onClick={() => setShowBatchModal(false)}>
-                Cancelar
-              </button>
-              <button className="warm" disabled={busy} onClick={confirmLancarMes}>
-                Confirmar lançamento
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+              <p className="modal-copy">
+                O app vai lançar {batchRows.length} dia(s) preenchido(s) em{' '}
+                {MONTHS_PT[month - 1]} de {year}. Confira antes de confirmar.
+              </p>
+              <div className="batch-preview">
+                {batchRows.map(({ row, worked }) => {
+                  const filled = FIELDS.map((f) => ({
+                    label: f.label,
+                    value: row[f.key],
+                  })).filter((f) => f.value);
+                  return (
+                    <div className="batch-preview-row" key={row.date}>
+                      <strong>
+                        {row.date.slice(8, 10)}/{row.date.slice(5, 7)}
+                      </strong>
+                      <span>{filled.map((f) => `${f.label}: ${f.value}`).join(' · ') || 'Sem horários'}</span>
+                      <span>Total: {worked > 0 ? formatMinutes(worked) : '00:00'}</span>
+                      {row.comentario && <span>Comentário: {row.comentario}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="modal-actions">
+                <button className="secondary" onClick={() => setShowBatchModal(false)}>
+                  Cancelar
+                </button>
+                <button className="warm" disabled={busy} onClick={confirmLancarMes}>
+                  Confirmar lançamento
+                </button>
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
 
       <KudoCardModal
         open={showKudoModal}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   KUDO_CARD_EMOJI,
   KUDO_CARD_LABELS,
@@ -149,7 +150,7 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
     }
   };
 
-  return (
+  return createPortal(
     <div className="modal-backdrop" role="presentation">
       <section
         aria-labelledby="kudo-modal-title"
@@ -293,6 +294,7 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
           </div>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

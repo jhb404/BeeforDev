@@ -1,4 +1,5 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Bell, Moon, Newspaper, Sun } from './components/Icons';
 import { TitleBar } from './components/TitleBar';
 import { PatchJournal } from './components/PatchJournal';
@@ -16,6 +17,32 @@ const Home = lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })
 const SettingsPage = lazy(() => import('./pages/Settings').then((m) => ({ default: m.Settings })));
 const TeamModal = lazy(() => import('./components/team/TeamModal').then((m) => ({ default: m.TeamModal })));
 const Coin2uBadge = lazy(() => import('./components/Coin2uBadge').then((m) => ({ default: m.Coin2uBadge })));
+
+function preloadTeamPhotos(limit = 4) {
+  const cache = loadMembersCache();
+  if (!cache) return;
+  const urls = Array.from(
+    new Set(
+      cache.members
+        .map((m) => m.foto)
+        .filter((src): src is string => !!src && /^https?:\/\//i.test(src)),
+    ),
+  );
+  if (urls.length === 0) return;
+
+  let cursor = 0;
+  const loadNext = () => {
+    const src = urls[cursor];
+    cursor += 1;
+    if (!src) return;
+    const img = new Image();
+    img.onload = loadNext;
+    img.onerror = loadNext;
+    img.referrerPolicy = 'no-referrer';
+    img.src = src;
+  };
+  for (let i = 0; i < Math.min(limit, urls.length); i += 1) loadNext();
+}
 
 function getStoredTheme(): ThemeMode {
   if (typeof window === 'undefined') return 'dark';
@@ -64,7 +91,9 @@ export default function App() {
   const [teamModalOpen, setTeamModalOpen] = useState(false);
   const [teamPartyCount, setTeamPartyCount] = useState(0);
   const [teamPartyBadge, setTeamPartyBadge] = useState(0);
+  const [pendingBirthdayCount, setPendingBirthdayCount] = useState(0);
   const [homeBootReady, setHomeBootReady] = useState(false);
+  const [startupComplete, setStartupComplete] = useState(false);
   const birthdayAlertsInjected = useRef(false);
   const birthdaySoundPlayed = useRef(false);
   const bellRef = useRef<HTMLDivElement>(null);
@@ -150,6 +179,7 @@ export default function App() {
       const bdays = loadBirthdayCache();
       if (!cache) {
         setTeamPartyCount(0);
+        setPendingBirthdayCount(0);
         return;
       }
       const todayBirthdays: typeof cache.members = [];
@@ -159,10 +189,7 @@ export default function App() {
       }
       if (todayBirthdays.length > 0 && !birthdayAlertsInjected.current) {
         birthdayAlertsInjected.current = true;
-        window.setTimeout(() => {
-          setTeamPartyCount(todayBirthdays.length);
-          setTeamPartyBadge(todayBirthdays.length);
-        }, 9000);
+        setPendingBirthdayCount(todayBirthdays.length);
       }
     };
     recompute();
@@ -174,15 +201,24 @@ export default function App() {
     return () => window.removeEventListener('storage', onStorage);
   }, [teamModalOpen]);
 
-  // Play birthday sound when badge appears (teamPartyCount set inside the 2s timeout)
+  // Birthday visual + sound must appear together after startup is fully done.
   useEffect(() => {
-    if (!appSettings?.uiSounds) return;
     if (birthdaySoundPlayed.current) return;
-    if (teamPartyCount > 0) {
+    if (!startupComplete || pendingBirthdayCount <= 0) return;
+    const timer = window.setTimeout(() => {
+      setTeamPartyCount(pendingBirthdayCount);
+      setTeamPartyBadge(pendingBirthdayCount);
       birthdaySoundPlayed.current = true;
-      void playUiBirthdayAlert();
-    }
-  }, [teamPartyCount, appSettings]);
+      if (appSettings?.uiSounds) void playUiBirthdayAlert();
+    }, 5000);
+    return () => window.clearTimeout(timer);
+  }, [pendingBirthdayCount, appSettings?.uiSounds, startupComplete]);
+
+  useEffect(() => {
+    if (!startupComplete) return;
+    const timer = window.setTimeout(() => preloadTeamPhotos(4), 1200);
+    return () => window.clearTimeout(timer);
+  }, [startupComplete]);
 
   useEffect(() => {
     if (!bellOpen) return;
@@ -231,6 +267,7 @@ export default function App() {
   });
 
   const logoVariant = appSettings?.logoVariant ?? 'orange';
+  const handleStartupComplete = useCallback(() => setStartupComplete(true), []);
 
   // Topbar left: current month + session quick info
   const today = new Date();
@@ -382,14 +419,12 @@ export default function App() {
 
       <main className="content">
         <section className="tab-panel" hidden={tab !== 'home'}>
-          {tab === 'home' && (
-            <Suspense fallback={<div className="route-loader">Carregando...</div>}>
-              <Home
-                onMoodChanged={(mood) => setCurrentMoodExternal(mood)}
-                onBootReady={() => setHomeBootReady(true)}
-              />
-            </Suspense>
-          )}
+          <Suspense fallback={<div className="route-loader">Carregando...</div>}>
+            <Home
+              onMoodChanged={(mood) => setCurrentMoodExternal(mood)}
+              onBootReady={() => setHomeBootReady(true)}
+            />
+          </Suspense>
         </section>
         <section className="tab-panel" hidden={tab !== 'settings'}>
           {tab === 'settings' && (
@@ -404,31 +439,37 @@ export default function App() {
         {teamModalOpen && <TeamModal open={teamModalOpen} onClose={() => setTeamModalOpen(false)} />}
       </Suspense>
 
-      {patchModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section aria-modal="true" className="modal-card" role="dialog" aria-label="Jornal de patches">
-            <div className="modal-head">
-              <div>
-                <p className="eyebrow">Novidades</p>
-                <h2>Jornal de patches e atualizacoes</h2>
+      {patchModalOpen &&
+        createPortal(
+          <div className="modal-backdrop" role="presentation">
+            <section aria-modal="true" className="modal-card" role="dialog" aria-label="Jornal de patches">
+              <div className="modal-head">
+                <div>
+                  <p className="eyebrow">Novidades</p>
+                  <h2>Jornal de patches e atualizacoes</h2>
+                </div>
+                <button data-sound="close" className="secondary compact" onClick={() => setPatchModalOpen(false)}>
+                  Fechar
+                </button>
               </div>
-              <button data-sound="close" className="secondary compact" onClick={() => setPatchModalOpen(false)}>
-                Fechar
-              </button>
-            </div>
-            <div className="patch-journal-modal-body">
-              {loadingPatchJournal ? (
-                <p className="patch-journal-empty">Carregando novidades...</p>
-              ) : (
-                <PatchJournal text={patchJournal} />
-              )}
-            </div>
-          </section>
-        </div>
-      )}
+              <div className="patch-journal-modal-body">
+                {loadingPatchJournal ? (
+                  <p className="patch-journal-empty">Carregando novidades...</p>
+                ) : (
+                  <PatchJournal text={patchJournal} />
+                )}
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
 
       <footer className="appfoot">Beefor U - JB</footer>
-      <StartupOverlay logoVariant={logoVariant} ready={!!appSettings && homeBootReady} />
+      <StartupOverlay
+        logoVariant={logoVariant}
+        ready={!!appSettings && homeBootReady}
+        onComplete={handleStartupComplete}
+      />
     </div>
   );
 }

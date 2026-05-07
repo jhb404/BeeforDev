@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { AppSettings, Coin2uDashboard, Coin2uMember, Coin2uShopItem, Coin2uTransaction } from '../../shared/types';
 import { loadCoin2uCache, saveCoin2uCache, transactionSignature } from '../utils/coin2uCache';
 import { playUiSound } from '../utils/alarm';
@@ -255,7 +256,7 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
     }
   };
 
-  return (
+  return createPortal(
     <div className="modal-backdrop" role="presentation">
       <section
         className="modal-card coin2u-modal"
@@ -665,6 +666,7 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
           </div>
         )}
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

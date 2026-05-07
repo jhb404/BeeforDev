@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { TeamMember } from '../../../shared/types';
 import { useTeamMembers } from '../../hooks/useTeamMembers';
 import { birthdayKey, type BirthdayEntry } from '../../utils/teamCache';
@@ -87,7 +88,7 @@ export function TeamModal({ open, onClose }: Props) {
 
   const showInitialLoader = loading && members.length === 0;
 
-  return (
+  return createPortal(
     <div className="modal-backdrop" role="presentation">
       <section
         aria-labelledby="team-modal-title"
@@ -221,6 +222,7 @@ export function TeamModal({ open, onClose }: Props) {
           )}
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
