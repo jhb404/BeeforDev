@@ -8,6 +8,7 @@ import { loadBirthdayCache, loadMembersCache, birthdayKey } from './utils/teamCa
 import { isBirthdayToday } from './utils/dateUtils';
 import { playAlarmByKind, playUiBirthdayAlert, playUiClick, playUiSound, type UiSoundKind } from './utils/alarm';
 import { StartupOverlay } from './components/StartupOverlay';
+import { useEscapeToClose } from './hooks/useEscapeToClose';
 import type { AppSettings, TodayAlert } from '../shared/types';
 
 type Tab = 'home' | 'settings';
@@ -247,6 +248,8 @@ export default function App() {
     setPatchJournal(res.patchJournal?.trim() || 'Nenhuma atualizacao publicada ainda.');
     setLoadingPatchJournal(false);
   };
+
+  useEscapeToClose(patchModalOpen, () => setPatchModalOpen(false));
 
   const dismissAlert = (i: number) => {
     setAlerts((prev) => prev.filter((_, j) => j !== i));

@@ -11,6 +11,7 @@ import {
 } from '../../shared/types';
 import { FunnyLoader } from './FunnyLoader';
 import { useSlowHint } from '../hooks/useSlowHint';
+import { useEscapeToClose } from '../hooks/useEscapeToClose';
 
 type Tab = 'recebidos' | 'enviados';
 
@@ -99,6 +100,8 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
       cancelled = true;
     };
   }, [selected]);
+
+  useEscapeToClose(open, onClose);
 
   if (!open) return null;
 

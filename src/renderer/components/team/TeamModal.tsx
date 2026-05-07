@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { TeamMember } from '../../../shared/types';
 import { useTeamMembers } from '../../hooks/useTeamMembers';
+import { useEscapeToClose } from '../../hooks/useEscapeToClose';
 import { birthdayKey, type BirthdayEntry } from '../../utils/teamCache';
 import { isBirthdayToday } from '../../utils/dateUtils';
 import { FunnyLoader } from '../FunnyLoader';
@@ -57,6 +58,14 @@ export function TeamModal({ open, onClose }: Props) {
       setSelectedKey(null);
     }
   }, [open]);
+
+  useEscapeToClose(open, () => {
+    if (selectedKey) {
+      setSelectedKey(null);
+      return;
+    }
+    onClose();
+  });
 
   const filtered = useMemo(() => {
     return members.filter((m) => {

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { AppSettings, Coin2uDashboard, Coin2uMember, Coin2uShopItem, Coin2uTransaction } from '../../shared/types';
 import { loadCoin2uCache, saveCoin2uCache, transactionSignature } from '../utils/coin2uCache';
 import { playUiSound } from '../utils/alarm';
+import { useEscapeToClose } from '../hooks/useEscapeToClose';
 import { Check, Clock, Package, Refresh, Search, ShoppingBag, Users } from './Icons';
 import { CoinIcon } from './Coin2uCoinIcon';
 
@@ -186,6 +187,14 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
   useEffect(() => {
     if (memberPage > totalMemberPages) setMemberPage(totalMemberPages);
   }, [memberPage, totalMemberPages]);
+
+  useEscapeToClose(open, () => {
+    if (confirmItem) {
+      if (!purchasing) setConfirmItem(null);
+      return;
+    }
+    onClose();
+  });
 
   if (!open) return null;
 

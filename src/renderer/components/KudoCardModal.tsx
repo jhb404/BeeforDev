@@ -9,6 +9,7 @@ import {
   type KudoSearchResult,
   type SendKudoCardRequest,
 } from '../../shared/types';
+import { useEscapeToClose } from '../hooks/useEscapeToClose';
 
 interface Props {
   open: boolean;
@@ -98,6 +99,8 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [suggestOpen]);
+
+  useEscapeToClose(open && !submitting, onClose);
 
   if (!open) return null;
 

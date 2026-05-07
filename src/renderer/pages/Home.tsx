@@ -25,6 +25,7 @@ import {
 } from '../utils/dates';
 import { formatMinutes, workedMinutes } from '../utils/timeMath';
 import { playUiSound } from '../utils/alarm';
+import { useEscapeToClose } from '../hooks/useEscapeToClose';
 
 interface Toast {
   kind: 'ok' | 'err';
@@ -289,6 +290,8 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
     }
     await refreshTimesheet();
   };
+
+  useEscapeToClose(showBatchModal, () => setShowBatchModal(false));
 
   const autoLancamento = async () => {
     await wrap(async () => {
