@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from 'react';
 
 const ROADMAP: string[] = [
+  'Melhoria de UI/UX',
   'Melhorar desempenho e reduzir consumo de CPU e RAM',
   'Refatorar código para melhor manutenção',
   'Implementar cache para melhorar tempo de resposta',
