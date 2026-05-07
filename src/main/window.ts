@@ -64,6 +64,7 @@ export function createMainWindow(variant: LogoVariant = 'orange'): BrowserWindow
     minWidth: 720,
     minHeight: 520,
     backgroundColor: '#0a0d12',
+    show: false,
     autoHideMenuBar: true,
     frame: false,
     icon: iconPath,
@@ -77,7 +78,9 @@ export function createMainWindow(variant: LogoVariant = 'orange'): BrowserWindow
 
   if (isDev) {
     win.loadURL('http://localhost:5177');
-    win.webContents.openDevTools({ mode: 'detach' });
+    if (process.env.BEEFOR_DEVTOOLS === '1') {
+      win.webContents.openDevTools({ mode: 'detach' });
+    }
   } else {
     win.loadFile(path.join(__dirname, '../renderer/index.html'));
   }

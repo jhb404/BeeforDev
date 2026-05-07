@@ -18,17 +18,63 @@ import { ensureSessionForAction, forceReconnect } from './sessionGuard';
 import { ensureSession, startWatchdog, stopWatchdog } from './sessionManager';
 import { startScheduler, stopScheduler } from './scheduler';
 import { initCoin2u } from './coin2uClient';
+import { closeStartupSplash, createStartupSplash } from './startupSplash';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
+let ipcRegistered = false;
 const getWindow = () => mainWindow;
+
+async function waitForFirstPaint(win: BrowserWindow): Promise<void> {
+  if (win.isDestroyed()) return;
+  if (!win.webContents.isLoading()) return;
+  await new Promise<void>((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      win.webContents.removeListener('did-fail-load', done);
+      win.webContents.removeListener('did-finish-load', done);
+      win.removeListener('ready-to-show', done);
+      resolve();
+    };
+    const timer = setTimeout(done, 3500);
+    win.once('ready-to-show', done);
+    win.webContents.once('did-finish-load', done);
+    win.webContents.once('did-fail-load', done);
+  });
+}
+
+async function revealMainWindow(win: BrowserWindow, splash: BrowserWindow | null = null) {
+  await waitForFirstPaint(win);
+  if (win.isDestroyed()) return;
+
+  win.setOpacity(0);
+  if (win.isMinimized()) win.restore();
+  win.show();
+  win.focus();
+  await closeStartupSplash(splash);
+
+  const steps = 10;
+  for (let i = 1; i <= steps; i += 1) {
+    if (win.isDestroyed()) return;
+    win.setOpacity(i / steps);
+    await new Promise((resolve) => setTimeout(resolve, 18));
+  }
+  if (!win.isDestroyed()) win.setOpacity(1);
+}
+
+function ensureIpcHandlers() {
+  if (ipcRegistered) return;
+  registerIpcHandlers(getWindow);
+  ipcRegistered = true;
+}
 
 function showMainWindow() {
   if (!mainWindow || mainWindow.isDestroyed()) {
     mainWindow = createMainWindow();
     bindLoggerWindow(mainWindow);
     wireMainWindow(mainWindow);
+    void revealMainWindow(mainWindow);
     return;
   }
   if (mainWindow.isMinimized()) mainWindow.restore();
@@ -167,26 +213,28 @@ async function bootstrap() {
     app.setAppUserModelId('io.beefor.dev');
   }
 
+  const splash = createStartupSplash('orange');
   const settings = await loadSettings();
   const variant = settings.logoVariant ?? 'orange';
 
+  ensureIpcHandlers();
   mainWindow = createMainWindow(variant);
   bindLoggerWindow(mainWindow);
   wireMainWindow(mainWindow);
-  registerIpcHandlers(getWindow);
   ensureTray(variant);
 
   setAutoStart(settings.autoStart);
-
-  // Hydrate Coin2U session from disk so badge works without manual re-login
-  await initCoin2u();
-
+  void initCoin2u().catch((err) => {
+    logger.warn(`Coin2U init failed: ${err instanceof Error ? err.message : String(err)}`);
+  });
   if (settings.autoLoginOnLaunch) {
     void ensureSession(getWindow());
   }
 
-  startWatchdog(getWindow);
-  startScheduler(getWindow);
+  void revealMainWindow(mainWindow, splash).then(() => {
+    startWatchdog(getWindow);
+    startScheduler(getWindow);
+  });
 
   app.on('activate', () => {
     showMainWindow();

@@ -152,8 +152,9 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
     try {
       const res = await window.beefor.getCoin2uShop();
       if (!res.ok || !res.data) throw new Error(res.error ?? 'Falha ao carregar loja.');
-      setShopItems(res.data.ShopItems);
-      setDashboard((prev) => prev ? { ...prev, Coins: res.data.Coins } : prev);
+      const shop = res.data;
+      setShopItems(shop.ShopItems);
+      setDashboard((prev) => prev ? { ...prev, Coins: shop.Coins } : prev);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg);

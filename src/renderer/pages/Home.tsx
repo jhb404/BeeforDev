@@ -103,9 +103,10 @@ function mergeFetched(
 
 interface HomeProps {
   onMoodChanged?: (mood: string | null) => void;
+  onBootReady?: () => void;
 }
 
-export function Home({ onMoodChanged }: HomeProps = {}) {
+export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
   const { status, busy, wrap } = useBeefor();
   const ready = status === 'connected';
 
@@ -381,6 +382,11 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
   const showTimesheetLoader =
     isBooting || (loadingTs && !timesheetLoaded) || (ready && !timesheetLoaded);
   const showDisconnectedState = !ready && !isBooting;
+  const bootReady = showDisconnectedState || (ready && moodLoaded && timesheetLoaded);
+
+  useEffect(() => {
+    if (bootReady) onBootReady?.();
+  }, [bootReady, onBootReady]);
 
   return (
     <div className="home-layout">

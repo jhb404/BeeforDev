@@ -1,19 +1,21 @@
-import { useEffect, useRef, useState } from 'react';
-import { Home } from './pages/Home';
-import { Settings as SettingsPage } from './pages/Settings';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Bell, Moon, Newspaper, Sun } from './components/Icons';
 import { TitleBar } from './components/TitleBar';
 import { PatchJournal } from './components/PatchJournal';
-import { Coin2uBadge } from './components/Coin2uBadge';
 import { TeamButton } from './components/team/TeamButton';
-import { TeamModal } from './components/team/TeamModal';
 import { loadBirthdayCache, loadMembersCache, birthdayKey } from './utils/teamCache';
 import { isBirthdayToday } from './utils/dateUtils';
 import { playAlarmByKind, playUiBirthdayAlert, playUiClick, playUiSound, type UiSoundKind } from './utils/alarm';
+import { StartupOverlay } from './components/StartupOverlay';
 import type { AppSettings, TodayAlert } from '../shared/types';
 
 type Tab = 'home' | 'settings';
 type ThemeMode = 'dark' | 'light';
+
+const Home = lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })));
+const SettingsPage = lazy(() => import('./pages/Settings').then((m) => ({ default: m.Settings })));
+const TeamModal = lazy(() => import('./components/team/TeamModal').then((m) => ({ default: m.TeamModal })));
+const Coin2uBadge = lazy(() => import('./components/Coin2uBadge').then((m) => ({ default: m.Coin2uBadge })));
 
 function getStoredTheme(): ThemeMode {
   if (typeof window === 'undefined') return 'dark';
@@ -62,6 +64,7 @@ export default function App() {
   const [teamModalOpen, setTeamModalOpen] = useState(false);
   const [teamPartyCount, setTeamPartyCount] = useState(0);
   const [teamPartyBadge, setTeamPartyBadge] = useState(0);
+  const [homeBootReady, setHomeBootReady] = useState(false);
   const birthdayAlertsInjected = useRef(false);
   const birthdaySoundPlayed = useRef(false);
   const bellRef = useRef<HTMLDivElement>(null);
@@ -353,7 +356,9 @@ export default function App() {
             partyCount={teamPartyBadge}
           />
           <span className="topbar-divider" aria-hidden="true" />
-          <Coin2uBadge settings={appSettings} />
+          <Suspense fallback={null}>
+            <Coin2uBadge settings={appSettings} />
+          </Suspense>
           <span className="topbar-divider" aria-hidden="true" />
           <button
             data-sound="theme-toggle"
@@ -377,14 +382,27 @@ export default function App() {
 
       <main className="content">
         <section className="tab-panel" hidden={tab !== 'home'}>
-          <Home onMoodChanged={(mood) => setCurrentMoodExternal(mood)} />
+          {tab === 'home' && (
+            <Suspense fallback={<div className="route-loader">Carregando...</div>}>
+              <Home
+                onMoodChanged={(mood) => setCurrentMoodExternal(mood)}
+                onBootReady={() => setHomeBootReady(true)}
+              />
+            </Suspense>
+          )}
         </section>
         <section className="tab-panel" hidden={tab !== 'settings'}>
-          <SettingsPage onSettingsChanged={() => window.dispatchEvent(new Event('beefor:settings-changed'))} />
+          {tab === 'settings' && (
+            <Suspense fallback={<div className="route-loader">Carregando...</div>}>
+              <SettingsPage onSettingsChanged={() => window.dispatchEvent(new Event('beefor:settings-changed'))} />
+            </Suspense>
+          )}
         </section>
       </main>
 
-      <TeamModal open={teamModalOpen} onClose={() => setTeamModalOpen(false)} />
+      <Suspense fallback={null}>
+        {teamModalOpen && <TeamModal open={teamModalOpen} onClose={() => setTeamModalOpen(false)} />}
+      </Suspense>
 
       {patchModalOpen && (
         <div className="modal-backdrop" role="presentation">
@@ -410,6 +428,7 @@ export default function App() {
       )}
 
       <footer className="appfoot">Beefor U - JB</footer>
+      <StartupOverlay logoVariant={logoVariant} ready={!!appSettings && homeBootReady} />
     </div>
   );
 }
