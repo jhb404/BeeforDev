@@ -5,6 +5,8 @@ import type {
   AppSettings,
   Coin2uCredentials,
   Coin2uDashboard,
+  Coin2uLog,
+  Coin2uTransferRequest,
   Credentials,
   FetchedTimesheetRow,
   KudoCardCounts,
@@ -130,6 +132,10 @@ const api = {
     ipcRenderer.invoke(IPC.COIN2U_CLEAR_CREDS),
   getCoin2uDashboard: (): Promise<ActionResult<Coin2uDashboard>> =>
     ipcRenderer.invoke(IPC.COIN2U_GET_DASHBOARD),
+  getCoin2uLog: (): Promise<ActionResult<Coin2uLog>> =>
+    ipcRenderer.invoke(IPC.COIN2U_GET_LOG),
+  transferCoin2uCoins: (payload: Coin2uTransferRequest): Promise<ActionResult<boolean>> =>
+    ipcRenderer.invoke(IPC.COIN2U_TRANSFER, payload),
   verifyCoin2u: (): Promise<ActionResult<{ userId: number; email: string }>> =>
     ipcRenderer.invoke(IPC.COIN2U_VERIFY),
 };

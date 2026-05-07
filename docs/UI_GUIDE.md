@@ -1,7 +1,7 @@
 # Beefor Dev — UI/UX Style Guide
 
 Padrões a seguir para manter modal/componente novo coerente com o resto do app
-(referência: KudoCardHistoryModal, KudoCardModal, TeamModal).
+(referência: KudoCardHistoryModal, KudoCardModal, TeamModal, Coin2uModal).
 
 ---
 
@@ -93,6 +93,26 @@ Especificações:
 
 Lateral consistente: **18px** em todo o conteúdo do modal. Modal inteiro usa `--panel-bg`, `--shadow`.
 
+### Modal com conteúdo dinâmico / cache
+
+Quando uma modal lista dados vindos de API/cache (ex.: Coin2U, time, histórico), manter dimensão estável para a UI não "pular" quando busca/filtro reduz o resultado:
+
+```css
+.xxx-modal {
+  height: 720px;
+  max-height: calc(100vh - 44px);
+  display: flex;
+  flex-direction: column;
+}
+.xxx-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+```
+
+Regra: cache pode renderizar instantâneo, mas a área da modal não deve encolher quando vem 1 item, erro, loading parcial ou filtro vazio.
+
 ---
 
 ## Botões
@@ -109,6 +129,21 @@ Definidos no global.css. Sempre usar essas variantes, **não criar** `primary`/`
 ```
 
 Min-height: `36px` padrão, `30px` se `.compact`.
+
+### Botão de ação em painel lateral
+
+Em drawer/painel lateral de formulário (ex.: `Enviar coins`, `Lançar Dia`), a ação principal fica alinhada à direita e não ocupa a linha toda:
+
+```css
+.xxx-panel .warm,
+.xxx-panel button:not(.secondary) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-end;
+  width: auto;
+}
+```
 
 ---
 
@@ -186,10 +221,16 @@ Bordas **`--radius` (10px)**, NÃO 999px. Pílula só pra badges/tags.
   font-size: 13px;
   min-height: unset;
   padding: 0;
+  box-shadow: none;
+}
+.xxx-search input:focus {
+  border-color: transparent;
+  box-shadow: none;
 }
 ```
 
 Inputs nativos seguem regra global em `global.css` (radius 8px + foco roxo + ring).
+Em inputs dentro de wrapper visual (`.xxx-search`, autocomplete tipo KudoCard/Coin2U), o foco roxo deve ficar **só no wrapper**, não no input interno.
 
 ---
 
@@ -223,6 +264,52 @@ Inputs nativos seguem regra global em `global.css` (radius 8px + foco roxo + rin
 ```
 
 Regra: hover de card **roxo cheio** → todo texto vira branco. Tags/badges que ficariam invisíveis no hover trocam para `--warm`.
+
+### Cards em grid/lista filtrável
+
+Quando lista/grid fica dentro de uma área fixa e pode retornar poucos itens (ex.: busca de pessoa no Coin2U), cards não podem esticar para preencher altura livre. Use `align-content: start`, `align-items: start` e linhas `min-content`.
+
+```css
+.xxx-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-auto-rows: min-content;
+  align-content: start;
+  align-items: start;
+  gap: 8px;
+  padding: 8px;
+  flex: 1;
+  overflow-y: auto;
+}
+.xxx-list-card {
+  min-height: 58px;
+  height: auto;
+  padding: 10px 12px;
+  border-radius: var(--radius);          /* card pequeno/lista: mais quadrado */
+}
+```
+
+Use `border-radius: 14px` só para cards grandes como TeamCard. Para cards compactos/listagem estilo Kudo history/Coin2U, prefira `var(--radius)`.
+
+### Paginação local
+
+Se API retorna lista grande de uma vez e filtro é client-side, prefira paginação local simples antes de virtualização. Ex.: Coin2U usa 48 pessoas por página.
+
+```css
+.xxx-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.xxx-pagination span {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+```
+
+Regra: paginar para reduzir DOM/CPU/RAM quando a lista é grande; virtualizar só se paginação prejudicar workflow.
 
 ---
 
@@ -324,8 +411,12 @@ novos devem reutilizar tokens — não hardcodar paddings em px fora dos previst
 - [ ] Modal segue `modal-backdrop` + `modal-card` + `modal-head`, padding lateral 18px
 - [ ] Tabs/filtros usam `--radius` (não 999px) e `--warm` no active
 - [ ] Inputs usam `--radius` (10px) — pílula só em badges
+- [ ] Input dentro de wrapper visual não tem foco duplo; foco fica no wrapper
 - [ ] Hover de card → `--accent` cheio, texto branco, badge laranja
+- [ ] Cards de lista fixa não esticam quando filtro retorna poucos itens
+- [ ] Listas grandes vindas prontas da API usam paginação local antes de virtualização
 - [ ] Botão usa `secondary` / `compact` / `warm` / `danger` — não inventar classe
+- [ ] Ação principal em painel lateral fica à direita e com largura do conteúdo
 - [ ] `data-sound` mapeado em `alarm.ts`
 - [ ] Light + dark testados (alternar com `/` no app)
 - [ ] Acessibilidade: `aria-label`, `role`, `aria-selected`

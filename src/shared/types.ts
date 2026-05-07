@@ -92,12 +92,46 @@ export interface Coin2uDashboard {
   CurrentQuotation: number;
   DaysToExpire: number;
   ExchangeCoins: number;
+  Members?: Coin2uMember[];
+  RecentTransactions?: Coin2uTransaction[];
 }
 
 export interface Coin2uCredentials {
   email: string;
   userId?: number;
   connected?: boolean;
+}
+
+export interface Coin2uMember {
+  Value: number;
+  Text: string;
+}
+
+export interface Coin2uTransaction {
+  TransactionId: number;
+  Amount: number;
+  FromName: string;
+  FromId: number;
+  ToName: string;
+  ToId: number;
+  Date: string;
+  ShopItemId?: number | null;
+  ShopItemName?: string | null;
+  Coins?: number | null;
+  Message?: string | null;
+  GenesisBookId?: number | null;
+  ProviderId?: number | null;
+  ProviderIdName?: string | null;
+}
+
+export interface Coin2uLog {
+  Log: Coin2uTransaction[];
+}
+
+export interface Coin2uTransferRequest {
+  To: number;
+  Amount: number;
+  Message: string;
 }
 
 /** Org row as returned by /User/GetOrgList. Kept loose since schema may grow. */

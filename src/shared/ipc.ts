@@ -47,6 +47,8 @@ export const IPC = {
   COIN2U_GET_CREDS: 'coin2u:getCreds',
   COIN2U_CLEAR_CREDS: 'coin2u:clearCreds',
   COIN2U_GET_DASHBOARD: 'coin2u:getDashboard',
+  COIN2U_GET_LOG: 'coin2u:getLog',
+  COIN2U_TRANSFER: 'coin2u:transfer',
   COIN2U_VERIFY: 'coin2u:verify',
 
   // window controls (frameless)

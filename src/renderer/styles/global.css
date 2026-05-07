@@ -409,6 +409,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 
 .coin2u-badge {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -454,6 +455,379 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 .coin2u-val {
   letter-spacing: 0.02em;
+}
+.coin2u-notify-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--err);
+  box-shadow: 0 0 0 2px var(--bg-0);
+  pointer-events: none;
+}
+
+.coin2u-modal {
+  max-width: 980px;
+  width: min(980px, calc(100vw - 32px));
+  height: 720px;
+  max-height: calc(100vh - 44px);
+  display: flex;
+  flex-direction: column;
+}
+.coin2u-modal__subtitle {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.coin2u-modal__head-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.coin2u-modal__head-actions .secondary,
+.coin2u-transfer-panel .warm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-end;
+  width: auto;
+}
+.coin2u-modal__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px 14px;
+  flex-wrap: wrap;
+}
+.coin2u-balance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 10px;
+  flex: 1 1 420px;
+}
+.coin2u-balance-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  row-gap: 2px;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.coin2u-balance-card > svg,
+.coin2u-balance-card .coin2u-coin {
+  grid-row: span 2;
+}
+.coin2u-balance-card span {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.coin2u-balance-card strong {
+  font-size: 19px;
+  color: var(--text);
+  line-height: 1;
+}
+.coin2u-tabs,
+.coin2u-history-filters {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  width: fit-content;
+}
+.coin2u-tabs button,
+.coin2u-history-filters button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 7px 14px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 13px;
+  font-weight: 500;
+  min-height: unset;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.coin2u-tabs button:hover:not(.active),
+.coin2u-history-filters button:hover:not(.active) {
+  background: var(--bg-3);
+  color: var(--text);
+}
+.coin2u-tabs button.active,
+.coin2u-history-filters button.active {
+  background: var(--warm);
+  color: var(--button-text);
+}
+.coin2u-modal__body {
+  padding: 0 18px 18px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.coin2u-warn {
+  padding: 8px 12px;
+  background: var(--accent-2-soft);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius);
+  font-size: 12px;
+}
+.coin2u-warn span {
+  color: var(--text-muted);
+}
+.coin2u-send-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+.coin2u-send-main,
+.coin2u-history-wrap {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.coin2u-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  transition: border-color .18s ease, background .18s ease;
+}
+.coin2u-search:focus-within {
+  border-color: var(--accent);
+  background: var(--bg-1);
+}
+.coin2u-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: var(--text);
+  font-size: 13px;
+  min-height: unset;
+  padding: 0;
+  box-shadow: none;
+}
+.coin2u-search input:focus {
+  border-color: transparent;
+  box-shadow: none;
+}
+.coin2u-member-list,
+.coin2u-history-list {
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-1);
+}
+.coin2u-member-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  align-content: start;
+  align-items: start;
+  grid-auto-rows: min-content;
+  gap: 8px;
+  padding: 8px;
+  flex: 1;
+}
+.coin2u-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--bg-1);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+  min-height: 58px;
+  height: auto;
+}
+.coin2u-member:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+.coin2u-member:hover .coin2u-member__avatar {
+  background: var(--warm);
+  color: #fff;
+}
+.coin2u-member--active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-soft) inset;
+  background: var(--bg-2);
+}
+.coin2u-member__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.coin2u-member__name {
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.25;
+  word-break: break-word;
+}
+.coin2u-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.coin2u-pagination span {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.coin2u-transfer-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: auto;
+}
+.coin2u-transfer-panel__head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.coin2u-transfer-panel__head span,
+.coin2u-field {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.coin2u-transfer-panel__head strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.3;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.coin2u-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.coin2u-field textarea {
+  resize: vertical;
+  min-height: 96px;
+  max-height: 180px;
+}
+.coin2u-history-wrap {
+  flex: 1;
+}
+.coin2u-history-list {
+  padding: 8px;
+}
+.coin2u-transaction {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-1);
+}
+.coin2u-transaction + .coin2u-transaction {
+  margin-top: 8px;
+}
+.coin2u-transaction__amount {
+  min-width: 54px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.coin2u-transaction__amount.sent {
+  background: rgba(224, 84, 112, 0.12);
+  color: var(--err);
+}
+.coin2u-transaction__amount.received {
+  background: rgba(39, 184, 153, 0.12);
+  color: var(--ok);
+}
+.coin2u-transaction__main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.coin2u-transaction__main strong {
+  font-size: 13px;
+  color: var(--text);
+  word-break: break-word;
+}
+.coin2u-transaction__main span,
+.coin2u-transaction__main p {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.coin2u-transaction__main p {
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.coin2u-empty {
+  margin: 0;
+  padding: 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+@media (max-width: 760px) {
+  .coin2u-send-grid {
+    grid-template-columns: 1fr;
+  }
+  .coin2u-balance-grid {
+    grid-template-columns: 1fr;
+  }
+  .coin2u-transfer-panel {
+    max-height: 360px;
+  }
 }
 
 /* === Bell / Alerts === */

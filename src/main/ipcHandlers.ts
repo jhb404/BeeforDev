@@ -52,9 +52,11 @@ import {
   coin2uVerifyLogin,
   fetchCoin2uOrgs,
   getCoin2uDashboard,
+  getCoin2uLog,
   getMaskedCoin2uCreds,
   onCoin2uLogin,
   saveCoin2uCredentials,
+  transferCoin2uCoins,
 } from './coin2uClient';
 import type { Coin2uOrg } from '../shared/types';
 
@@ -561,6 +563,26 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
     try {
       const settings = await loadSettings();
       const data = await getCoin2uDashboard(settings.coin2uUserId);
+      return ok(data);
+    } catch (err) {
+      return fail(err);
+    }
+  });
+
+  ipcMain.handle(IPC.COIN2U_GET_LOG, async () => {
+    try {
+      const settings = await loadSettings();
+      const data = await getCoin2uLog(settings.coin2uUserId);
+      return ok(data);
+    } catch (err) {
+      return fail(err);
+    }
+  });
+
+  ipcMain.handle(IPC.COIN2U_TRANSFER, async (_e, payload: { To: number; Amount: number; Message: string }) => {
+    try {
+      const settings = await loadSettings();
+      const data = await transferCoin2uCoins(payload, settings.coin2uUserId);
       return ok(data);
     } catch (err) {
       return fail(err);

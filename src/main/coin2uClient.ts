@@ -10,7 +10,14 @@ import {
   KEYTAR_ACCOUNT_COIN2U_PASSWORD,
   KEYTAR_SERVICE,
 } from '../shared/constants';
-import type { Coin2uCredentials, Coin2uDashboard } from '../shared/types';
+import type {
+  Coin2uCredentials,
+  Coin2uDashboard,
+  Coin2uLog,
+  Coin2uMember,
+  Coin2uTransaction,
+  Coin2uTransferRequest,
+} from '../shared/types';
 import { logger } from './logger';
 
 /**
@@ -467,6 +474,77 @@ export async function coin2uAuthedGet(pathOrUrl: string): Promise<Response> {
   return res;
 }
 
+export async function coin2uAuthedPost(pathOrUrl: string, payload: unknown): Promise<Response> {
+  await auth.loadFromDisk();
+  await auth.ensureFresh();
+
+  const url = pathOrUrl.startsWith('http') ? pathOrUrl : `${COIN2U_URL}${pathOrUrl}`;
+  const body = JSON.stringify(payload);
+
+  const doFetch = async () => {
+    const headers: Record<string, string> = {
+      Accept: 'application/json, text/plain, */*',
+      'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+      'Content-Type': 'application/json;charset=UTF-8',
+      Origin: COIN2U_URL,
+      Referer: `${COIN2U_URL}/`,
+      Cookie: auth.cookieHeader(),
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
+    };
+    const tk = auth.getTokenApi();
+    if (tk) headers.Authorization = tk;
+    return fetch(url, { method: 'POST', headers, body, redirect: 'manual' });
+  };
+
+  let res = await doFetch();
+  auth.applySetCookie(res.headers.get('set-cookie'));
+  if (res.status === 401 || res.status === 302 || res.status === 403) {
+    const ageMs = Date.now() - (auth.getLoggedAt() ?? 0);
+    if (ageMs > 5_000) {
+      logger.info(`coin2u: ${res.status} on ${url} POST → re-login`);
+      auth.invalidate();
+      await auth.login();
+      res = await doFetch();
+      auth.applySetCookie(res.headers.get('set-cookie'));
+    }
+  }
+
+  return res;
+}
+
+function parseMembers(value: unknown): Coin2uMember[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((m: any) => ({
+      Value: Number(m?.Value ?? m?.value ?? 0),
+      Text: String(m?.Text ?? m?.text ?? '').trim(),
+    }))
+    .filter((m) => Number.isFinite(m.Value) && m.Value > 0 && m.Text);
+}
+
+function parseTransactions(value: unknown): Coin2uTransaction[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((t: any) => ({
+      TransactionId: Number(t?.TransactionId ?? t?.transactionId ?? 0),
+      Amount: Number(t?.Amount ?? t?.amount ?? t?.Coins ?? 0),
+      FromName: String(t?.FromName ?? t?.fromName ?? ''),
+      FromId: Number(t?.FromId ?? t?.fromId ?? 0),
+      ToName: String(t?.ToName ?? t?.toName ?? ''),
+      ToId: Number(t?.ToId ?? t?.toId ?? 0),
+      Date: String(t?.Date ?? t?.date ?? ''),
+      ShopItemId: t?.ShopItemId ?? null,
+      ShopItemName: t?.ShopItemName ?? null,
+      Coins: t?.Coins == null ? null : Number(t.Coins),
+      Message: t?.Message ?? null,
+      GenesisBookId: t?.GenesisBookId ?? null,
+      ProviderId: t?.ProviderId ?? null,
+      ProviderIdName: t?.ProviderIdName ?? null,
+    }))
+    .filter((t) => Number.isFinite(t.TransactionId) && t.TransactionId > 0);
+}
+
 export async function getCoin2uDashboard(
   fallbackUserId?: number,
 ): Promise<Coin2uDashboard> {
@@ -498,7 +576,61 @@ export async function getCoin2uDashboard(
     CurrentQuotation: Number(json.CurrentQuotation ?? 0),
     DaysToExpire: Number(json.DaysToExpire ?? 0),
     ExchangeCoins: Number(json.ExchangeCoins ?? 0),
+    Members: parseMembers(json.Members),
+    RecentTransactions: parseTransactions(
+      json.RecentTransactions ?? json.Transactions ?? json.Log ?? json.LastTransactions,
+    ),
   };
+}
+
+export async function getCoin2uLog(fallbackUserId?: number): Promise<Coin2uLog> {
+  await auth.loadFromDisk();
+  await auth.ensureFresh();
+
+  const userId = auth.getUserId() ?? fallbackUserId;
+  const token = auth.getTokenApi();
+  if (!userId) throw new Error('Coin2U: userId indisponível (faça login)');
+  if (!token) throw new Error('Coin2U: token indisponível (faça login)');
+
+  const url = `/VentronCoins/GetLog?userId=${encodeURIComponent(userId)}&token=${encodeURIComponent(token)}`;
+  const res = await coin2uAuthedGet(url);
+  if (res.status >= 400) throw new Error(`Coin2U log HTTP ${res.status}`);
+
+  const text = await res.text();
+  let json: any;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error('Coin2U log: resposta inválida (não-JSON)');
+  }
+
+  return { Log: parseTransactions(json.Log ?? json.log) };
+}
+
+export async function transferCoin2uCoins(
+  req: Coin2uTransferRequest,
+  fallbackUserId?: number,
+): Promise<boolean> {
+  await auth.loadFromDisk();
+  await auth.ensureFresh();
+
+  const from = auth.getUserId() ?? fallbackUserId;
+  if (!from) throw new Error('Coin2U: userId indisponível (faça login)');
+  if (!Number.isFinite(req.To) || req.To <= 0) throw new Error('Escolha quem vai receber.');
+  if (!Number.isFinite(req.Amount) || req.Amount <= 0) throw new Error('Informe uma quantia válida.');
+
+  const res = await coin2uAuthedPost('/VentronCoins/TransferCoins', {
+    transferCoins: {
+      To: req.To,
+      From: from,
+      Amount: Math.floor(req.Amount),
+      Message: req.Message ?? '',
+    },
+  });
+
+  if (res.status >= 400) throw new Error(`Coin2U transfer HTTP ${res.status}`);
+  const text = (await res.text()).trim().toLowerCase();
+  return text === '1' || text === 'true';
 }
 
 /**
