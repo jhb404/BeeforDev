@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { AppSettings, KudocardFrequency } from '../../shared/types';
 
 const DEFAULT_PUNCH: AppSettings['punchTimes'] = ['09:00', '12:00', '13:00', '18:00'];
@@ -27,6 +27,33 @@ const PUNCH_LABELS = ['Entrada', 'Saída almoço', 'Retorno', 'Saída'];
 
 interface SettingsProps {
   onSettingsChanged?: () => void;
+}
+
+interface SwitchProps {
+  id: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  label: string;
+  disabled?: boolean;
+}
+
+function Switch({ id, checked, onChange, label, disabled }: SwitchProps) {
+  return (
+    <div className="switch-row" style={{ marginBottom: 10 }}>
+      <span className="switch">
+        <input
+          id={id}
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.checked)}
+        />
+        <span className="switch__track" />
+        <span className="switch__thumb" />
+      </span>
+      <label htmlFor={id}>{label}</label>
+    </div>
+  );
 }
 
 export function Settings({ onSettingsChanged }: SettingsProps = {}) {
@@ -215,14 +242,21 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
         </div>
       )}
 
+      {/* ============================================================
+          GERAL
+          ============================================================ */}
       <section className="settings-section">
         <h3 className="settings-section__title">GERAL</h3>
-        <p className="settings-section__hint">CREDENCIAIS | INICIALIZAÇÃO | JORNADA</p>
+        <p className="settings-section__hint">CREDENCIAIS | CONFIGURAÇÃO GERAL | JORNADA</p>
         <div className="settings-grid grid-3">
+
+          {/* Credenciais (Beefor + Coin2U) */}
           <div className="card">
             <h2>Credenciais</h2>
+
+            <p className="card-subtitle">Beefor</p>
             <div className="field">
-              <label className="label">E-mail Beefor</label>
+              <label className="label">E-mail</label>
               <input
                 type="email"
                 value={email}
@@ -246,84 +280,81 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
               <button className="danger" onClick={clear}>Remover</button>
             </div>
             {savedEmail && (
-              <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 12 }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 8 }}>
                 Salvo: <strong>{savedEmail}</strong>
               </p>
             )}
-            
-          </div>
 
-          <div className="settings-grid grid-1" style={{ marginTop: 10 }}>
-            <div className="card">
-              <h2>Coin2U</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 10px' }}>
-                Conecta no Coin2U para mostrar tuas moedas no topo. Login separado do Beefor.
+            <div className="card-divider" />
+
+            <p className="card-subtitle">Coin2U</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 10px' }}>
+              Login separado do Beefor. Mostra suas moedas no topo.
+            </p>
+            <div className="field">
+              <label className="label">E-mail</label>
+              <input
+                type="email"
+                value={coin2uEmail}
+                onChange={(e) => setCoin2uEmail(e.target.value)}
+                placeholder="seu@email.com"
+                autoComplete="off"
+              />
+            </div>
+            <div className="field">
+              <label className="label">Senha</label>
+              <input
+                type="password"
+                value={coin2uPassword}
+                onChange={(e) => setCoin2uPassword(e.target.value)}
+                placeholder={coin2uSavedEmail ? '••••••••' : 'sua senha'}
+                autoComplete="off"
+              />
+            </div>
+            <div className="row">
+              <button onClick={saveCoin2u}>Salvar</button>
+              <button className="secondary" onClick={testCoin2u}>Testar</button>
+              <button className="danger" onClick={clearCoin2u}>Remover</button>
+            </div>
+            {coin2uSavedEmail && (
+              <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 8 }}>
+                Salvo: <strong>{coin2uSavedEmail}</strong>
+                {' · '}
+                <span style={{ color: coin2uConnected ? 'var(--ok)' : 'var(--err)' }}>
+                  {coin2uConnected ? 'Conectado' : 'Desconectado'}
+                </span>
               </p>
-              <div className="settings-grid grid-2">
-                <div className="field">
-                  <label className="label">E-mail Coin2U</label>
-                  <input
-                    type="email"
-                    value={coin2uEmail}
-                    onChange={(e) => setCoin2uEmail(e.target.value)}
-                    placeholder="seu@email.com"
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="field">
-                  <label className="label">Senha</label>
-                  <input
-                    type="password"
-                    value={coin2uPassword}
-                    onChange={(e) => setCoin2uPassword(e.target.value)}
-                    placeholder={coin2uSavedEmail ? '••••••••' : 'sua senha'}
-                    autoComplete="off"
-                  />
-                </div>
-              </div>
-              <div className="row">
-                <button onClick={saveCoin2u}>Salvar Coin2U</button>
-                <button className="secondary" onClick={testCoin2u}>Testar conexão</button>
-                <button className="danger" onClick={clearCoin2u}>Remover Coin2U</button>
-              </div>
-              {coin2uSavedEmail && (
-                <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 12 }}>
-                  Salvo: <strong>{coin2uSavedEmail}</strong>
-                  {' · '}
-                  <span style={{ color: coin2uConnected ? 'var(--ok)' : 'var(--err)' }}>
-                    {coin2uConnected ? 'Conectado' : 'Desconectado'}
-                  </span>
-                </p>
-              )}
-            </div>
+            )}
           </div>
 
+          {/* Configuração Geral (inicialização + sons) */}
           <div className="card">
-            <h2>Inicialização</h2>
-            <div className="checkbox-row" style={{ marginBottom: 12 }}>
-              <input
-                id="autostart"
-                type="checkbox"
-                checked={settings.autoStart}
-                onChange={(e) => update('autoStart', e.target.checked)}
-              />
-              <label htmlFor="autostart">Abrir ao iniciar o PC</label>
-            </div>
-            <div className="checkbox-row">
-              <input
-                id="autologin"
-                type="checkbox"
-                checked={settings.autoLoginOnLaunch}
-                onChange={(e) => update('autoLoginOnLaunch', e.target.checked)}
-              />
-              <label htmlFor="autologin">Restaurar sessão automaticamente ao abrir</label>
-            </div>
+            <h2>Configuração geral</h2>
+            <Switch
+              id="autostart"
+              checked={settings.autoStart}
+              onChange={(v) => void update('autoStart', v)}
+              label="Abrir ao iniciar o PC"
+            />
+            <Switch
+              id="autologin"
+              checked={settings.autoLoginOnLaunch}
+              onChange={(v) => void update('autoLoginOnLaunch', v)}
+              label="Restaurar sessão ao abrir"
+            />
+            <Switch
+              id="uiSounds"
+              checked={settings.uiSounds ?? false}
+              onChange={(v) => void update('uiSounds', v)}
+              label="Efeitos sonoros da interface"
+            />
           </div>
 
+          {/* Jornada */}
           <div className="card">
             <h2>Jornada</h2>
             <div className="field">
-              <label className="label">Horas trabalhadas por dia</label>
+              <label className="label">Horas por dia</label>
               <input
                 type="number"
                 min={1}
@@ -347,12 +378,17 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
         </div>
       </section>
 
+      {/* ============================================================
+          ALERTAS / AUTOMAÇÃO
+          ============================================================ */}
       <section className="settings-section">
         <h3 className="settings-section__title">ALERTAS / AUTOMAÇÃO</h3>
         <p className="settings-section__hint">
-          AUTOMATIZAR BATIDA DE PONTO | ALERTA DE MOOD | ALERTA ALMOÇO | ALERTA KUDOCARD
+          BATIDA DE PONTO | MOOD | ALMOÇO | KUDOCARD
         </p>
         <div className="settings-grid grid-2">
+
+          {/* Punch */}
           <div className="card">
             <div className="row between" style={{ marginBottom: 8 }}>
               <h2 style={{ margin: 0 }}>AUTOMATIZAR BATIDA DE PONTO</h2>
@@ -360,15 +396,12 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
                 Testar
               </button>
             </div>
-            <div className="checkbox-row" style={{ marginBottom: 12 }}>
-              <input
-                id="automatePunch"
-                type="checkbox"
-                checked={settings.automatePunch}
-                onChange={(e) => update('automatePunch', e.target.checked)}
-              />
-              <label htmlFor="automatePunch">Ativar batida automática</label>
-            </div>
+            <Switch
+              id="automatePunch"
+              checked={settings.automatePunch}
+              onChange={(v) => void update('automatePunch', v)}
+              label="Ativar batida automática"
+            />
             <div className="punch-grid">
               {PUNCH_LABELS.map((lab, i) => (
                 <div className="field" key={lab}>
@@ -403,6 +436,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
             </div>
           </div>
 
+          {/* Mood */}
           <div className="card">
             <div className="row between" style={{ marginBottom: 8 }}>
               <h2 style={{ margin: 0 }}>Alerta de MOOD</h2>
@@ -410,24 +444,18 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
                 Testar
               </button>
             </div>
-            <div className="checkbox-row" style={{ marginBottom: 12 }}>
-              <input
-                id="moodNotification"
-                type="checkbox"
-                checked={settings.moodNotification}
-                onChange={(e) => update('moodNotification', e.target.checked)}
-              />
-              <label htmlFor="moodNotification">Notificação diária de mood</label>
-            </div>
-            <div className="checkbox-row" style={{ marginBottom: 12 }}>
-              <input
-                id="moodAlarm"
-                type="checkbox"
-                checked={settings.moodAlarm}
-                onChange={(e) => update('moodAlarm', e.target.checked)}
-              />
-              <label htmlFor="moodAlarm">Tocar alarme com a notificação</label>
-            </div>
+            <Switch
+              id="moodNotification"
+              checked={settings.moodNotification}
+              onChange={(v) => void update('moodNotification', v)}
+              label="Notificação diária de mood"
+            />
+            <Switch
+              id="moodAlarm"
+              checked={settings.moodAlarm}
+              onChange={(v) => void update('moodAlarm', v)}
+              label="Tocar alarme com a notificação"
+            />
             <div className="field">
               <label className="label">Horário</label>
               <input
@@ -439,6 +467,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
             </div>
           </div>
 
+          {/* Lunch */}
           <div className="card">
             <div className="row between" style={{ marginBottom: 8 }}>
               <h2 style={{ margin: 0 }}>Alerta ALMOÇO</h2>
@@ -446,15 +475,12 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
                 Testar
               </button>
             </div>
-            <div className="checkbox-row" style={{ marginBottom: 12 }}>
-              <input
-                id="lunchAlarm"
-                type="checkbox"
-                checked={settings.lunchAlarm}
-                onChange={(e) => update('lunchAlarm', e.target.checked)}
-              />
-              <label htmlFor="lunchAlarm">Alarme de almoço</label>
-            </div>
+            <Switch
+              id="lunchAlarm"
+              checked={settings.lunchAlarm}
+              onChange={(v) => void update('lunchAlarm', v)}
+              label="Alarme de almoço"
+            />
             <div className="field">
               <label className="label">Horário do alarme</label>
               <input
@@ -466,6 +492,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
             </div>
           </div>
 
+          {/* KudoCard */}
           <div className="card kudocard-card">
             <div className="row between" style={{ marginBottom: 8 }}>
               <h2 style={{ margin: 0 }}>Alerta KUDOCARD</h2>
@@ -473,16 +500,20 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
                 Testar
               </button>
             </div>
-            <div className="checkbox-row" style={{ marginBottom: 12 }}>
+            <Switch
+              id="kudocardNotification"
+              checked={settings.kudocardNotification}
+              onChange={(v) => void update('kudocardNotification', v)}
+              label="Notificação para enviar kudocard"
+            />
+            <div className="field" style={{ marginTop: 6 }}>
+              <label className="label">Horário (opcional — vazio = aleatório)</label>
               <input
-                id="kudocardNotification"
-                type="checkbox"
-                checked={settings.kudocardNotification}
-                onChange={(e) => update('kudocardNotification', e.target.checked)}
+                type="time"
+                disabled={!settings.kudocardNotification}
+                value={settings.kudocardNotificationTime ?? ''}
+                onChange={(e) => update('kudocardNotificationTime', e.target.value || undefined)}
               />
-              <label htmlFor="kudocardNotification">
-                Notificação para enviar kudocard
-              </label>
             </div>
             <div className="kudocard-freq" style={{ opacity: settings.kudocardNotification ? 1 : 0.5 }}>
               {(['once', 'twice', 'custom'] as KudocardFrequency[]).map((f) => (
@@ -504,7 +535,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
             </div>
             {settings.kudocardFrequency === 'custom' && (
               <div className="kudocard-days">
-                {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                   <button
                     key={d}
                     type="button"
@@ -521,24 +552,27 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
         </div>
       </section>
 
+      {/* ============================================================
+          PERSONALIZAÇÃO / APARÊNCIA
+          ============================================================ */}
       <section className="settings-section">
-        <h3 className="settings-section__title">PERSONALIZAÇÃO</h3>
-        <p className="settings-section__hint">VISUALIZAÇÃO</p>
+        <h3 className="settings-section__title">PERSONALIZAÇÃO / APARÊNCIA</h3>
+        <p className="settings-section__hint">VISUALIZAÇÃO | DENSIDADE | EDITOR DE TEMA | LOGO</p>
         <div className="settings-grid grid-1">
+
+          {/* Visualização */}
           <div className="card">
             <h2>Visualização</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
               Troca aplica reiniciando o app automaticamente.
             </p>
             {settings.viewMode === 'minimal' && (
-              <label className="checkbox-row" style={{ marginBottom: 12 }}>
-                <input
-                  type="checkbox"
-                  checked={settings.calendarShowDiff ?? false}
-                  onChange={(e) => void update('calendarShowDiff', e.target.checked)}
-                />
-                <span>Mostrar saldo diário nas células do calendário </span>
-              </label>
+              <Switch
+                id="calendarShowDiff"
+                checked={settings.calendarShowDiff ?? false}
+                onChange={(v) => void update('calendarShowDiff', v)}
+                label="Mostrar saldo diário nas células do calendário"
+              />
             )}
             <div className="view-mode-row">
               <button
@@ -589,43 +623,8 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
               </button>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="settings-section">
-        <h3 className="settings-section__title">APARÊNCIA</h3>
-        <p className="settings-section__hint">LOGO | DENSIDADE | TEMA</p>
-        <div className="settings-grid grid-1">
-
-          {/* Logo variant */}
-          <div className="card">
-            <h2>Logo do app</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
-              Escolha a variante de cor da logo. Aplica na titlebar e ícone da bandeja.
-            </p>
-            <div className="logo-variant-row">
-              <button
-                type="button"
-                className={`logo-variant-opt ${(settings.logoVariant ?? 'orange') === 'orange' ? 'active' : ''}`}
-                onClick={() => void update('logoVariant', 'orange')}
-              >
-                <span className="logo-variant-swatch" style={{ background: '#e6a817' }} />
-                <strong>Laranja</strong>
-                <span>Padrão</span>
-              </button>
-              <button
-                type="button"
-                className={`logo-variant-opt ${settings.logoVariant === 'purple' ? 'active' : ''}`}
-                onClick={() => void update('logoVariant', 'purple')}
-              >
-                <span className="logo-variant-swatch" style={{ background: '#7c5cbf' }} />
-                <strong>Roxo</strong>
-                <span>Alternativo</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Density */}
+          {/* Densidade */}
           <div className="card">
             <h2>Densidade da interface</h2>
             <div className="density-row">
@@ -647,24 +646,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
             </div>
           </div>
 
-          {/* UI Sounds */}
-          <div className="card">
-            <h2>Efeitos sonoros da interface</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
-              Toca um som curto estilo Nintendo ao clicar nos botões.
-            </p>
-            <div className="checkbox-row">
-              <input
-                id="uiSounds"
-                type="checkbox"
-                checked={settings.uiSounds ?? false}
-                onChange={(e) => update('uiSounds', e.target.checked)}
-              />
-              <label htmlFor="uiSounds">Ativar sons de clique</label>
-            </div>
-          </div>
-
-          {/* Theme editor */}
+          {/* Editor de tema */}
           <div className="card">
             <h2>Editor de tema</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 14px' }}>
@@ -751,6 +733,34 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
             </button>
           </div>
 
+          {/* Logo */}
+          <div className="card">
+            <h2>Logo do app</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
+              Escolha a variante de cor da logo. Aplica na titlebar e ícone da bandeja.
+            </p>
+            <div className="logo-variant-row">
+              <button
+                type="button"
+                className={`logo-variant-opt ${(settings.logoVariant ?? 'orange') === 'orange' ? 'active' : ''}`}
+                onClick={() => void update('logoVariant', 'orange')}
+              >
+                <span className="logo-variant-swatch" style={{ background: '#e6a817' }} />
+                <strong>Laranja</strong>
+                <span>Padrão</span>
+              </button>
+              <button
+                type="button"
+                className={`logo-variant-opt ${settings.logoVariant === 'purple' ? 'active' : ''}`}
+                onClick={() => void update('logoVariant', 'purple')}
+              >
+                <span className="logo-variant-swatch" style={{ background: '#7c5cbf' }} />
+                <strong>Roxo</strong>
+                <span>Alternativo</span>
+              </button>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -760,9 +770,14 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
           <li>Senha gravada no Windows Credential Manager (via keytar).</li>
           <li>Cookies / localStorage do Beefor salvos em <code>storageState</code> isolado.</li>
           <li>MFA / CAPTCHA pedem login manual — app não burla autenticação.</li>
-          <li>Use — app não burla autenticação.</li>
         </ul>
       </div>
+
+      {msg && (
+        <div className="settings-toast" role="status">
+          {msg}
+        </div>
+      )}
     </div>
   );
 }

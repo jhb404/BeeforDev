@@ -42,8 +42,10 @@ export interface AppSettings {
 
   kudocardNotification: boolean;
   kudocardFrequency: KudocardFrequency;
-  /** Used when frequency === 'custom'. Day numbers 1..28 */
+  /** Used when frequency === 'custom'. Day numbers 1..31 */
   kudocardDays: number[];
+  /** Optional fixed time "HH:MM" for kudocard alerts. When unset, scheduler picks random time. */
+  kudocardNotificationTime?: string;
   /**
    * Persisted schedule for the current month so restarts don't re-roll.
    * Key format: "YYYY-M". Value: array of {day, time} sorted by day.

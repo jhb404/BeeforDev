@@ -108,9 +108,11 @@ async function ensureKudocardSchedule(
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
-  const ym = `${year}-${month}`;
+  const fixedTime = s.kudocardNotificationTime?.match(/^\d{2}:\d{2}$/) ? s.kudocardNotificationTime : null;
+  // Embed fixed-time choice in cache key so toggling it forces a re-roll only of times.
+  const ym = `${year}-${month}${fixedTime ? `@${fixedTime}` : ''}`;
 
-  // Return persisted schedule if still valid for this month
+  // Return persisted schedule if still valid for this month + time mode
   if (s.kudocardSchedule?.ym === ym) {
     return s.kudocardSchedule.slots;
   }
@@ -118,14 +120,17 @@ async function ensureKudocardSchedule(
   // Build new schedule for this month
   let days: number[];
   if (s.kudocardFrequency === 'custom') {
-    // Filter user-chosen days to only weekdays
-    days = s.kudocardDays.filter((d) => isWeekday(year, month, d));
+    // Filter user-chosen days (1..31) to only weekdays present in this month
+    const daysInMonth = new Date(year, month, 0).getDate();
+    days = s.kudocardDays
+      .filter((d) => d >= 1 && d <= daysInMonth)
+      .filter((d) => isWeekday(year, month, d));
   } else {
     const count = s.kudocardFrequency === 'once' ? 1 : 2;
     days = randomWeekdaysInMonth(count, year, month);
   }
 
-  const slots = days.map((day) => ({ day, time: randomTimeInWorkday() }));
+  const slots = days.map((day) => ({ day, time: fixedTime ?? randomTimeInWorkday() }));
   logger.info(`Kudocard schedule for ${ym}: ${slots.map((s) => `day ${s.day} @ ${s.time}`).join(', ')}`);
 
   // Persist so restarts don't re-roll

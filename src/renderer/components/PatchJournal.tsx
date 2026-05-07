@@ -1,6 +1,10 @@
 import { Fragment, type ReactNode } from 'react';
 
 const ROADMAP: string[] = [
+  'Melhorar desempenho e reduzir consumo de CPU e RAM',
+  'Refatorar código para melhor manutenção',
+  'Implementar cache para melhorar tempo de resposta',
+  'Melhorar Tempo de loadings, etc...',
   'Atualizar o app sem a pessoa se preocupar com isso (Animação de atualização, etc...)',
   'Melhorar tempo do Auto Lançamento',
   'Ajustar sistema de notificação - Puxar do Beefor',

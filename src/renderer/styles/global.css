@@ -408,17 +408,21 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 .coin2u-coin {
   display: inline-block;
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
   flex-shrink: 0;
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.2);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+  transition: transform 0.18s ease;
 }
-.coin2u-coin--gold {
-  background: radial-gradient(circle at 30% 30%, #ffd966, #d4a017 70%, #8a6510);
+.coin2u-badge:hover .coin2u-coin {
+  transform: rotate(-12deg) scale(1.05);
 }
-.coin2u-coin--purple {
-  background: radial-gradient(circle at 30% 30%, #c4b5fd, var(--accent) 70%, #4e30a0);
+@keyframes coin2u-bump {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-3px) scale(1.06); }
+  70% { transform: translateY(0) scale(0.98); }
+  100% { transform: translateY(0) scale(1); }
+}
+.coin2u-badge--bump {
+  animation: coin2u-bump 0.38s ease;
 }
 .coin2u-sep {
   width: 1px;
@@ -1517,6 +1521,86 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .checkbox-row input[type="checkbox"] {
   width: auto;
   min-height: auto;
+}
+
+/* === Modern toggle switch (replaces native checkbox in settings) === */
+.switch {
+  --switch-w: 38px;
+  --switch-h: 22px;
+  --switch-pad: 2px;
+  position: relative;
+  display: inline-block;
+  width: var(--switch-w);
+  height: var(--switch-h);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+.switch__track {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.switch__thumb {
+  position: absolute;
+  top: var(--switch-pad);
+  left: var(--switch-pad);
+  width: calc(var(--switch-h) - 2 * var(--switch-pad) - 2px);
+  height: calc(var(--switch-h) - 2 * var(--switch-pad) - 2px);
+  background: var(--text);
+  border-radius: 999px;
+  transition: transform 0.2s ease, background 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.switch input:checked ~ .switch__track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.switch input:checked ~ .switch__thumb {
+  transform: translateX(calc(var(--switch-w) - var(--switch-h)));
+  background: #fff;
+}
+.switch input:disabled ~ .switch__track {
+  opacity: 0.45;
+}
+.switch input:disabled ~ .switch__thumb {
+  opacity: 0.45;
+}
+.switch input:focus-visible ~ .switch__track {
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.switch-row label {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Card divider (used in credentials card) */
+.card-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 14px -16px;
+}
+.card-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 10px;
 }
 
 .log-panel {

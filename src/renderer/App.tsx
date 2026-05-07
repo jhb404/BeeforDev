@@ -275,7 +275,7 @@ export default function App() {
             )}
           </div>
           <span className="topbar-divider" aria-hidden="true" />
-          <Coin2uBadge />
+          <Coin2uBadge settings={appSettings} />
           <span className="topbar-divider" aria-hidden="true" />
           <button
             data-sound="theme-toggle"

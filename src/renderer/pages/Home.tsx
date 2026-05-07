@@ -245,6 +245,7 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
         failed: !res.ok,
         errMsg: res.error,
       });
+      if (settings?.uiSounds && res.ok) playUiSound('success');
       showToast(
         res.ok
           ? {

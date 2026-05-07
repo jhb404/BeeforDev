@@ -250,6 +250,23 @@ export async function playUiNotify(): Promise<void> {
   ]);
 }
 
+// coin pickup — Mario "ding" two-note (B5 → E6)
+export async function playUiCoin(): Promise<void> {
+  playSequence([
+    { freq: 988, offset: 0, dur: 0.09, gain: 0.22, type: 'square' },
+    { freq: 1319, offset: 0.07, dur: 0.36, gain: 0.22, type: 'square' },
+  ]);
+}
+
+// success — saved (lançamento etc): bright two-note up + glide
+export async function playUiSuccess(): Promise<void> {
+  playSequence([
+    { freq: 784, offset: 0, dur: 0.08, gain: 0.18, type: 'triangle' },
+    { freq: 1047, offset: 0.07, dur: 0.1, gain: 0.2, type: 'triangle' },
+    { freq: 1568, offset: 0.16, dur: 0.18, gain: 0.18, type: 'sine' },
+  ]);
+}
+
 export type UiSoundKind =
   | 'click'
   | 'close'
@@ -264,7 +281,9 @@ export type UiSoundKind =
   | 'theme-toggle'
   | 'journal'
   | 'lancar-dia'
-  | 'notify';
+  | 'notify'
+  | 'coin'
+  | 'success';
 
 export function playUiSound(kind: UiSoundKind): void {
   switch (kind) {
@@ -282,6 +301,8 @@ export function playUiSound(kind: UiSoundKind): void {
     case 'journal': void playUiJournal(); return;
     case 'lancar-dia': void playUiLancarDia(); return;
     case 'notify': void playUiNotify(); return;
+    case 'coin': void playUiCoin(); return;
+    case 'success': void playUiSuccess(); return;
   }
 }
 
