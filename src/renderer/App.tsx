@@ -4,7 +4,8 @@ import { Settings as SettingsPage } from './pages/Settings';
 import { Bell, Moon, Newspaper, Sun } from './components/Icons';
 import { TitleBar } from './components/TitleBar';
 import { PatchJournal } from './components/PatchJournal';
-import { playAlarmByKind, playUiClick } from './utils/alarm';
+import { Coin2uBadge } from './components/Coin2uBadge';
+import { playAlarmByKind, playUiClick, playUiSound, type UiSoundKind } from './utils/alarm';
 import type { AppSettings, TodayAlert } from '../shared/types';
 
 type Tab = 'home' | 'settings';
@@ -83,16 +84,20 @@ export default function App() {
     return () => window.removeEventListener('beefor:settings-changed', handler);
   }, []);
 
-  // UI click sounds (global delegate)
+  // UI sounds (global delegate)
   useEffect(() => {
     if (!appSettings?.uiSounds) return;
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
-      const btn = target.closest('button, [role="button"]');
+      const btn = target.closest('button, [role="button"], [data-sound]') as HTMLElement | null;
       if (!btn) return;
       if ((btn as HTMLButtonElement).disabled) return;
-      void playUiClick();
+      // Mute generic click inside kudo history list (lots of items → annoying)
+      if (target.closest('.kudo-history-list') && !btn.dataset.sound) return;
+      const kind = btn.dataset.sound as UiSoundKind | undefined;
+      if (kind) playUiSound(kind);
+      else void playUiClick();
     };
     document.addEventListener('click', handler, true);
     return () => document.removeEventListener('click', handler, true);
@@ -180,10 +185,10 @@ export default function App() {
         <div className="topbar-left">
           <span className="topbar-date">{topbarLeft}</span>
           <div className="tabs">
-            <button className={tab === 'home' ? 'active' : ''} onClick={() => setTab('home')}>
+            <button data-sound="tab-home" className={tab === 'home' ? 'active' : ''} onClick={() => setTab('home')}>
               Início
             </button>
-            <button className={tab === 'settings' ? 'active' : ''} onClick={() => setTab('settings')}>
+            <button data-sound="tab-settings" className={tab === 'settings' ? 'active' : ''} onClick={() => setTab('settings')}>
               Configurações
             </button>
           </div>
@@ -269,7 +274,11 @@ export default function App() {
               </div>
             )}
           </div>
+          <span className="topbar-divider" aria-hidden="true" />
+          <Coin2uBadge />
+          <span className="topbar-divider" aria-hidden="true" />
           <button
+            data-sound="theme-toggle"
             className="icon-btn"
             aria-label={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
             onClick={toggleTheme}
@@ -277,6 +286,7 @@ export default function App() {
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
           <button
+            data-sound="journal"
             className="icon-btn"
             aria-label="Jornal de patches"
             title="Jornal de patches"
@@ -304,7 +314,7 @@ export default function App() {
                 <p className="eyebrow">Novidades</p>
                 <h2>Jornal de patches e atualizacoes</h2>
               </div>
-              <button className="secondary compact" onClick={() => setPatchModalOpen(false)}>
+              <button data-sound="close" className="secondary compact" onClick={() => setPatchModalOpen(false)}>
                 Fechar
               </button>
             </div>

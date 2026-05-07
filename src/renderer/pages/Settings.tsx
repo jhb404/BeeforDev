@@ -36,6 +36,10 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
   const [settings, setSettings] = useState<AppSettings>(DEFAULTS);
   const [msg, setMsg] = useState<string | null>(null);
   const [admin, setAdmin] = useState<{ elevated: boolean; platform: string } | null>(null);
+  const [coin2uEmail, setCoin2uEmail] = useState('');
+  const [coin2uPassword, setCoin2uPassword] = useState('');
+  const [coin2uSavedEmail, setCoin2uSavedEmail] = useState<string | null>(null);
+  const [coin2uConnected, setCoin2uConnected] = useState<boolean>(false);
 
   const refreshAdmin = () => {
     void window.beefor.getAdminStatus().then(setAdmin);
@@ -52,7 +56,66 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
       setSettings({ ...DEFAULTS, ...s });
     });
     refreshAdmin();
+    void window.beefor.getCoin2uCreds().then((c) => {
+      if (c) {
+        setCoin2uSavedEmail(c.email);
+        setCoin2uEmail(c.email);
+        setCoin2uConnected(!!c.connected);
+      }
+    });
   }, []);
+
+  const saveCoin2u = async () => {
+    if (!coin2uEmail || !coin2uPassword) {
+      setMsg('Coin2U: preencha e-mail e senha.');
+      return;
+    }
+    const res = await window.beefor.saveCoin2uCreds({
+      email: coin2uEmail,
+      password: coin2uPassword,
+    });
+    if (!res.ok) {
+      setMsg(`Erro Coin2U: ${res.error}`);
+      return;
+    }
+    setCoin2uSavedEmail(coin2uEmail);
+    setCoin2uPassword('');
+    setMsg('Coin2U: credenciais salvas. Testando login…');
+    const verify = await window.beefor.verifyCoin2u();
+    if (verify.ok && verify.data) {
+      setCoin2uConnected(true);
+      setMsg('Coin2U: conectado.');
+    } else {
+      setCoin2uConnected(false);
+      setMsg(`Coin2U: login falhou — ${verify.error}`);
+    }
+    onSettingsChanged?.();
+  };
+
+  const testCoin2u = async () => {
+    setMsg('Coin2U: testando…');
+    const verify = await window.beefor.verifyCoin2u();
+    if (verify.ok && verify.data) {
+      setCoin2uConnected(true);
+      setMsg('Coin2U: conectado.');
+      onSettingsChanged?.();
+    } else {
+      setCoin2uConnected(false);
+      setMsg(`Coin2U: ${verify.error}`);
+    }
+  };
+
+  const clearCoin2u = async () => {
+    const res = await window.beefor.clearCoin2uCreds();
+    setMsg(res.ok ? 'Credenciais Coin2U removidas.' : `Erro Coin2U: ${res.error}`);
+    if (res.ok) {
+      setCoin2uSavedEmail(null);
+      setCoin2uEmail('');
+      setCoin2uPassword('');
+      setCoin2uConnected(false);
+      onSettingsChanged?.();
+    }
+  };
 
   const needsAdmin =
     (settings.automatePunch ||
@@ -156,86 +219,131 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
         <h3 className="settings-section__title">GERAL</h3>
         <p className="settings-section__hint">CREDENCIAIS | INICIALIZAÇÃO | JORNADA</p>
         <div className="settings-grid grid-3">
-      <div className="card">
-        <h2>Credenciais</h2>
-        <div className="field">
-          <label className="label">E-mail Beefor</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="seu@email.com"
-            autoComplete="username"
-          />
-        </div>
-        <div className="field">
-          <label className="label">Senha</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={savedEmail ? '••••••••' : 'sua senha'}
-            autoComplete="current-password"
-          />
-        </div>
-        <div className="row">
-          <button onClick={save}>Salvar</button>
-          <button className="danger" onClick={clear}>Remover</button>
-        </div>
-        {savedEmail && (
-          <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 12 }}>
-            Salvo: <strong>{savedEmail}</strong>
-          </p>
-        )}
-        {msg && <p style={{ color: 'var(--accent-2)', fontSize: 13, marginTop: 8 }}>{msg}</p>}
-      </div>
+          <div className="card">
+            <h2>Credenciais</h2>
+            <div className="field">
+              <label className="label">E-mail Beefor</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                autoComplete="username"
+              />
+            </div>
+            <div className="field">
+              <label className="label">Senha</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={savedEmail ? '••••••••' : 'sua senha'}
+                autoComplete="current-password"
+              />
+            </div>
+            <div className="row">
+              <button onClick={save}>Salvar</button>
+              <button className="danger" onClick={clear}>Remover</button>
+            </div>
+            {savedEmail && (
+              <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 12 }}>
+                Salvo: <strong>{savedEmail}</strong>
+              </p>
+            )}
+            
+          </div>
 
-      <div className="card">
-        <h2>Inicialização</h2>
-        <div className="checkbox-row" style={{ marginBottom: 12 }}>
-          <input
-            id="autostart"
-            type="checkbox"
-            checked={settings.autoStart}
-            onChange={(e) => update('autoStart', e.target.checked)}
-          />
-          <label htmlFor="autostart">Abrir ao iniciar o PC</label>
-        </div>
-        <div className="checkbox-row">
-          <input
-            id="autologin"
-            type="checkbox"
-            checked={settings.autoLoginOnLaunch}
-            onChange={(e) => update('autoLoginOnLaunch', e.target.checked)}
-          />
-          <label htmlFor="autologin">Restaurar sessão automaticamente ao abrir</label>
-        </div>
-      </div>
+          <div className="settings-grid grid-1" style={{ marginTop: 10 }}>
+            <div className="card">
+              <h2>Coin2U</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 10px' }}>
+                Conecta no Coin2U para mostrar tuas moedas no topo. Login separado do Beefor.
+              </p>
+              <div className="settings-grid grid-2">
+                <div className="field">
+                  <label className="label">E-mail Coin2U</label>
+                  <input
+                    type="email"
+                    value={coin2uEmail}
+                    onChange={(e) => setCoin2uEmail(e.target.value)}
+                    placeholder="seu@email.com"
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="field">
+                  <label className="label">Senha</label>
+                  <input
+                    type="password"
+                    value={coin2uPassword}
+                    onChange={(e) => setCoin2uPassword(e.target.value)}
+                    placeholder={coin2uSavedEmail ? '••••••••' : 'sua senha'}
+                    autoComplete="off"
+                  />
+                </div>
+              </div>
+              <div className="row">
+                <button onClick={saveCoin2u}>Salvar Coin2U</button>
+                <button className="secondary" onClick={testCoin2u}>Testar conexão</button>
+                <button className="danger" onClick={clearCoin2u}>Remover Coin2U</button>
+              </div>
+              {coin2uSavedEmail && (
+                <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 12 }}>
+                  Salvo: <strong>{coin2uSavedEmail}</strong>
+                  {' · '}
+                  <span style={{ color: coin2uConnected ? 'var(--ok)' : 'var(--err)' }}>
+                    {coin2uConnected ? 'Conectado' : 'Desconectado'}
+                  </span>
+                </p>
+              )}
+            </div>
+          </div>
 
-      <div className="card">
-        <h2>Jornada</h2>
-        <div className="field">
-          <label className="label">Horas trabalhadas por dia</label>
-          <input
-            type="number"
-            min={1}
-            max={24}
-            step={0.5}
-            value={settings.hoursPerDay}
-            onChange={(e) => update('hoursPerDay', Number(e.target.value) || 0)}
-          />
-        </div>
-        <div className="field">
-          <label className="label">Valor da hora (R$)</label>
-          <input
-            type="number"
-            min={0}
-            step={0.01}
-            value={settings.hourRate}
-            onChange={(e) => update('hourRate', Number(e.target.value) || 0)}
-          />
-        </div>
-      </div>
+          <div className="card">
+            <h2>Inicialização</h2>
+            <div className="checkbox-row" style={{ marginBottom: 12 }}>
+              <input
+                id="autostart"
+                type="checkbox"
+                checked={settings.autoStart}
+                onChange={(e) => update('autoStart', e.target.checked)}
+              />
+              <label htmlFor="autostart">Abrir ao iniciar o PC</label>
+            </div>
+            <div className="checkbox-row">
+              <input
+                id="autologin"
+                type="checkbox"
+                checked={settings.autoLoginOnLaunch}
+                onChange={(e) => update('autoLoginOnLaunch', e.target.checked)}
+              />
+              <label htmlFor="autologin">Restaurar sessão automaticamente ao abrir</label>
+            </div>
+          </div>
+
+          <div className="card">
+            <h2>Jornada</h2>
+            <div className="field">
+              <label className="label">Horas trabalhadas por dia</label>
+              <input
+                type="number"
+                min={1}
+                max={24}
+                step={0.5}
+                value={settings.hoursPerDay}
+                onChange={(e) => update('hoursPerDay', Number(e.target.value) || 0)}
+              />
+            </div>
+            <div className="field">
+              <label className="label">Valor da hora (R$)</label>
+              <input
+                type="number"
+                min={0}
+                step={0.01}
+                value={settings.hourRate}
+                onChange={(e) => update('hourRate', Number(e.target.value) || 0)}
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -245,171 +353,171 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
           AUTOMATIZAR BATIDA DE PONTO | ALERTA DE MOOD | ALERTA ALMOÇO | ALERTA KUDOCARD
         </p>
         <div className="settings-grid grid-2">
-      <div className="card">
-        <div className="row between" style={{ marginBottom: 8 }}>
-          <h2 style={{ margin: 0 }}>AUTOMATIZAR BATIDA DE PONTO</h2>
-          <button className="secondary compact" onClick={() => testNotif('punch')}>
-            Testar
-          </button>
-        </div>
-        <div className="checkbox-row" style={{ marginBottom: 12 }}>
-          <input
-            id="automatePunch"
-            type="checkbox"
-            checked={settings.automatePunch}
-            onChange={(e) => update('automatePunch', e.target.checked)}
-          />
-          <label htmlFor="automatePunch">Ativar batida automática</label>
-        </div>
-        <div className="punch-grid">
-          {PUNCH_LABELS.map((lab, i) => (
-            <div className="field" key={lab}>
-              <label className="label">{lab}</label>
+          <div className="card">
+            <div className="row between" style={{ marginBottom: 8 }}>
+              <h2 style={{ margin: 0 }}>AUTOMATIZAR BATIDA DE PONTO</h2>
+              <button className="secondary compact" onClick={() => testNotif('punch')}>
+                Testar
+              </button>
+            </div>
+            <div className="checkbox-row" style={{ marginBottom: 12 }}>
+              <input
+                id="automatePunch"
+                type="checkbox"
+                checked={settings.automatePunch}
+                onChange={(e) => update('automatePunch', e.target.checked)}
+              />
+              <label htmlFor="automatePunch">Ativar batida automática</label>
+            </div>
+            <div className="punch-grid">
+              {PUNCH_LABELS.map((lab, i) => (
+                <div className="field" key={lab}>
+                  <label className="label">{lab}</label>
+                  <input
+                    type="time"
+                    disabled={!settings.automatePunch}
+                    value={settings.punchTimes[i] ?? ''}
+                    onChange={(e) => updatePunchTime(i as 0 | 1 | 2 | 3, e.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="field" style={{ marginTop: 10 }}>
+              <label className="label">
+                Variação aleatória diária (± minutos)
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={60}
+                disabled={!settings.automatePunch}
+                value={settings.punchDriftMinutes}
+                onChange={(e) =>
+                  update('punchDriftMinutes', Math.max(0, Number(e.target.value) || 0))
+                }
+              />
+              <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 6 }}>
+                Cada dia recebe um deslocamento aleatório (em minutos) somado/subtraído
+                de cada horário base, pra simular variação natural.
+              </p>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="row between" style={{ marginBottom: 8 }}>
+              <h2 style={{ margin: 0 }}>Alerta de MOOD</h2>
+              <button className="secondary compact" onClick={() => testNotif('mood')}>
+                Testar
+              </button>
+            </div>
+            <div className="checkbox-row" style={{ marginBottom: 12 }}>
+              <input
+                id="moodNotification"
+                type="checkbox"
+                checked={settings.moodNotification}
+                onChange={(e) => update('moodNotification', e.target.checked)}
+              />
+              <label htmlFor="moodNotification">Notificação diária de mood</label>
+            </div>
+            <div className="checkbox-row" style={{ marginBottom: 12 }}>
+              <input
+                id="moodAlarm"
+                type="checkbox"
+                checked={settings.moodAlarm}
+                onChange={(e) => update('moodAlarm', e.target.checked)}
+              />
+              <label htmlFor="moodAlarm">Tocar alarme com a notificação</label>
+            </div>
+            <div className="field">
+              <label className="label">Horário</label>
               <input
                 type="time"
-                disabled={!settings.automatePunch}
-                value={settings.punchTimes[i] ?? ''}
-                onChange={(e) => updatePunchTime(i as 0 | 1 | 2 | 3, e.target.value)}
+                disabled={!settings.moodNotification && !settings.moodAlarm}
+                value={settings.moodNotificationTime}
+                onChange={(e) => update('moodNotificationTime', e.target.value)}
               />
             </div>
-          ))}
-        </div>
-        <div className="field" style={{ marginTop: 10 }}>
-          <label className="label">
-            Variação aleatória diária (± minutos)
-          </label>
-          <input
-            type="number"
-            min={0}
-            max={60}
-            disabled={!settings.automatePunch}
-            value={settings.punchDriftMinutes}
-            onChange={(e) =>
-              update('punchDriftMinutes', Math.max(0, Number(e.target.value) || 0))
-            }
-          />
-          <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 6 }}>
-            Cada dia recebe um deslocamento aleatório (em minutos) somado/subtraído
-            de cada horário base, pra simular variação natural.
-          </p>
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="row between" style={{ marginBottom: 8 }}>
-          <h2 style={{ margin: 0 }}>Alerta de MOOD</h2>
-          <button className="secondary compact" onClick={() => testNotif('mood')}>
-            Testar
-          </button>
-        </div>
-        <div className="checkbox-row" style={{ marginBottom: 12 }}>
-          <input
-            id="moodNotification"
-            type="checkbox"
-            checked={settings.moodNotification}
-            onChange={(e) => update('moodNotification', e.target.checked)}
-          />
-          <label htmlFor="moodNotification">Notificação diária de mood</label>
-        </div>
-        <div className="checkbox-row" style={{ marginBottom: 12 }}>
-          <input
-            id="moodAlarm"
-            type="checkbox"
-            checked={settings.moodAlarm}
-            onChange={(e) => update('moodAlarm', e.target.checked)}
-          />
-          <label htmlFor="moodAlarm">Tocar alarme com a notificação</label>
-        </div>
-        <div className="field">
-          <label className="label">Horário</label>
-          <input
-            type="time"
-            disabled={!settings.moodNotification && !settings.moodAlarm}
-            value={settings.moodNotificationTime}
-            onChange={(e) => update('moodNotificationTime', e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="row between" style={{ marginBottom: 8 }}>
-          <h2 style={{ margin: 0 }}>Alerta ALMOÇO</h2>
-          <button className="secondary compact" onClick={() => testNotif('lunch')}>
-            Testar
-          </button>
-        </div>
-        <div className="checkbox-row" style={{ marginBottom: 12 }}>
-          <input
-            id="lunchAlarm"
-            type="checkbox"
-            checked={settings.lunchAlarm}
-            onChange={(e) => update('lunchAlarm', e.target.checked)}
-          />
-          <label htmlFor="lunchAlarm">Alarme de almoço</label>
-        </div>
-        <div className="field">
-          <label className="label">Horário do alarme</label>
-          <input
-            type="time"
-            disabled={!settings.lunchAlarm}
-            value={settings.lunchAlarmTime}
-            onChange={(e) => update('lunchAlarmTime', e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="card kudocard-card">
-        <div className="row between" style={{ marginBottom: 8 }}>
-          <h2 style={{ margin: 0 }}>Alerta KUDOCARD</h2>
-          <button className="secondary compact" onClick={() => testNotif('kudocard')}>
-            Testar
-          </button>
-        </div>
-        <div className="checkbox-row" style={{ marginBottom: 12 }}>
-          <input
-            id="kudocardNotification"
-            type="checkbox"
-            checked={settings.kudocardNotification}
-            onChange={(e) => update('kudocardNotification', e.target.checked)}
-          />
-          <label htmlFor="kudocardNotification">
-            Notificação para enviar kudocard
-          </label>
-        </div>
-        <div className="kudocard-freq" style={{ opacity: settings.kudocardNotification ? 1 : 0.5 }}>
-          {(['once', 'twice', 'custom'] as KudocardFrequency[]).map((f) => (
-            <label key={f} className="kudocard-freq__opt">
-              <input
-                type="radio"
-                name="kudocardFreq"
-                checked={settings.kudocardFrequency === f}
-                disabled={!settings.kudocardNotification}
-                onChange={() => update('kudocardFrequency', f)}
-              />
-              <span>
-                {f === 'once' && '1× aleatória no mês'}
-                {f === 'twice' && '2× aleatórias no mês'}
-                {f === 'custom' && 'Eu escolho as datas'}
-              </span>
-            </label>
-          ))}
-        </div>
-        {settings.kudocardFrequency === 'custom' && (
-          <div className="kudocard-days">
-            {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
-              <button
-                key={d}
-                type="button"
-                className={`day-chip ${settings.kudocardDays.includes(d) ? 'active' : ''}`}
-                disabled={!settings.kudocardNotification}
-                onClick={() => toggleKudocardDay(d)}
-              >
-                {d}
-              </button>
-            ))}
           </div>
-        )}
-      </div>
+
+          <div className="card">
+            <div className="row between" style={{ marginBottom: 8 }}>
+              <h2 style={{ margin: 0 }}>Alerta ALMOÇO</h2>
+              <button className="secondary compact" onClick={() => testNotif('lunch')}>
+                Testar
+              </button>
+            </div>
+            <div className="checkbox-row" style={{ marginBottom: 12 }}>
+              <input
+                id="lunchAlarm"
+                type="checkbox"
+                checked={settings.lunchAlarm}
+                onChange={(e) => update('lunchAlarm', e.target.checked)}
+              />
+              <label htmlFor="lunchAlarm">Alarme de almoço</label>
+            </div>
+            <div className="field">
+              <label className="label">Horário do alarme</label>
+              <input
+                type="time"
+                disabled={!settings.lunchAlarm}
+                value={settings.lunchAlarmTime}
+                onChange={(e) => update('lunchAlarmTime', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="card kudocard-card">
+            <div className="row between" style={{ marginBottom: 8 }}>
+              <h2 style={{ margin: 0 }}>Alerta KUDOCARD</h2>
+              <button className="secondary compact" onClick={() => testNotif('kudocard')}>
+                Testar
+              </button>
+            </div>
+            <div className="checkbox-row" style={{ marginBottom: 12 }}>
+              <input
+                id="kudocardNotification"
+                type="checkbox"
+                checked={settings.kudocardNotification}
+                onChange={(e) => update('kudocardNotification', e.target.checked)}
+              />
+              <label htmlFor="kudocardNotification">
+                Notificação para enviar kudocard
+              </label>
+            </div>
+            <div className="kudocard-freq" style={{ opacity: settings.kudocardNotification ? 1 : 0.5 }}>
+              {(['once', 'twice', 'custom'] as KudocardFrequency[]).map((f) => (
+                <label key={f} className="kudocard-freq__opt">
+                  <input
+                    type="radio"
+                    name="kudocardFreq"
+                    checked={settings.kudocardFrequency === f}
+                    disabled={!settings.kudocardNotification}
+                    onChange={() => update('kudocardFrequency', f)}
+                  />
+                  <span>
+                    {f === 'once' && '1× aleatória no mês'}
+                    {f === 'twice' && '2× aleatórias no mês'}
+                    {f === 'custom' && 'Eu escolho as datas'}
+                  </span>
+                </label>
+              ))}
+            </div>
+            {settings.kudocardFrequency === 'custom' && (
+              <div className="kudocard-days">
+                {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={`day-chip ${settings.kudocardDays.includes(d) ? 'active' : ''}`}
+                    disabled={!settings.kudocardNotification}
+                    onClick={() => toggleKudocardDay(d)}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
@@ -529,9 +637,9 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
                   onClick={() => void update('uiDensity', d)}
                 >
                   <span className="density-bars">
-                    {d === 'compact' && <><i/><i/><i/><i/><i/></>}
-                    {d === 'normal' && <><i/><i/><i/></>}
-                    {d === 'comfortable' && <><i/><i/></>}
+                    {d === 'compact' && <><i /><i /><i /><i /><i /></>}
+                    {d === 'normal' && <><i /><i /><i /></>}
+                    {d === 'comfortable' && <><i /><i /></>}
                   </span>
                   <strong>{d === 'compact' ? 'Compacto' : d === 'normal' ? 'Normal' : 'Confortável'}</strong>
                 </button>
@@ -564,10 +672,10 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
             </p>
             <div className="theme-editor-grid">
               {([
-                { key: 'accent',      label: 'Cor de destaque',  placeholder: '#7c5cbf' },
-                { key: 'warm',        label: 'Cor quente',       placeholder: '#e6a817' },
-                { key: 'ok',          label: 'Cor de sucesso',   placeholder: '#27b899' },
-                { key: 'err',         label: 'Cor de erro',      placeholder: '#e05470' },
+                { key: 'accent', label: 'Cor de destaque', placeholder: '#7c5cbf' },
+                { key: 'warm', label: 'Cor quente', placeholder: '#e6a817' },
+                { key: 'ok', label: 'Cor de sucesso', placeholder: '#27b899' },
+                { key: 'err', label: 'Cor de erro', placeholder: '#e05470' },
               ] as const).map(({ key, label, placeholder }) => (
                 <div className="theme-editor-field" key={key}>
                   <label className="label">{label}</label>

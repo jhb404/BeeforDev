@@ -40,6 +40,13 @@ export const IPC = {
   // snooze
   ACTION_SNOOZE_ALERT: 'action:snoozeAlert',
 
+  // coin2u
+  COIN2U_SAVE_CREDS: 'coin2u:saveCreds',
+  COIN2U_GET_CREDS: 'coin2u:getCreds',
+  COIN2U_CLEAR_CREDS: 'coin2u:clearCreds',
+  COIN2U_GET_DASHBOARD: 'coin2u:getDashboard',
+  COIN2U_VERIFY: 'coin2u:verify',
+
   // window controls (frameless)
   WIN_MINIMIZE: 'win:minimize',
   WIN_MAXIMIZE: 'win:maximize',

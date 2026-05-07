@@ -163,6 +163,7 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
             <h2 id="kudo-modal-title">Enviar Kudo Card</h2>
           </div>
           <button
+            data-sound="close"
             className="secondary compact"
             disabled={submitting}
             onClick={handleClose}
@@ -283,10 +284,10 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
           )}
 
           <div className="modal-actions">
-            <button className="secondary" disabled={submitting} onClick={handleClose}>
+            <button data-sound="close" className="secondary" disabled={submitting} onClick={handleClose}>
               Cancelar
             </button>
-            <button className="warm" disabled={submitting} onClick={() => void handleSubmit()}>
+            <button data-sound="kudo-sent" className="warm" disabled={submitting} onClick={() => void handleSubmit()}>
               {submitting ? 'Enviando...' : 'Enviar'}
             </button>
           </div>

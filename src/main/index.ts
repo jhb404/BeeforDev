@@ -17,6 +17,7 @@ import { MOODS, type Mood } from '../shared/types';
 import { ensureSessionForAction, forceReconnect } from './sessionGuard';
 import { ensureSession, startWatchdog, stopWatchdog } from './sessionManager';
 import { startScheduler, stopScheduler } from './scheduler';
+import { initCoin2u } from './coin2uClient';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -51,7 +52,7 @@ function ensureTray(variant: 'orange' | 'purple' = 'orange') {
   if (tray) return;
   const iconPath = getBuildIconPath(variant);
   tray = new Tray(iconPath);
-  tray.setToolTip('Beefor Dev');
+  tray.setToolTip('Beefor U');
   tray.setContextMenu(
     Menu.buildFromTemplate([
       { label: 'Abrir', click: () => showMainWindow() },
@@ -123,11 +124,11 @@ async function runActionWithReconnect<T>(action: (page: Page) => Promise<T>): Pr
 async function runAutoLancamentoFromTray() {
   const title = 'Auto lancamento';
   try {
-    notifyWindows('Beefor Dev', `${title} iniciado.`);
+    notifyWindows('Beefor U', `${title} iniciado.`);
     await runActionWithReconnect(async (page) => {
       await doAutoLancamento(page);
     });
-    notifyWindows('Beefor Dev', `${title} concluido com sucesso.`);
+    notifyWindows('Beefor U', `${title} concluido com sucesso.`);
     const win = getWindow();
     win?.webContents.send(IPC.EVT_NOTIFY, {
       title: 'sync:autoLancamento',
@@ -136,7 +137,7 @@ async function runAutoLancamentoFromTray() {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.error(`${title} via tray falhou`, err);
-    notifyWindows('Beefor Dev', `${title} falhou: ${msg}`);
+    notifyWindows('Beefor U', `${title} falhou: ${msg}`);
   }
 }
 
@@ -150,18 +151,18 @@ async function runMoodFromTray(mood: Mood) {
       return before !== after && after === mood;
     });
     if (changed) {
-      notifyWindows('Beefor Dev', `Mood aplicado: ${mood}`);
+      notifyWindows('Beefor U', `Mood aplicado: ${mood}`);
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.error(`Mood via tray falhou (${mood})`, err);
-    notifyWindows('Beefor Dev', `${title} falhou: ${msg}`);
+    notifyWindows('Beefor U', `${title} falhou: ${msg}`);
   }
 }
 
 async function bootstrap() {
   await app.whenReady();
-  app.setName('Beefor Dev');
+  app.setName('Beefor U');
   if (process.platform === 'win32') {
     app.setAppUserModelId('io.beefor.dev');
   }
@@ -176,6 +177,9 @@ async function bootstrap() {
   ensureTray(variant);
 
   setAutoStart(settings.autoStart);
+
+  // Hydrate Coin2U session from disk so badge works without manual re-login
+  await initCoin2u();
 
   if (settings.autoLoginOnLaunch) {
     void ensureSession(getWindow());

@@ -23,6 +23,7 @@ import {
   weekdayOf,
 } from '../utils/dates';
 import { formatMinutes, workedMinutes } from '../utils/timeMath';
+import { playUiSound } from '../utils/alarm';
 
 interface Toast {
   kind: 'ok' | 'err';
@@ -273,6 +274,7 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
   const autoLancamento = async () => {
     await wrap(async () => {
       const res = await window.beefor.autoLancamento();
+      if (settings?.uiSounds && res.ok) playUiSound('auto-lancar-success');
       showToast(
         res.ok
           ? {
@@ -413,6 +415,7 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
             Abrir Beefor
           </button>
           <button
+            data-sound="kudo-open"
             className="secondary compact"
             disabled={busy || !ready}
             onClick={() => setShowKudoModal(true)}
@@ -420,6 +423,7 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
             Enviar KudoCard
           </button>
           <button
+            data-sound="journal"
             className="secondary compact"
             disabled={busy || !ready}
             onClick={() => setShowKudoHistory(true)}
@@ -430,12 +434,9 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
       </section>
 
       <section className="home-commandbar">
-        <div className="mood-panel">
+        <div className={`mood-panel ${showMoodLoader ? 'mood-panel--loading' : ''}`}>
           {showMoodLoader ? (
-            <>
-              <div />
-              <FunnyLoader title="Buscando mood" />
-            </>
+            <FunnyLoader title="Buscando mood" />
           ) : (
             <>
               <div>
@@ -474,6 +475,7 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
           </div>
           <div className="ts-actions">
             <button
+              data-sound="auto-lancar-start"
               className="warm"
               disabled={busy || !ready}
               onClick={autoLancamento}
@@ -633,6 +635,7 @@ export function Home({ onMoodChanged }: HomeProps = {}) {
                   <div className="row-action">
                     <span className="mobile-label">Ação</span>
                     <button
+                      data-sound="lancar-dia"
                       disabled={busy || !ready || r.saving}
                       onClick={() => lancar(i)}
                       title={r.errMsg ?? ''}

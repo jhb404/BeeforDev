@@ -74,6 +74,44 @@ export interface AppSettings {
 
   /** UI click/hover sound effects */
   uiSounds?: boolean;
+
+  /** Coin2U userId (numeric) for dashboard fetch — auto-captured on login */
+  coin2uUserId?: number;
+
+  /** Full Info object captured at last successful Coin2U login */
+  coin2uInfo?: Record<string, unknown>;
+
+  /** Org list returned by /User/GetOrgList — cached for offline UI */
+  coin2uOrgs?: Coin2uOrg[];
+}
+
+export interface Coin2uDashboard {
+  Coins: number;
+  CurrentQuotation: number;
+  DaysToExpire: number;
+  ExchangeCoins: number;
+}
+
+export interface Coin2uCredentials {
+  email: string;
+  userId?: number;
+  connected?: boolean;
+}
+
+/** Org row as returned by /User/GetOrgList. Kept loose since schema may grow. */
+export interface Coin2uOrg {
+  id?: number;
+  name?: string;
+  [key: string]: unknown;
+}
+
+/** Full Info object returned by /Login/Authenticate (data.Info). */
+export interface Coin2uInfo {
+  UserId: number;
+  TokenApi: string;
+  Email?: string;
+  Name?: string;
+  [key: string]: unknown;
 }
 
 export interface ThemeOverrides {

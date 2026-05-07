@@ -3,6 +3,8 @@ import { IPC } from '../shared/ipc';
 import type {
   ActionResult,
   AppSettings,
+  Coin2uCredentials,
+  Coin2uDashboard,
   Credentials,
   FetchedTimesheetRow,
   KudoCardCounts,
@@ -112,6 +114,20 @@ const api = {
   getAssetPath: (): Promise<string> => ipcRenderer.invoke(IPC.APP_GET_ASSET_PATH),
   readAsset: (fileName: string): Promise<string | null> =>
     ipcRenderer.invoke(IPC.APP_READ_ASSET, fileName),
+
+  // Coin2U
+  saveCoin2uCreds: (
+    payload: { email: string; password: string },
+  ): Promise<ActionResult> =>
+    ipcRenderer.invoke(IPC.COIN2U_SAVE_CREDS, payload),
+  getCoin2uCreds: (): Promise<Coin2uCredentials | null> =>
+    ipcRenderer.invoke(IPC.COIN2U_GET_CREDS),
+  clearCoin2uCreds: (): Promise<ActionResult> =>
+    ipcRenderer.invoke(IPC.COIN2U_CLEAR_CREDS),
+  getCoin2uDashboard: (): Promise<ActionResult<Coin2uDashboard>> =>
+    ipcRenderer.invoke(IPC.COIN2U_GET_DASHBOARD),
+  verifyCoin2u: (): Promise<ActionResult<{ userId: number; email: string }>> =>
+    ipcRenderer.invoke(IPC.COIN2U_VERIFY),
 };
 
 contextBridge.exposeInMainWorld('beefor', api);

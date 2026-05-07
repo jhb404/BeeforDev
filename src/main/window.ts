@@ -58,7 +58,7 @@ export function createMainWindow(variant: LogoVariant = 'orange'): BrowserWindow
   const iconPath = getBuildIconPath(variant);
 
   const win = new BrowserWindow({
-    title: 'Beefor Dev',
+    title: 'Beefor U',
     width: 950,
     height: 910,
     minWidth: 720,

@@ -116,7 +116,7 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
             <p className="eyebrow">Histórico</p>
             <h2 id="kudo-history-title">Meus Kudo Cards</h2>
           </div>
-          <button className="secondary compact" onClick={onClose}>
+          <button data-sound="close" className="secondary compact" onClick={onClose}>
             Fechar
           </button>
         </div>

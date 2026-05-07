@@ -109,6 +109,7 @@ export function MinimalView({
               <button
                 key={cell.date}
                 type="button"
+                data-sound="calendar-pick"
                 className={`cal-cell st-${st} ${isToday ? 'today' : ''} ${
                   isSelected ? 'selected' : ''
                 } ${cell.saved ? 'saved' : ''} ${cell.failed ? 'failed' : ''}`}

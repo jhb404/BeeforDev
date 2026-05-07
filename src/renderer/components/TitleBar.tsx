@@ -18,7 +18,7 @@ export function TitleBar({ logoVariant = 'orange' }: Props) {
             <BrandLogo size={16} />
           )}
         </span>
-        <span className="titlebar-label">Beefor Dev</span>
+        <span className="titlebar-label">Beefor U</span>
       </div>
       <div className="titlebar-controls">
         <button
