@@ -5,7 +5,7 @@ import { playUiSound } from '../utils/alarm';
 import { Check, Clock, Package, Refresh, Search, ShoppingBag, Users } from './Icons';
 import { CoinIcon } from './Coin2uCoinIcon';
 
-type Tab = 'send' | 'shop' | 'history';
+type Tab = 'send' | 'shop' | 'purchases' | 'history';
 type HistoryFilter = 'all' | 'sent' | 'received';
 type Toast = { kind: 'ok' | 'err'; msg: string };
 const MEMBERS_PER_PAGE = 48;
@@ -83,8 +83,14 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
     memberPage * MEMBERS_PER_PAGE,
   );
 
+  const purchaseLog = useMemo(
+    () => log.filter((item) => item.ShopItemId || item.ShopItemName),
+    [log],
+  );
+
   const filteredLog = useMemo(() => {
     return log.filter((item) => {
+      if (item.ShopItemId || item.ShopItemName) return false;
       if (historyFilter === 'sent') return userId ? item.FromId === userId : false;
       if (historyFilter === 'received') return userId ? item.ToId === userId : false;
       return true;
@@ -336,6 +342,16 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
             >
               Historico
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'purchases'}
+              className={tab === 'purchases' ? 'active' : ''}
+              onClick={() => setTab('purchases')}
+              data-sound="tab-home"
+            >
+              Compras
+            </button>
           </div>
         </div>
 
@@ -520,6 +536,27 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
                       </article>
                     );
                   })
+                )}
+              </div>
+            </div>
+          ) : tab === 'purchases' ? (
+            <div className="coin2u-history-wrap">
+              <div className="coin2u-history-list">
+                {purchaseLog.length === 0 ? (
+                  <p className="coin2u-empty">Sem compras ainda.</p>
+                ) : (
+                  purchaseLog.map((item) => (
+                    <article key={item.TransactionId} className="coin2u-transaction">
+                      <div className="coin2u-transaction__amount sent">
+                        -{item.Coins ?? item.Amount}
+                      </div>
+                      <div className="coin2u-transaction__main">
+                        <strong>{item.ShopItemName ?? 'Compra na loja'}</strong>
+                        <span>Compra · {formatDate(item.Date)}</span>
+                        {item.Message && <p>{item.Message}</p>}
+                      </div>
+                    </article>
+                  ))
                 )}
               </div>
             </div>
