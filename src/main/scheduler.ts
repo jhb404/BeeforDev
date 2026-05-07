@@ -187,7 +187,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
         win,
         '🏆 Kudocard',
         'Hoje é dia de reconhecer alguém — manda um kudocard!',
-        false,
+        true,
       );
       markFired('kudocard');
     }
@@ -324,7 +324,7 @@ export function fireTestNotification(
   const map = {
     mood: { title: '😊 Mood do dia', body: 'Não esquece de marcar seu mood no Beefor!', alarm: true },
     lunch: { title: '🍽️ Hora do almoço', body: 'Bom apetite! Lembra de bater o ponto.', alarm: true },
-    kudocard: { title: '🏆 Kudocard', body: 'Hoje é dia de reconhecer alguém — manda um kudocard!', alarm: false },
+    kudocard: { title: '🏆 Kudocard', body: 'Hoje é dia de reconhecer alguém — manda um kudocard!', alarm: true },
     punch: { title: '🟢 Ponto — Entrada', body: 'Hora de bater o ponto.', alarm: true },
   };
   const cfg = map[kind];

@@ -143,7 +143,14 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handler);
   }, [bellOpen]);
 
-  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+  const toggleTheme = () => {
+    // Add transition class before flipping data-theme so all elements interpolate
+    // their color/background/border tokens together rather than snapping piecewise.
+    const root = document.documentElement;
+    root.classList.add('theme-anim');
+    setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+    window.setTimeout(() => root.classList.remove('theme-anim'), 360);
+  };
 
   const openPatchJournal = async () => {
     setPatchModalOpen(true);

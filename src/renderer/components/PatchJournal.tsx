@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from 'react';
 
 const ROADMAP: string[] = [
+  'Ajustar sistema de notificação (Pra puxar do beefor tambem :D)',
   'Melhoria de UI/UX',
   'Melhorar desempenho e reduzir consumo de CPU e RAM',
   'Refatorar código para melhor manutenção',
@@ -14,6 +15,8 @@ const ROADMAP: string[] = [
   'Backup automático das configs',
   'Melhorias visuais e mais opções de customização',
   'PT-PT / EN-GB / EN-US',
+  'Possibilidade de enviar o coin direto pelo app',
+  'Porte para macbook está em andamento',
 ];
 
 const URL_RE = /(https?:\/\/[^\s)]+)/g;
