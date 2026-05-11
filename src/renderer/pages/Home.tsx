@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FunnyLoader } from '../components/FunnyLoader';
 import type {
   AppSettings,
@@ -11,6 +12,8 @@ import { useBeefor } from '../hooks/useBeefor';
 import { MoodPicker } from '../components/MoodPicker';
 import { MinimalView } from '../components/MinimalView';
 import { StatusBadge } from '../components/StatusBadge';
+import { KudoCardModal } from '../components/KudoCardModal';
+import { KudoCardHistoryModal } from '../components/KudoCardHistoryModal';
 import { Bolt, Calendar, Clock, Heart, Trophy } from '../components/Icons';
 import {
   MONTHS_PT,
@@ -21,6 +24,8 @@ import {
   weekdayOf,
 } from '../utils/dates';
 import { formatMinutes, workedMinutes } from '../utils/timeMath';
+import { playUiSound } from '../utils/alarm';
+import { useEscapeToClose } from '../hooks/useEscapeToClose';
 
 interface Toast {
   kind: 'ok' | 'err';
@@ -98,7 +103,20 @@ function mergeFetched(
   });
 }
 
-export function Home() {
+function rowStatusKind(r: RowState): 'full' | 'partial' | 'empty' | 'holiday' {
+  if ((r.status ?? '').toLowerCase().includes('feriado')) return 'holiday';
+  const filled = [r.entrada, r.int1, r.ret1, r.int2, r.ret2, r.saida].filter(Boolean).length;
+  if (filled >= 4) return 'full';
+  if (filled > 0) return 'partial';
+  return 'empty';
+}
+
+interface HomeProps {
+  onMoodChanged?: (mood: string | null) => void;
+  onBootReady?: () => void;
+}
+
+export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
   const { status, busy, wrap } = useBeefor();
   const ready = status === 'connected';
 
@@ -115,9 +133,15 @@ export function Home() {
   const [moodLoaded, setMoodLoaded] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
   const [showBatchModal, setShowBatchModal] = useState(false);
+  const [showKudoModal, setShowKudoModal] = useState(false);
+  const [showKudoHistory, setShowKudoHistory] = useState(false);
 
   const fetchInFlight = useRef(false);
   const lastFetchKey = useRef<string>('');
+  const yearRef = useRef(year);
+  const monthRef = useRef(month);
+  useEffect(() => { yearRef.current = year; }, [year]);
+  useEffect(() => { monthRef.current = month; }, [month]);
 
   useEffect(() => {
     void window.beefor.getSettings().then(setSettings);
@@ -160,6 +184,10 @@ export function Home() {
     }
   };
 
+  const notifyMoodChanged = (mood: string | null) => {
+    onMoodChanged?.(mood);
+  };
+
   const refreshMood = async () => {
     setLoadingMood(true);
     try {
@@ -170,6 +198,7 @@ export function Home() {
           ? (m as Mood)
           : null;
         setCurrentMood(matched);
+        notifyMoodChanged(matched);
       }
     } finally {
       setLoadingMood(false);
@@ -202,11 +231,23 @@ export function Home() {
   useEffect(() => {
     const off = window.beefor.onNotify((info) => {
       if (info.title === 'sync:autoLancamento' && info.body === 'ok') {
-        void refreshAll();
+        const y = yearRef.current;
+        const m = monthRef.current;
+        lastFetchKey.current = '';
+        void window.beefor.fetchTimesheet(y, m).then((res) => {
+          if (res.ok && res.data) {
+            setRows(mergeFetched(y, m, res.data));
+            setTimesheetLoaded(true);
+          }
+        });
+      }
+      if (info.title === 'sync:autoLancamento' && info.body === 'failed') {
+        void refreshMood();
       }
     });
     return off;
-  }, [year, month, ready]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   const updateRow = (idx: number, patch: Partial<RowState>) =>
     setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
@@ -231,6 +272,7 @@ export function Home() {
         failed: !res.ok,
         errMsg: res.error,
       });
+      if (settings?.uiSounds && res.ok) playUiSound('success');
       showToast(
         res.ok
           ? {
@@ -257,15 +299,18 @@ export function Home() {
     await refreshTimesheet();
   };
 
+  useEscapeToClose(showBatchModal, () => setShowBatchModal(false));
+
   const autoLancamento = async () => {
     await wrap(async () => {
       const res = await window.beefor.autoLancamento();
+      if (settings?.uiSounds && res.ok) playUiSound('auto-lancar-success');
       showToast(
         res.ok
           ? {
               kind: 'ok',
-              title: 'Auto lançamento concluído',
-              msg: 'Os apontamentos automáticos foram enviados.',
+              title: 'Auto lançamento iniciado',
+              msg: 'Processando... calendário atualiza quando concluir.',
             }
           : {
               kind: 'err',
@@ -273,7 +318,11 @@ export function Home() {
               msg: res.error ?? 'falhou',
             },
       );
-      if (res.ok) await refreshTimesheet();
+      if (res.ok) {
+        const nowDate = new Date();
+        setYear(nowDate.getFullYear());
+        setMonth(nowDate.getMonth() + 1);
+      }
     });
   };
 
@@ -285,6 +334,7 @@ export function Home() {
       const res = await window.beefor.selectMood(m);
       if (!res.ok) {
         setCurrentMood(previous);
+        notifyMoodChanged(previous);
         showToast({
           kind: 'err',
           title: 'Mood não salvo',
@@ -292,6 +342,7 @@ export function Home() {
         });
       } else {
         showToast({ kind: 'ok', title: 'Mood salvo', msg: m });
+        notifyMoodChanged(m);
         void refreshMood();
       }
     });
@@ -305,16 +356,22 @@ export function Home() {
     let saldoTotal = 0;
     let overtimeMin = 0;
     let expectedTotal = 0;
+    let workedDays = 0;
     for (const r of rows) {
       const w = workedMinutes(r);
       if (w <= 0) continue;
       workedTotal += w;
+      workedDays += 1;
       expectedTotal += hoursPerDayMin;
       const diff = w - hoursPerDayMin;
       saldoTotal += diff;
       if (diff > 0) overtimeMin += diff;
     }
-    const overtimeValue = (overtimeMin / 60) * hourRate;
+    // Total estimado = horas normais trabalhadas × rate + valor das extras
+    // = workedTotal × rate (pois workedTotal já inclui extras)
+    // Valor extras baseado no saldo total positivo do mês (não soma dias individualmente)
+    const netOvertimeMin = Math.max(0, saldoTotal);
+    const overtimeValue = (netOvertimeMin / 60) * hourRate;
     const totalSalary = (workedTotal / 60) * hourRate;
     return {
       workedTotal,
@@ -323,6 +380,7 @@ export function Home() {
       overtimeMin,
       overtimeValue,
       totalSalary,
+      workedDays,
     };
   }, [rows, hoursPerDayMin, hourRate]);
 
@@ -356,23 +414,30 @@ export function Home() {
   const showTimesheetLoader =
     isBooting || (loadingTs && !timesheetLoaded) || (ready && !timesheetLoaded);
   const showDisconnectedState = !ready && !isBooting;
+  const bootReady = showDisconnectedState || (ready && moodLoaded && timesheetLoaded);
+
+  useEffect(() => {
+    if (bootReady) onBootReady?.();
+  }, [bootReady, onBootReady]);
 
   return (
     <div className="home-layout">
       <section className="home-topbar">
         <div>
-          <p className="eyebrow">Beefor Dev</p>
+          <p className="eyebrow">Beefor U</p>
           <h1>Lançamento de horas</h1>
         </div>
         <div className="home-status">
           <StatusBadge status={status} />
-          <button
-            className="secondary compact"
-            disabled={busy || !ready || loadingTs || loadingMood}
-            onClick={() => void refreshAll()}
-          >
-            Recarregar
-          </button>
+          {(status === 'error' || status === 'expired' || status === 'disconnected') && (
+            <button
+              className="secondary compact"
+              disabled={busy || loadingTs || loadingMood}
+              onClick={() => void refreshAll()}
+            >
+              Recarregar
+            </button>
+          )}
           <button
             className="secondary compact"
             onClick={async () => {
@@ -389,30 +454,36 @@ export function Home() {
             Abrir Beefor
           </button>
           <button
+            data-sound="kudo-open"
             className="secondary compact"
-            onClick={() =>
-                showToast({
-                  kind: 'ok',
-                  title: 'KudoCard',
-                  msg: 'Botao pronto. Integracao do envio entra na proxima etapa.',
-                })
-              }
+            disabled={busy || !ready}
+            onClick={() => setShowKudoModal(true)}
           >
             Enviar KudoCard
+          </button>
+          <button
+            data-sound="journal"
+            className="secondary compact"
+            disabled={busy || !ready}
+            onClick={() => setShowKudoHistory(true)}
+          >
+            Histórico KudoCards
           </button>
         </div>
       </section>
 
       <section className="home-commandbar">
-        <div className="mood-panel">
-          <div>
-            <span className="label">Mood do dia</span>
-            <strong>{currentMood ?? 'Não identificado'}</strong>
-          </div>
+        <div className={`mood-panel ${showMoodLoader ? 'mood-panel--loading' : ''}`}>
           {showMoodLoader ? (
             <FunnyLoader title="Buscando mood" />
           ) : (
-            <MoodPicker current={currentMood} disabled={busy || !ready} onSelect={selectMood} />
+            <>
+              <div>
+                <span className="label">Mood do dia</span>
+                <strong>{currentMood ?? 'Não identificado'}</strong>
+              </div>
+              <MoodPicker current={currentMood} disabled={busy || !ready} onSelect={selectMood} />
+            </>
           )}
         </div>
       </section>
@@ -443,6 +514,7 @@ export function Home() {
           </div>
           <div className="ts-actions">
             <button
+              data-sound="auto-lancar-start"
               className="warm"
               disabled={busy || !ready}
               onClick={autoLancamento}
@@ -474,11 +546,11 @@ export function Home() {
               {formatMinutes(summary.saldoTotal, true)}
             </strong>
           </div>
-          <div className="summary-card warm">
-            <span className="summary-label"><Trophy size={14} /> Horas extras</span>
-            <strong className="summary-value">{formatMinutes(summary.overtimeMin)}</strong>
+          <div className="summary-card">
+            <span className="summary-label"><Bolt size={14} /> Dias trabalhados</span>
+            <strong className="summary-value">{summary.workedDays}d</strong>
           </div>
-          <div className="summary-card warm">
+          <div className={`summary-card ${summary.overtimeMin > 0 ? 'pos' : ''}`}>
             <span className="summary-label"><Trophy size={14} /> Valor extras</span>
             <strong className="summary-value">
               {summary.overtimeValue.toLocaleString('pt-BR', {
@@ -513,6 +585,7 @@ export function Home() {
             busy={busy}
             ready={ready}
             hoursPerDayMin={hoursPerDayMin}
+            showDiff={settings?.calendarShowDiff ?? false}
             onUpdateRow={updateRow}
             onLancar={(idx) => void lancar(idx)}
           />
@@ -534,6 +607,7 @@ export function Home() {
               const isWeekend = r.weekday === 0 || r.weekday === 6;
               const isHoliday = (r.status ?? '').toLowerCase().includes('feriado');
               const isToday = r.date === today;
+              const statusKind = rowStatusKind(r);
               const worked = workedMinutes(r);
               const expected = hoursPerDayMin;
               const diff = worked > 0 ? worked - expected : 0;
@@ -586,7 +660,8 @@ export function Home() {
                   </div>
                   <div className="status-cell">
                     <span className="mobile-label">Status</span>
-                    {r.status || (isToday ? 'Hoje' : '-')}
+                    <span className={`status-pill status-pill--${statusKind}`} aria-hidden="true" />
+                    <span>{r.status || (isToday ? 'Hoje' : '-')}</span>
                   </div>
                   <label className="comment-cell">
                     <span className="mobile-label">Comentário</span>
@@ -601,6 +676,7 @@ export function Home() {
                   <div className="row-action">
                     <span className="mobile-label">Ação</span>
                     <button
+                      data-sound="lancar-dia"
                       disabled={busy || !ready || r.saving}
                       onClick={() => lancar(i)}
                       title={r.errMsg ?? ''}
@@ -615,59 +691,77 @@ export function Home() {
         )}
       </section>
 
-      {showBatchModal && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-labelledby="batch-modal-title"
-            aria-modal="true"
-            className="modal-card"
-            role="dialog"
-          >
-            <div className="modal-head">
-              <div>
-                <p className="eyebrow">Confirmação</p>
-                <h2 id="batch-modal-title">Lançar mês</h2>
+      {showBatchModal &&
+        createPortal(
+          <div className="modal-backdrop" role="presentation">
+            <section
+              aria-labelledby="batch-modal-title"
+              aria-modal="true"
+              className="modal-card"
+              role="dialog"
+            >
+              <div className="modal-head">
+                <div>
+                  <p className="eyebrow">Confirmação</p>
+                  <h2 id="batch-modal-title">Lançar mês</h2>
+                </div>
+                <button
+                  className="secondary compact"
+                  onClick={() => setShowBatchModal(false)}
+                >
+                  Fechar
+                </button>
               </div>
-              <button
-                className="secondary compact"
-                onClick={() => setShowBatchModal(false)}
-              >
-                Fechar
-              </button>
-            </div>
-            <p className="modal-copy">
-              O app vai lançar {batchRows.length} dia(s) preenchido(s) em{' '}
-              {MONTHS_PT[month - 1]} de {year}. Confira antes de confirmar.
-            </p>
-            <div className="batch-preview">
-              {batchRows.map(({ row, worked }) => {
-                const filled = FIELDS.map((f) => ({
-                  label: f.label,
-                  value: row[f.key],
-                })).filter((f) => f.value);
-                return (
-                  <div className="batch-preview-row" key={row.date}>
-                    <strong>
-                      {row.date.slice(8, 10)}/{row.date.slice(5, 7)}
-                    </strong>
-                    <span>{filled.map((f) => `${f.label}: ${f.value}`).join(' · ') || 'Sem horários'}</span>
-                    <span>Total: {worked > 0 ? formatMinutes(worked) : '00:00'}</span>
-                    {row.comentario && <span>Comentário: {row.comentario}</span>}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="modal-actions">
-              <button className="secondary" onClick={() => setShowBatchModal(false)}>
-                Cancelar
-              </button>
-              <button className="warm" disabled={busy} onClick={confirmLancarMes}>
-                Confirmar lançamento
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+              <p className="modal-copy">
+                O app vai lançar {batchRows.length} dia(s) preenchido(s) em{' '}
+                {MONTHS_PT[month - 1]} de {year}. Confira antes de confirmar.
+              </p>
+              <div className="batch-preview">
+                {batchRows.map(({ row, worked }) => {
+                  const filled = FIELDS.map((f) => ({
+                    label: f.label,
+                    value: row[f.key],
+                  })).filter((f) => f.value);
+                  return (
+                    <div className="batch-preview-row" key={row.date}>
+                      <strong>
+                        {row.date.slice(8, 10)}/{row.date.slice(5, 7)}
+                      </strong>
+                      <span>{filled.map((f) => `${f.label}: ${f.value}`).join(' · ') || 'Sem horários'}</span>
+                      <span>Total: {worked > 0 ? formatMinutes(worked) : '00:00'}</span>
+                      {row.comentario && <span>Comentário: {row.comentario}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="modal-actions">
+                <button className="secondary" onClick={() => setShowBatchModal(false)}>
+                  Cancelar
+                </button>
+                <button className="warm" disabled={busy} onClick={confirmLancarMes}>
+                  Confirmar lançamento
+                </button>
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
+
+      <KudoCardModal
+        open={showKudoModal}
+        onClose={() => setShowKudoModal(false)}
+        onSent={(msg) =>
+          showToast({ kind: 'ok', title: 'KudoCard enviado', msg })
+        }
+        onError={(msg) =>
+          showToast({ kind: 'err', title: 'Falha ao enviar KudoCard', msg })
+        }
+      />
+
+      <KudoCardHistoryModal
+        open={showKudoHistory}
+        onClose={() => setShowKudoHistory(false)}
+      />
 
       {toast && (
         <div className={`toast ${toast.kind}`} role={toast.kind === 'err' ? 'alert' : 'status'}>

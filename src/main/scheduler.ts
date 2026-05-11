@@ -1,15 +1,12 @@
-import { BrowserWindow, Notification, app } from 'electron';
-import path from 'node:path';
+import { BrowserWindow, Notification } from 'electron';
 import { logger } from './logger';
 import { loadSettings, saveSettings } from './sessionStore';
 import { IPC } from '../shared/ipc';
 import type { AppSettings, TodayAlert } from '../shared/types';
+import { getBuildAssetPath } from './window';
 
 function appIconPath(): string {
-  const base = app.isPackaged
-    ? path.join(process.resourcesPath, 'icon.png')
-    : path.join(app.getAppPath(), 'build', 'icon.png');
-  return base;
+  return getBuildAssetPath('icon.png');
 }
 
 const TICK_MS = 30_000; // 30s — fine grained enough for HH:MM matching
@@ -111,9 +108,11 @@ async function ensureKudocardSchedule(
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
-  const ym = `${year}-${month}`;
+  const fixedTime = s.kudocardNotificationTime?.match(/^\d{2}:\d{2}$/) ? s.kudocardNotificationTime : null;
+  // Embed fixed-time choice in cache key so toggling it forces a re-roll only of times.
+  const ym = `${year}-${month}${fixedTime ? `@${fixedTime}` : ''}`;
 
-  // Return persisted schedule if still valid for this month
+  // Return persisted schedule if still valid for this month + time mode
   if (s.kudocardSchedule?.ym === ym) {
     return s.kudocardSchedule.slots;
   }
@@ -121,14 +120,17 @@ async function ensureKudocardSchedule(
   // Build new schedule for this month
   let days: number[];
   if (s.kudocardFrequency === 'custom') {
-    // Filter user-chosen days to only weekdays
-    days = s.kudocardDays.filter((d) => isWeekday(year, month, d));
+    // Filter user-chosen days (1..31) to only weekdays present in this month
+    const daysInMonth = new Date(year, month, 0).getDate();
+    days = s.kudocardDays
+      .filter((d) => d >= 1 && d <= daysInMonth)
+      .filter((d) => isWeekday(year, month, d));
   } else {
     const count = s.kudocardFrequency === 'once' ? 1 : 2;
     days = randomWeekdaysInMonth(count, year, month);
   }
 
-  const slots = days.map((day) => ({ day, time: randomTimeInWorkday() }));
+  const slots = days.map((day) => ({ day, time: fixedTime ?? randomTimeInWorkday() }));
   logger.info(`Kudocard schedule for ${ym}: ${slots.map((s) => `day ${s.day} @ ${s.time}`).join(', ')}`);
 
   // Persist so restarts don't re-roll
@@ -185,7 +187,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
         win,
         '🏆 Kudocard',
         'Hoje é dia de reconhecer alguém — manda um kudocard!',
-        false,
+        true,
       );
       markFired('kudocard');
     }
@@ -322,7 +324,7 @@ export function fireTestNotification(
   const map = {
     mood: { title: '😊 Mood do dia', body: 'Não esquece de marcar seu mood no Beefor!', alarm: true },
     lunch: { title: '🍽️ Hora do almoço', body: 'Bom apetite! Lembra de bater o ponto.', alarm: true },
-    kudocard: { title: '🏆 Kudocard', body: 'Hoje é dia de reconhecer alguém — manda um kudocard!', alarm: false },
+    kudocard: { title: '🏆 Kudocard', body: 'Hoje é dia de reconhecer alguém — manda um kudocard!', alarm: true },
     punch: { title: '🟢 Ponto — Entrada', body: 'Hora de bater o ponto.', alarm: true },
   };
   const cfg = map[kind];

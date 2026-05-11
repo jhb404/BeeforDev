@@ -1,7 +1,6 @@
 import { Notification, app, BrowserWindow, Menu, Tray } from 'electron';
-import path from 'node:path';
 import type { Page } from 'playwright';
-import { createMainWindow } from './window';
+import { createMainWindow, getBuildIconPath } from './window';
 import { registerIpcHandlers } from './ipcHandlers';
 import { bindLoggerWindow, logger } from './logger';
 import { loadSettings } from './sessionStore';
@@ -18,17 +17,64 @@ import { MOODS, type Mood } from '../shared/types';
 import { ensureSessionForAction, forceReconnect } from './sessionGuard';
 import { ensureSession, startWatchdog, stopWatchdog } from './sessionManager';
 import { startScheduler, stopScheduler } from './scheduler';
+import { initCoin2u } from './coin2uClient';
+import { closeStartupSplash, createStartupSplash } from './startupSplash';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
+let ipcRegistered = false;
 const getWindow = () => mainWindow;
+
+async function waitForFirstPaint(win: BrowserWindow): Promise<void> {
+  if (win.isDestroyed()) return;
+  if (!win.webContents.isLoading()) return;
+  await new Promise<void>((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      win.webContents.removeListener('did-fail-load', done);
+      win.webContents.removeListener('did-finish-load', done);
+      win.removeListener('ready-to-show', done);
+      resolve();
+    };
+    const timer = setTimeout(done, 3500);
+    win.once('ready-to-show', done);
+    win.webContents.once('did-finish-load', done);
+    win.webContents.once('did-fail-load', done);
+  });
+}
+
+async function revealMainWindow(win: BrowserWindow, splash: BrowserWindow | null = null) {
+  await waitForFirstPaint(win);
+  if (win.isDestroyed()) return;
+
+  win.setOpacity(0);
+  if (win.isMinimized()) win.restore();
+  win.show();
+  win.focus();
+  await closeStartupSplash(splash);
+
+  const steps = 10;
+  for (let i = 1; i <= steps; i += 1) {
+    if (win.isDestroyed()) return;
+    win.setOpacity(i / steps);
+    await new Promise((resolve) => setTimeout(resolve, 18));
+  }
+  if (!win.isDestroyed()) win.setOpacity(1);
+}
+
+function ensureIpcHandlers() {
+  if (ipcRegistered) return;
+  registerIpcHandlers(getWindow);
+  ipcRegistered = true;
+}
 
 function showMainWindow() {
   if (!mainWindow || mainWindow.isDestroyed()) {
     mainWindow = createMainWindow();
     bindLoggerWindow(mainWindow);
     wireMainWindow(mainWindow);
+    void revealMainWindow(mainWindow);
     return;
   }
   if (mainWindow.isMinimized()) mainWindow.restore();
@@ -48,11 +94,11 @@ function wireMainWindow(win: BrowserWindow) {
   });
 }
 
-function ensureTray() {
+function ensureTray(variant: 'orange' | 'purple' = 'orange') {
   if (tray) return;
-  const iconPath = path.join(__dirname, '../../build/icon.png');
+  const iconPath = getBuildIconPath(variant);
   tray = new Tray(iconPath);
-  tray.setToolTip('Beefor Dev');
+  tray.setToolTip('Beefor U');
   tray.setContextMenu(
     Menu.buildFromTemplate([
       { label: 'Abrir', click: () => showMainWindow() },
@@ -86,10 +132,14 @@ function ensureTray() {
   tray.on('double-click', () => showMainWindow());
 }
 
-function notifyWindows(title: string, body: string) {
+function notifyWindows(title: string, body: string, variant: 'orange' | 'purple' = 'orange') {
   try {
     if (Notification.isSupported()) {
-      new Notification({ title, body }).show();
+      new Notification({
+        title,
+        body,
+        icon: getBuildIconPath(variant),
+      }).show();
       return;
     }
   } catch (err) {
@@ -122,13 +172,13 @@ async function runActionWithReconnect<T>(action: (page: Page) => Promise<T>): Pr
 }
 
 async function runAutoLancamentoFromTray() {
-  const title = 'Auto lancamento';
+  const title = 'Auto lançamento';
   try {
-    notifyWindows('Beefor Dev', `${title} iniciado.`);
+    notifyWindows('Beefor U', 'Auto lançamento iniciado. Vou avisar quando terminar.');
     await runActionWithReconnect(async (page) => {
       await doAutoLancamento(page);
     });
-    notifyWindows('Beefor Dev', `${title} concluido com sucesso.`);
+    notifyWindows('Beefor U', 'Auto lançamento concluído. Calendário será atualizado.');
     const win = getWindow();
     win?.webContents.send(IPC.EVT_NOTIFY, {
       title: 'sync:autoLancamento',
@@ -137,7 +187,12 @@ async function runAutoLancamentoFromTray() {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.error(`${title} via tray falhou`, err);
-    notifyWindows('Beefor Dev', `${title} falhou: ${msg}`);
+    notifyWindows('Beefor U', `Auto lançamento falhou: ${msg}`);
+    const win = getWindow();
+    win?.webContents.send(IPC.EVT_NOTIFY, {
+      title: 'sync:autoLancamento',
+      body: 'failed',
+    });
   }
 }
 
@@ -151,37 +206,44 @@ async function runMoodFromTray(mood: Mood) {
       return before !== after && after === mood;
     });
     if (changed) {
-      notifyWindows('Beefor Dev', `Mood aplicado: ${mood}`);
+      notifyWindows('Beefor U', `Mood aplicado: ${mood}`);
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.error(`Mood via tray falhou (${mood})`, err);
-    notifyWindows('Beefor Dev', `${title} falhou: ${msg}`);
+    notifyWindows('Beefor U', `${title} falhou: ${msg}`);
   }
 }
 
 async function bootstrap() {
   await app.whenReady();
-  app.setName('Beefor Dev');
+  app.setName('Beefor U');
   if (process.platform === 'win32') {
     app.setAppUserModelId('io.beefor.dev');
   }
 
-  mainWindow = createMainWindow();
+  const splash = createStartupSplash('orange');
+  const settings = await loadSettings();
+  const variant = settings.logoVariant ?? 'orange';
+
+  ensureIpcHandlers();
+  mainWindow = createMainWindow(variant);
   bindLoggerWindow(mainWindow);
   wireMainWindow(mainWindow);
-  registerIpcHandlers(getWindow);
-  ensureTray();
+  ensureTray(variant);
 
-  const settings = await loadSettings();
   setAutoStart(settings.autoStart);
-
+  void initCoin2u().catch((err) => {
+    logger.warn(`Coin2U init failed: ${err instanceof Error ? err.message : String(err)}`);
+  });
   if (settings.autoLoginOnLaunch) {
     void ensureSession(getWindow());
   }
 
-  startWatchdog(getWindow);
-  startScheduler(getWindow);
+  void revealMainWindow(mainWindow, splash).then(() => {
+    startWatchdog(getWindow);
+    startScheduler(getWindow);
+  });
 
   app.on('activate', () => {
     showMainWindow();

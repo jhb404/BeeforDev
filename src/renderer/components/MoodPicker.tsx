@@ -19,6 +19,7 @@ export function MoodPicker({ current, onSelect, disabled }: Props) {
       {MOODS.map((m) => (
         <button
           key={m}
+          data-sound="mood-select"
           className={current === m ? 'active' : ''}
           disabled={disabled}
           onClick={() => onSelect(m)}

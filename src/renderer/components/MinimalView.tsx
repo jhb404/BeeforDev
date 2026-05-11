@@ -32,6 +32,7 @@ interface Props {
   busy: boolean;
   ready: boolean;
   hoursPerDayMin: number;
+  showDiff?: boolean;
   onUpdateRow: (idx: number, patch: Partial<RowState>) => void;
   onLancar: (idx: number) => void;
 }
@@ -52,6 +53,7 @@ export function MinimalView({
   busy,
   ready,
   hoursPerDayMin,
+  showDiff = false,
   onUpdateRow,
   onLancar,
 }: Props) {
@@ -94,10 +96,20 @@ export function MinimalView({
             const st = statusOf(cell);
             const isToday = cell.date === today;
             const isSelected = idx === selectedIdx;
+            const cellWorked = workedMinutes(cell);
+            const cellDiff = cellWorked > 0 ? cellWorked - hoursPerDayMin : null;
+            const diffLabel = cellDiff !== null
+              ? (cellDiff >= 0
+                  ? `+${cellDiff < 60 ? `${cellDiff}m` : `${Math.floor(cellDiff / 60)}h${cellDiff % 60 > 0 ? `${cellDiff % 60}m` : ''}`}`
+                  : `-${Math.abs(cellDiff) < 60 ? `${Math.abs(cellDiff)}m` : `${Math.floor(Math.abs(cellDiff) / 60)}h${Math.abs(cellDiff) % 60 > 0 ? `${Math.abs(cellDiff) % 60}m` : ''}`}`)
+              : null;
+            const diffPositive = cellDiff !== null && cellDiff >= 0;
+
             return (
               <button
                 key={cell.date}
                 type="button"
+                data-sound="notify"
                 className={`cal-cell st-${st} ${isToday ? 'today' : ''} ${
                   isSelected ? 'selected' : ''
                 } ${cell.saved ? 'saved' : ''} ${cell.failed ? 'failed' : ''}`}
@@ -114,6 +126,11 @@ export function MinimalView({
                     : 'vazio'
                 }`}
               >
+                {showDiff && diffLabel && st !== 'weekend' && st !== 'holiday' && (
+                  <span className={`cal-diff ${diffPositive ? 'pos' : 'neg'}`}>
+                    {diffLabel}
+                  </span>
+                )}
                 <span className="cal-num">{cell.date.slice(8, 10)}</span>
                 <span className="cal-dot" />
               </button>

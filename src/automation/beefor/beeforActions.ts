@@ -7,7 +7,13 @@ import {
   DEFAULT_TIMEOUT_MS,
   NAV_TIMEOUT_MS,
 } from '../../shared/constants';
-import type { Credentials, Mood, TimesheetEntry } from '../../shared/types';
+import type {
+  Credentials,
+  Mood,
+  SendKudoCardRequest,
+  SendKudoCardResult,
+  TimesheetEntry,
+} from '../../shared/types';
 import { logger } from '../../main/logger';
 
 /** Try a list of selectors; return first visible Locator. */
@@ -176,7 +182,16 @@ export async function doAutoLancamento(page: Page): Promise<void> {
     await fallback.click();
   }
 
-  logger.info('Auto lançamento clicked');
+  logger.info('Auto lançamento clicked, waiting for persistence');
+
+  try {
+    await page.waitForLoadState('networkidle', { timeout: 15000 });
+  } catch {
+    logger.warn('Auto lançamento: networkidle timeout, falling back to fixed wait');
+    await page.waitForTimeout(2500);
+  }
+
+  logger.info('Auto lançamento persisted');
 }
 
 export async function doSelectMood(page: Page, mood: Mood): Promise<void> {
@@ -562,6 +577,17 @@ function replaceCachedDayPayload(
 
 export async function doGetCurrentMood(page: Page): Promise<string | null> {
   logger.info('Get current mood: start');
+  try {
+    const apiMood = await doGetCurrentMoodViaApi(page);
+    if (apiMood) {
+      logger.info(`Current mood (API): ${apiMood}`);
+      return apiMood;
+    }
+  } catch (err) {
+    logger.warn(
+      `Mood via API falhou, caindo para DOM: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
   await ensureMoodVisible(page);
 
   const toggles = page.locator(Selectors.mood.allToggles);
@@ -1211,4 +1237,424 @@ async function waitMoodHydrated(page: Page): Promise<void> {
     .catch(() => {});
   // small settle so the active-state class is committed
   await page.waitForTimeout(400);
+}
+
+interface RecipientCacheEntry {
+  expiresAt: number;
+  items: Array<{ id: string; name: string; subtitle?: string }>;
+}
+const recipientCache = new Map<string, RecipientCacheEntry>();
+const RECIPIENT_CACHE_TTL_MS = 5 * 60 * 1000;
+
+async function fetchRecipientList(
+  page: Page,
+  type: 'person' | 'team',
+): Promise<Array<{ id: string; name: string; subtitle?: string }>> {
+  const idPessoa = type === 'person' ? await getIdPessoa(page) : '';
+  const cacheKey = `${type}:${idPessoa}`;
+  const cached = recipientCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.items;
+
+  const items = await page.evaluate(
+    async ({ type, idPessoa }) => {
+      const storage = (globalThis as any).localStorage;
+      const user = JSON.parse(storage.getItem('user1') || '{}');
+      const token = user?.token;
+      if (!token) throw new Error('Token não encontrado.');
+
+      const headers = {
+        accept: 'application/json, text/plain, */*',
+        authorization: `Bearer ${token}`,
+      };
+
+      const url =
+        type === 'person'
+          ? `https://apiteams.goobee.com.br/api/Pessoa/PegarPessoasUsuarioNaoInclusivo/${idPessoa}`
+          : `https://apiteams.goobee.com.br/api/Pessoa/PegarTimesComboBox`;
+
+      const r = await fetch(url, { headers });
+      if (!r.ok) {
+        const txt = await r.text().catch(() => '');
+        throw new Error(`${r.status} ${url} ${txt.slice(0, 200)}`);
+      }
+      const json = await r.json();
+      const arr = Array.isArray(json) ? json : [];
+      return arr
+        .map((it: any) => {
+          const id = String(it?.id ?? it?.idPessoa ?? it?.idTime ?? '').trim();
+          const name = String(it?.nome ?? it?.name ?? '').trim();
+          const email = String(it?.email ?? '').trim();
+          return { id, name, subtitle: email || undefined };
+        })
+        .filter((it: any) => it.name);
+    },
+    { type, idPessoa },
+  );
+
+  recipientCache.set(cacheKey, {
+    expiresAt: Date.now() + RECIPIENT_CACHE_TTL_MS,
+    items,
+  });
+  return items;
+}
+
+async function ensureKudoModalOpen(page: Page): Promise<Locator> {
+  const dialog = page.locator(Selectors.kudoCard.dialog).filter({
+    hasText: Selectors.kudoCard.dialogTitleText,
+  }).first();
+
+  if (await dialog.isVisible({ timeout: 800 }).catch(() => false)) {
+    return dialog;
+  }
+
+  const idPessoa = await getIdPessoa(page);
+  const profileUrl = `${BEEFOR_URL}/perfil/${idPessoa}`;
+  if (!page.url().startsWith(profileUrl)) {
+    await page.goto(profileUrl, {
+      waitUntil: 'domcontentloaded',
+      timeout: NAV_TIMEOUT_MS,
+    });
+  }
+  if (!(await isLoggedIn(page, 5000))) {
+    throw new Error('Sessão expirada.');
+  }
+
+  const addBtn = await firstVisible(
+    page,
+    [
+      Selectors.kudoCard.addButtonByIcon,
+      ...Selectors.kudoCard.addButtonAria,
+    ] as readonly string[],
+    12_000,
+  );
+  await addBtn.click({ timeout: DEFAULT_TIMEOUT_MS });
+
+  await dialog.waitFor({ state: 'visible', timeout: 10_000 });
+  return dialog;
+}
+
+export async function doSearchKudoRecipient(
+  page: Page,
+  type: 'person' | 'team',
+  query: string,
+): Promise<Array<{ id: string; name: string; subtitle?: string }>> {
+  const q = (query ?? '').trim();
+  if (q.length < 2) return [];
+
+  await ensureBeeforOrigin(page);
+  if (!(await isLoggedIn(page, 4000))) {
+    throw new Error('Sessão expirada.');
+  }
+
+  const all = await fetchRecipientList(page, type);
+  const needle = normalizeUiText(q);
+  const filtered = all
+    .filter((it) => normalizeUiText(it.name).includes(needle))
+    .sort((a, b) => {
+      const an = normalizeUiText(a.name);
+      const bn = normalizeUiText(b.name);
+      const ai = an.indexOf(needle);
+      const bi = bn.indexOf(needle);
+      if (ai !== bi) return ai - bi;
+      return an.localeCompare(bn);
+    })
+    .slice(0, 15);
+  return filtered;
+}
+
+async function beeforApiGet<T = unknown>(
+  page: Page,
+  url: string,
+): Promise<T> {
+  await ensureBeeforOrigin(page);
+  return page.evaluate(async (u) => {
+    const storage = (globalThis as any).localStorage;
+    const user = JSON.parse(storage.getItem('user1') || '{}');
+    const token = user?.token;
+    if (!token) throw new Error('Token não encontrado.');
+    const r = await fetch(u, {
+      headers: {
+        accept: 'application/json, text/plain, */*',
+        authorization: `Bearer ${token}`,
+      },
+    });
+    if (!r.ok) {
+      const txt = await r.text().catch(() => '');
+      throw new Error(`${r.status} ${u} ${txt.slice(0, 200)}`);
+    }
+    const txt = await r.text();
+    if (!txt) return null as any;
+    return JSON.parse(txt);
+  }, url);
+}
+
+export async function doFetchKudoCounts(
+  page: Page,
+): Promise<{ enviados: number; recebidos: number }> {
+  const idPessoa = await getIdPessoa(page);
+  const url = `https://apiteams.goobee.com.br/api/KudoCard/RecebidosEnviadosPessoa?idPessoa=${idPessoa}`;
+  const data = await beeforApiGet<any>(page, url);
+  return {
+    enviados: Number(data?.enviados ?? 0),
+    recebidos: Number(data?.recebidos ?? 0),
+  };
+}
+
+export async function doFetchKudoLists(page: Page): Promise<{
+  enviados: any[];
+  recebidos: any[];
+}> {
+  const idPessoa = await getIdPessoa(page);
+  const url = `https://apiteams.goobee.com.br/api/KudoCard/ListaRecebidosEnviadosPessoa?idPessoa=${idPessoa}`;
+  const data = await beeforApiGet<any>(page, url);
+  return {
+    enviados: Array.isArray(data?.enviados) ? data.enviados : [],
+    recebidos: Array.isArray(data?.recebidos) ? data.recebidos : [],
+  };
+}
+
+export async function doFetchKudoDetail(page: Page, id: string): Promise<any> {
+  if (!id) throw new Error('id obrigatório.');
+  const url = `https://apiteams.goobee.com.br/api/KudoCard/Buscar/${encodeURIComponent(id)}`;
+  return beeforApiGet<any>(page, url);
+}
+
+export async function doGetCurrentMoodViaApi(
+  page: Page,
+): Promise<Mood | null> {
+  const idPessoa = await getIdPessoa(page);
+  const url = `https://apiteams.goobee.com.br/api/Home/InformaHumor?idPessoa=${idPessoa}`;
+  const data = await beeforApiGet<any>(page, url);
+  const sentimento = Number(data?.sentimento);
+  if (!sentimento) return null;
+  const map: Record<number, Mood> = {
+    1: 'Dia feliz',
+    2: 'Dia bom',
+    3: 'Dia não tão bom',
+    4: 'Dia triste',
+  };
+  return map[sentimento] ?? null;
+}
+
+async function getIdPessoa(page: Page): Promise<string> {
+  await ensureBeeforOrigin(page);
+  const id = await page.evaluate(() => {
+    try {
+      const raw = (globalThis as any).localStorage?.getItem('user1');
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      return (
+        data?.idPessoa ??
+        data?.pessoa?.idPessoa ??
+        data?.user?.idPessoa ??
+        null
+      );
+    } catch {
+      return null;
+    }
+  });
+  if (!id || typeof id !== 'string') {
+    throw new Error('Token user1 ausente ou idPessoa não encontrado.');
+  }
+  return id;
+}
+
+export async function doSendKudoCard(
+  page: Page,
+  req: SendKudoCardRequest,
+): Promise<SendKudoCardResult> {
+  if (!req.recipientName?.trim()) {
+    throw new Error('Nome do destinatário vazio.');
+  }
+  if (!req.message?.trim()) {
+    throw new Error('Mensagem vazia.');
+  }
+  logger.info(
+    `KudoCard: enviar (${req.recipientType}) card=${req.cardType} destinatario="${req.recipientName}"`,
+  );
+
+  if (!(await isLoggedIn(page, 4000))) {
+    throw new Error('Beefor não logado. Conecte a sessão antes.');
+  }
+
+  const dialog = await ensureKudoModalOpen(page).catch((err) => {
+    throw new Error(
+      err instanceof Error
+        ? err.message
+        : 'Modal "Enviar Kudo Card" não abriu.',
+    );
+  });
+
+  // pick card image by src
+  const cardImg = dialog.locator(Selectors.kudoCard.cardImageBySrc(req.cardType)).first();
+  try {
+    await cardImg.waitFor({ state: 'visible', timeout: 5000 });
+    await cardImg.click({ timeout: DEFAULT_TIMEOUT_MS });
+  } catch {
+    throw new Error(`Card "${req.cardType}" não encontrado no modal.`);
+  }
+
+  // pick radio
+  const radioLabel =
+    req.recipientType === 'person'
+      ? Selectors.kudoCard.radioPerson
+      : Selectors.kudoCard.radioTeam;
+  try {
+    const radio = dialog.getByText(radioLabel, { exact: false }).first();
+    await radio.click({ timeout: DEFAULT_TIMEOUT_MS });
+  } catch {
+    throw new Error(`Radio "${radioLabel}" não encontrado.`);
+  }
+
+  // fill autocomplete
+  const acInput = dialog.locator(Selectors.kudoCard.autocompleteInput).first();
+  try {
+    await acInput.waitFor({ state: 'visible', timeout: 8000 });
+    await acInput.click({ timeout: DEFAULT_TIMEOUT_MS, force: true });
+    await acInput.press(process.platform === 'darwin' ? 'Meta+A' : 'Control+A');
+    await acInput.pressSequentially(req.recipientName.trim(), { delay: 30 });
+  } catch {
+    throw new Error('Campo autocomplete não disponível.');
+  }
+
+  // wait + click matching option
+  const optionsRoot = page.locator(Selectors.kudoCard.autocompleteOption);
+  try {
+    await optionsRoot.first().waitFor({ state: 'visible', timeout: 6000 });
+  } catch {
+    throw new Error(`Nenhum resultado para "${req.recipientName}" no autocomplete.`);
+  }
+  const target = req.recipientName.trim();
+  const exact = page
+    .locator(Selectors.kudoCard.autocompleteOption)
+    .filter({ hasText: new RegExp(`^\\s*${escapeRegex(target)}\\s*$`, 'i') })
+    .first();
+  let chosen = exact;
+  if (!(await exact.isVisible({ timeout: 800 }).catch(() => false))) {
+    chosen = page
+      .locator(Selectors.kudoCard.autocompleteOption)
+      .filter({ hasText: new RegExp(escapeRegex(target), 'i') })
+      .first();
+  }
+  if (!(await chosen.isVisible({ timeout: 1500 }).catch(() => false))) {
+    throw new Error(`Pessoa/time "${target}" não encontrado no autocomplete.`);
+  }
+  await chosen.click({ timeout: DEFAULT_TIMEOUT_MS });
+
+  // fill message
+  const textarea = dialog.locator(Selectors.kudoCard.messageTextarea).first();
+  try {
+    await textarea.waitFor({ state: 'visible', timeout: 5000 });
+    await textarea.click({ timeout: DEFAULT_TIMEOUT_MS, force: true });
+    await textarea.fill(req.message.trim());
+  } catch {
+    throw new Error('Textarea de mensagem não disponível.');
+  }
+
+  // submit
+  const sendBtn = dialog
+    .getByRole('button', { name: Selectors.kudoCard.sendButtonText, exact: false })
+    .first();
+  if (!(await sendBtn.isVisible({ timeout: 2000 }).catch(() => false))) {
+    throw new Error('Botão Enviar não encontrado.');
+  }
+
+  const responsePromise = page
+    .waitForResponse(
+      (r) => /kudo/i.test(r.url()) && ['POST', 'PUT'].includes(r.request().method()),
+      { timeout: 15_000 },
+    )
+    .catch(() => null);
+  await sendBtn.click({ timeout: DEFAULT_TIMEOUT_MS });
+
+  const response = await responsePromise;
+  if (response && response.status() >= 400) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`Beefor recusou envio (${response.status()}): ${body.slice(0, 200)}`);
+  }
+
+  // wait dialog close as confirmation
+  await dialog
+    .waitFor({ state: 'detached', timeout: 8000 })
+    .catch(() => {});
+
+  logger.info('KudoCard enviado com sucesso');
+  return { success: true, message: 'KudoCard enviado.' };
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const TEAM_LIST_URL_RE = /\/api\/Pessoa\/ListarTodas\b/i;
+const TEAM_PRIMARY_ROUTE = '/pessoas';
+const TEAM_FALLBACK_ROUTES = ['/equipe', '/equipes', '/people'];
+
+export async function doFetchTeamMembers(page: Page): Promise<unknown[]> {
+  // Backend exige x-encryption-key + body cifrado pelo SPA. Replay manual não
+  // funciona, então deixamos o próprio SPA disparar a chamada e capturamos a
+  // response via Playwright. Tentamos rotas conhecidas até alguma triggar.
+  if (!page.url().startsWith(BEEFOR_URL)) {
+    await page.goto(BEEFOR_URL, {
+      waitUntil: 'domcontentloaded',
+      timeout: NAV_TIMEOUT_MS,
+    });
+  }
+
+  const tryCapture = async (
+    trigger: () => Promise<unknown>,
+    timeoutMs: number,
+  ): Promise<unknown[] | null> => {
+    const responsePromise = page
+      .waitForResponse(
+        (r) => TEAM_LIST_URL_RE.test(r.url()) && r.request().method() === 'POST',
+        { timeout: timeoutMs },
+      )
+      .catch(() => null);
+    await trigger().catch(() => {});
+    const response = await responsePromise;
+    if (!response) return null;
+    if (!response.ok()) {
+      const txt = await response.text().catch(() => '');
+      logger.warn(
+        `Pessoa/ListarTodas ${response.status()}: ${txt.slice(0, 200)}`,
+      );
+      return null;
+    }
+    try {
+      const json = await response.json();
+      if (Array.isArray(json)) return json as unknown[];
+      if (json && typeof json === 'object') {
+        const obj = json as Record<string, unknown>;
+        for (const key of ['data', 'pessoas', 'lista', 'items']) {
+          if (Array.isArray(obj[key])) return obj[key] as unknown[];
+        }
+      }
+      return [];
+    } catch {
+      return null;
+    }
+  };
+
+  const routes = [TEAM_PRIMARY_ROUTE, ...TEAM_FALLBACK_ROUTES];
+  let lastSeenEmpty = false;
+  for (const route of routes) {
+    const target = `${BEEFOR_URL}${route}`;
+    const captured = await tryCapture(
+      async () => {
+        await page.goto(target, {
+          waitUntil: 'domcontentloaded',
+          timeout: NAV_TIMEOUT_MS,
+        });
+      },
+      12_000,
+    );
+    if (captured && captured.length > 0) return captured;
+    if (captured) lastSeenEmpty = true;
+  }
+
+  if (lastSeenEmpty) return [];
+  throw new Error(
+    'Não consegui capturar Pessoa/ListarTodas — abra Beefor manualmente em /pessoas e tente de novo.',
+  );
 }
