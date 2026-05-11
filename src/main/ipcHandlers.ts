@@ -219,9 +219,17 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
           throw actionErr;
         }
       }
+      win?.webContents.send(IPC.EVT_NOTIFY, {
+        title: 'sync:autoLancamento',
+        body: 'ok',
+      });
       return ok();
     } catch (err) {
       logger.error('Auto lançamento failed', err);
+      win?.webContents.send(IPC.EVT_NOTIFY, {
+        title: 'sync:autoLancamento',
+        body: 'failed',
+      });
       return fail(err);
     }
   });

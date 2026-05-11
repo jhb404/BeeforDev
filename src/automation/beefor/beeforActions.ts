@@ -182,7 +182,16 @@ export async function doAutoLancamento(page: Page): Promise<void> {
     await fallback.click();
   }
 
-  logger.info('Auto lançamento clicked');
+  logger.info('Auto lançamento clicked, waiting for persistence');
+
+  try {
+    await page.waitForLoadState('networkidle', { timeout: 15000 });
+  } catch {
+    logger.warn('Auto lançamento: networkidle timeout, falling back to fixed wait');
+    await page.waitForTimeout(2500);
+  }
+
+  logger.info('Auto lançamento persisted');
 }
 
 export async function doSelectMood(page: Page, mood: Mood): Promise<void> {

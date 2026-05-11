@@ -138,6 +138,10 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
 
   const fetchInFlight = useRef(false);
   const lastFetchKey = useRef<string>('');
+  const yearRef = useRef(year);
+  const monthRef = useRef(month);
+  useEffect(() => { yearRef.current = year; }, [year]);
+  useEffect(() => { monthRef.current = month; }, [month]);
 
   useEffect(() => {
     void window.beefor.getSettings().then(setSettings);
@@ -227,11 +231,14 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
   useEffect(() => {
     const off = window.beefor.onNotify((info) => {
       if (info.title === 'sync:autoLancamento' && info.body === 'ok') {
-        void refreshAll();
-        showToast({
-          kind: 'ok',
-          title: 'Auto lançamento',
-          msg: 'Calendário atualizado após conclusão.',
+        const y = yearRef.current;
+        const m = monthRef.current;
+        lastFetchKey.current = '';
+        void window.beefor.fetchTimesheet(y, m).then((res) => {
+          if (res.ok && res.data) {
+            setRows(mergeFetched(y, m, res.data));
+            setTimesheetLoaded(true);
+          }
         });
       }
       if (info.title === 'sync:autoLancamento' && info.body === 'failed') {
@@ -239,7 +246,8 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
       }
     });
     return off;
-  }, [year, month, ready]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   const updateRow = (idx: number, patch: Partial<RowState>) =>
     setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
@@ -301,8 +309,8 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
         res.ok
           ? {
               kind: 'ok',
-              title: 'Auto lançamento concluído',
-              msg: 'Os apontamentos automáticos foram enviados.',
+              title: 'Auto lançamento iniciado',
+              msg: 'Processando... calendário atualiza quando concluir.',
             }
           : {
               kind: 'err',
@@ -310,7 +318,11 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
               msg: res.error ?? 'falhou',
             },
       );
-      if (res.ok) await refreshTimesheet();
+      if (res.ok) {
+        const nowDate = new Date();
+        setYear(nowDate.getFullYear());
+        setMonth(nowDate.getMonth() + 1);
+      }
     });
   };
 
