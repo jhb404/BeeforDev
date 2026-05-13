@@ -2,14 +2,26 @@
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+
+# Avoid concurrent releases from rapid merges
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: windows-latest
+    # Skip if last commit was the bump itself (avoid infinite loop)
+    if: "!contains(github.event.head_commit.message, 'chore: release')"
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -25,6 +37,22 @@ jobs:
 
       - name: Test
         run: npx vitest run
+
+      - name: Config git
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump patch + tag
+        shell: bash
+        run: |
+          npm version patch -m "chore: release v%s [skip ci]"
+
+      - name: Push commit + tag
+        shell: bash
+        run: |
+          git push origin main --follow-tags
 
       - name: Build and publish
         run: npm run package:win
