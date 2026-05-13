@@ -1,4 +1,5 @@
-﻿import type { AppSettings } from '@shared/types';
+import type { AppSettings } from '@shared/types';
+import { Switch } from '../Switch';
 
 interface JornadaCardProps {
   settings: AppSettings;
@@ -6,6 +7,7 @@ interface JornadaCardProps {
 }
 
 export function JornadaCard({ settings, onUpdate }: JornadaCardProps) {
+  const hasRate = (settings.hourRate ?? 0) > 0;
   return (
     <div className="card">
       <h2>Jornada</h2>
@@ -30,6 +32,22 @@ export function JornadaCard({ settings, onUpdate }: JornadaCardProps) {
           onChange={(e) => onUpdate('hourRate', Number(e.target.value) || 0)}
         />
       </div>
+      {hasRate && (
+        <>
+          <Switch
+            id="showOvertimeValue"
+            checked={settings.showOvertimeValue ?? true}
+            onChange={(v) => onUpdate('showOvertimeValue', v)}
+            label="Mostrar Valor extras"
+          />
+          <Switch
+            id="showTotalSalary"
+            checked={settings.showTotalSalary ?? true}
+            onChange={(v) => onUpdate('showTotalSalary', v)}
+            label="Mostrar Total estimado"
+          />
+        </>
+      )}
     </div>
   );
 }

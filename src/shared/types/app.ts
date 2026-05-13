@@ -43,6 +43,10 @@ export interface AppSettings {
 
   hoursPerDay: number;
   hourRate: number;
+  /** Show "Valor extras" summary card. Only relevant when hourRate > 0 */
+  showOvertimeValue?: boolean;
+  /** Show "Total estimado" summary card. Only relevant when hourRate > 0 */
+  showTotalSalary?: boolean;
   patchJournal: string;
 
   /** User dismissed the "run as admin" banner — don't show again */

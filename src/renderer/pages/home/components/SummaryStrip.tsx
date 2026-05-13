@@ -14,11 +14,18 @@ export interface SummaryStripData {
 interface SummaryStripProps {
   summary: SummaryStripData;
   compact?: boolean;
+  showOvertimeValue?: boolean;
+  showTotalSalary?: boolean;
 }
 
 const BRL = { style: 'currency' as const, currency: 'BRL' };
 
-export function SummaryStrip({ summary, compact }: SummaryStripProps) {
+export function SummaryStrip({
+  summary,
+  compact,
+  showOvertimeValue = true,
+  showTotalSalary = true,
+}: SummaryStripProps) {
   return (
     <div className={`summary-strip ${compact ? 'compact' : ''}`}>
       <div className="summary-card">
@@ -45,22 +52,26 @@ export function SummaryStrip({ summary, compact }: SummaryStripProps) {
         </span>
         <strong className="summary-value">{summary.workedDays}d</strong>
       </div>
-      <div className={`summary-card ${summary.overtimeMin > 0 ? 'pos' : ''}`}>
-        <span className="summary-label">
-          <Trophy size={14} /> Valor extras
-        </span>
-        <strong className="summary-value">
-          {summary.overtimeValue.toLocaleString('pt-BR', BRL)}
-        </strong>
-      </div>
-      <div className="summary-card">
-        <span className="summary-label">
-          <Heart size={14} /> Total estimado
-        </span>
-        <strong className="summary-value">
-          {summary.totalSalary.toLocaleString('pt-BR', BRL)}
-        </strong>
-      </div>
+      {showOvertimeValue && (
+        <div className={`summary-card ${summary.overtimeMin > 0 ? 'pos' : ''}`}>
+          <span className="summary-label">
+            <Trophy size={14} /> Valor extras
+          </span>
+          <strong className="summary-value">
+            {summary.overtimeValue.toLocaleString('pt-BR', BRL)}
+          </strong>
+        </div>
+      )}
+      {showTotalSalary && (
+        <div className="summary-card">
+          <span className="summary-label">
+            <Heart size={14} /> Total estimado
+          </span>
+          <strong className="summary-value">
+            {summary.totalSalary.toLocaleString('pt-BR', BRL)}
+          </strong>
+        </div>
+      )}
     </div>
   );
 }

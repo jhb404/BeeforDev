@@ -49,8 +49,12 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
   const lastFetchKey = useRef<string>('');
   const yearRef = useRef(year);
   const monthRef = useRef(month);
-  useEffect(() => { yearRef.current = year; }, [year]);
-  useEffect(() => { monthRef.current = month; }, [month]);
+  useEffect(() => {
+    yearRef.current = year;
+  }, [year]);
+  useEffect(() => {
+    monthRef.current = month;
+  }, [month]);
 
   useEffect(() => {
     void settingsClient.get().then(setSettings);
@@ -65,7 +69,6 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
     void (moodLoaded ? refreshTimesheet() : refreshAll());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, year, month, moodLoaded]);
-
 
   const refreshTimesheet = async () => {
     if (fetchInFlight.current) return;
@@ -97,9 +100,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
       const res = await moodClient.getCurrent();
       if (res.ok) {
         const m = res.data ?? null;
-        const matched = (MOODS as readonly string[]).includes(m ?? '')
-          ? (m as Mood)
-          : null;
+        const matched = (MOODS as readonly string[]).includes(m ?? '') ? (m as Mood) : null;
         setCurrentMood(matched);
         notifyMoodChanged(matched);
       }
@@ -125,7 +126,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, month, year]);
 
   useEffect(() => {
@@ -146,7 +147,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
       }
     });
     return off;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 
   const updateRow = (idx: number, patch: Partial<RowState>) =>
@@ -307,11 +308,8 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
   );
   const autoLoginOnLaunch = settings?.autoLoginOnLaunch ?? true;
   const isBooting =
-    status === 'loading' ||
-    status === 'reconnecting' ||
-    (status === 'idle' && autoLoginOnLaunch);
-  const showMoodLoader =
-    isBooting || (loadingMood && !moodLoaded) || (ready && !moodLoaded);
+    status === 'loading' || status === 'reconnecting' || (status === 'idle' && autoLoginOnLaunch);
+  const showMoodLoader = isBooting || (loadingMood && !moodLoaded) || (ready && !moodLoaded);
   const showTimesheetLoader =
     isBooting || (loadingTs && !timesheetLoaded) || (ready && !timesheetLoaded);
   const showDisconnectedState = !ready && !isBooting;
@@ -364,7 +362,12 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
           onAutoLancamento={() => void autoLancamento()}
         />
 
-        <SummaryStrip summary={summary} compact={settings?.viewMode === 'minimal'} />
+        <SummaryStrip
+          summary={summary}
+          compact={settings?.viewMode === 'minimal'}
+          showOvertimeValue={hourRate > 0 && (settings?.showOvertimeValue ?? true)}
+          showTotalSalary={hourRate > 0 && (settings?.showTotalSalary ?? true)}
+        />
 
         {showTimesheetLoader ? (
           <FunnyLoader title="Carregando lançamentos" />
@@ -412,16 +415,10 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
         open={showKudoModal}
         onClose={() => setShowKudoModal(false)}
         onSent={(msg) => showToast({ kind: 'ok', title: 'KudoCard enviado', msg })}
-        onError={(msg) =>
-          showToast({ kind: 'err', title: 'Falha ao enviar KudoCard', msg })
-        }
+        onError={(msg) => showToast({ kind: 'err', title: 'Falha ao enviar KudoCard', msg })}
       />
 
-      <KudoCardHistoryModal
-        open={showKudoHistory}
-        onClose={() => setShowKudoHistory(false)}
-      />
-
+      <KudoCardHistoryModal open={showKudoHistory} onClose={() => setShowKudoHistory(false)} />
     </div>
   );
 }

@@ -21,7 +21,7 @@ export function Coin2uConfirmPurchase({ item, dashboard, purchasing, onCancel, o
         <div className="coin2u-confirm__head">
           <ShoppingBag size={18} />
           <div>
-            <h3 id="coin2u-confirm-title">Deseja confirmar compra?</h3>
+            <h3 id="coin2u-confirm-title">Deseja confirmar sua compra?</h3>
             <p>{item.Name}</p>
           </div>
         </div>
