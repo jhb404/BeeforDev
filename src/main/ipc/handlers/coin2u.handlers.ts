@@ -1,9 +1,6 @@
-import { ipcMain } from 'electron';
+﻿import { ipcMain } from 'electron';
 import { IPC } from '../../../shared/ipc';
-import type {
-  AppSettings,
-  Coin2uOrg,
-} from '../../../shared/types';
+import type { AppSettings, Coin2uOrg } from '../../../shared/types';
 import { loadSettings, saveSettings } from '../../sessionStore';
 import { logger } from '../../logger';
 import { ok, fail } from '../../services/result';
@@ -46,10 +43,7 @@ export function registerCoin2uHandlers() {
 
   ipcMain.handle(
     IPC.COIN2U_SAVE_CREDS,
-    async (
-      _e,
-      payload: { email: string; password: string; userId?: number },
-    ) => {
+    async (_e, payload: { email: string; password: string; userId?: number }) => {
       try {
         await saveCoin2uCredentials({
           email: payload.email,

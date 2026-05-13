@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+﻿import { ipcMain } from 'electron';
 import { IPC } from '../../../shared/ipc';
 import type { AppSettings } from '../../../shared/types';
 import { loadSettings, saveSettings } from '../../sessionStore';

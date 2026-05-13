@@ -1,13 +1,12 @@
-import type { Locator, Page } from 'playwright';
+﻿import type { Locator, Page } from 'playwright';
 import {
   BEEFOR_URL,
+  BEEFOR_KUDO_API,
+  BEEFOR_PESSOA_API,
   DEFAULT_TIMEOUT_MS,
   NAV_TIMEOUT_MS,
 } from '../../../shared/constants';
-import type {
-  SendKudoCardRequest,
-  SendKudoCardResult,
-} from '../../../shared/types';
+import type { SendKudoCardRequest, SendKudoCardResult } from '../../../shared/types';
 import { logger } from '../../../main/logger';
 import { Selectors } from '../beeforSelectors';
 import { firstVisible } from '../internals/playwrightHelpers';
@@ -32,7 +31,7 @@ async function fetchRecipientList(
   if (cached && cached.expiresAt > Date.now()) return cached.items;
 
   const items = await page.evaluate(
-    async ({ type, idPessoa }) => {
+    async ({ type, idPessoa, pessoaApi }) => {
       const storage = (globalThis as any).localStorage;
       const user = JSON.parse(storage.getItem('user1') || '{}');
       const token = user?.token;
@@ -45,8 +44,8 @@ async function fetchRecipientList(
 
       const url =
         type === 'person'
-          ? `https://apiteams.goobee.com.br/api/Pessoa/PegarPessoasUsuarioNaoInclusivo/${idPessoa}`
-          : `https://apiteams.goobee.com.br/api/Pessoa/PegarTimesComboBox`;
+          ? `${pessoaApi}/PegarPessoasUsuarioNaoInclusivo/${idPessoa}`
+          : `${pessoaApi}/PegarTimesComboBox`;
 
       const r = await fetch(url, { headers });
       if (!r.ok) {
@@ -64,7 +63,7 @@ async function fetchRecipientList(
         })
         .filter((it: any) => it.name);
     },
-    { type, idPessoa },
+    { type, idPessoa, pessoaApi: BEEFOR_PESSOA_API },
   );
 
   recipientCache.set(cacheKey, {
@@ -98,10 +97,7 @@ async function ensureKudoModalOpen(page: Page): Promise<Locator> {
 
   const addBtn = await firstVisible(
     page,
-    [
-      Selectors.kudoCard.addButtonByIcon,
-      ...Selectors.kudoCard.addButtonAria,
-    ] as readonly string[],
+    [Selectors.kudoCard.addButtonByIcon, ...Selectors.kudoCard.addButtonAria] as readonly string[],
     12_000,
   );
   await addBtn.click({ timeout: DEFAULT_TIMEOUT_MS });
@@ -143,7 +139,7 @@ export async function doFetchKudoCounts(
   page: Page,
 ): Promise<{ enviados: number; recebidos: number }> {
   const idPessoa = await getIdPessoa(page);
-  const url = `https://apiteams.goobee.com.br/api/KudoCard/RecebidosEnviadosPessoa?idPessoa=${idPessoa}`;
+  const url = `${BEEFOR_KUDO_API}/RecebidosEnviadosPessoa?idPessoa=${idPessoa}`;
   const data = await beeforApiGet<any>(page, url);
   return {
     enviados: Number(data?.enviados ?? 0),
@@ -151,11 +147,9 @@ export async function doFetchKudoCounts(
   };
 }
 
-export async function doFetchKudoLists(
-  page: Page,
-): Promise<{ enviados: any[]; recebidos: any[] }> {
+export async function doFetchKudoLists(page: Page): Promise<{ enviados: any[]; recebidos: any[] }> {
   const idPessoa = await getIdPessoa(page);
-  const url = `https://apiteams.goobee.com.br/api/KudoCard/ListaRecebidosEnviadosPessoa?idPessoa=${idPessoa}`;
+  const url = `${BEEFOR_KUDO_API}/ListaRecebidosEnviadosPessoa?idPessoa=${idPessoa}`;
   const data = await beeforApiGet<any>(page, url);
   return {
     enviados: Array.isArray(data?.enviados) ? data.enviados : [],
@@ -165,7 +159,7 @@ export async function doFetchKudoLists(
 
 export async function doFetchKudoDetail(page: Page, id: string): Promise<any> {
   if (!id) throw new Error('id obrigatório.');
-  const url = `https://apiteams.goobee.com.br/api/KudoCard/Buscar/${encodeURIComponent(id)}`;
+  const url = `${BEEFOR_KUDO_API}/Buscar/${encodeURIComponent(id)}`;
   return beeforApiGet<any>(page, url);
 }
 
@@ -188,11 +182,7 @@ export async function doSendKudoCard(
   }
 
   const dialog = await ensureKudoModalOpen(page).catch((err) => {
-    throw new Error(
-      err instanceof Error
-        ? err.message
-        : 'Modal "Enviar Kudo Card" não abriu.',
-    );
+    throw new Error(err instanceof Error ? err.message : 'Modal "Enviar Kudo Card" não abriu.');
   });
 
   const cardImg = dialog.locator(Selectors.kudoCard.cardImageBySrc(req.cardType)).first();
@@ -204,9 +194,7 @@ export async function doSendKudoCard(
   }
 
   const radioLabel =
-    req.recipientType === 'person'
-      ? Selectors.kudoCard.radioPerson
-      : Selectors.kudoCard.radioTeam;
+    req.recipientType === 'person' ? Selectors.kudoCard.radioPerson : Selectors.kudoCard.radioTeam;
   try {
     const radio = dialog.getByText(radioLabel, { exact: false }).first();
     await radio.click({ timeout: DEFAULT_TIMEOUT_MS });

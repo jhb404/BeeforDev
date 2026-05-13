@@ -1,4 +1,4 @@
-import type { Page } from 'playwright';
+﻿import type { Page } from 'playwright';
 import { DEFAULT_TIMEOUT_MS } from '../../../../shared/constants';
 import type { TimesheetEntry } from '../../../../shared/types';
 import { logger } from '../../../../main/logger';
@@ -23,10 +23,7 @@ import {
 import { waitForSaveResponses } from './saveResponse';
 import { doLancarHoraViaApi } from './lancarApi';
 
-export async function doLancarHora(
-  page: Page,
-  entry: TimesheetEntry,
-): Promise<void> {
+export async function doLancarHora(page: Page, entry: TimesheetEntry): Promise<void> {
   logger.info(`Lançar hora: ${entry.date}`);
   try {
     await doLancarHoraViaApi(page, entry);
@@ -54,10 +51,7 @@ export async function doLancarHora(
   const dd = String(d).padStart(2, '0');
   const mm = String(m).padStart(2, '0');
   const dateLabel = `${dd}/${mm}/${y}`;
-  const row = page
-    .locator(Selectors.timesheet.dayRow)
-    .filter({ hasText: dateLabel })
-    .first();
+  const row = page.locator(Selectors.timesheet.dayRow).filter({ hasText: dateLabel }).first();
 
   await row.waitFor({ state: 'visible', timeout: DEFAULT_TIMEOUT_MS });
 
@@ -94,8 +88,7 @@ export async function doLancarHora(
   }
 
   const commentChanged =
-    entry.comentario !== undefined &&
-    (before.comentario ?? '').trim() !== entry.comentario.trim();
+    entry.comentario !== undefined && (before.comentario ?? '').trim() !== entry.comentario.trim();
   if (entry.comentario !== undefined) {
     const cmt = row.locator(Selectors.timesheet.rowCommentInput).first();
     if (await cmt.count()) {

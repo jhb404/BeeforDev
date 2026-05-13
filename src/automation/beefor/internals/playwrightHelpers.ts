@@ -1,4 +1,4 @@
-import type { Locator, Page } from 'playwright';
+﻿import type { Locator, Page } from 'playwright';
 import { DEFAULT_TIMEOUT_MS } from '../../../shared/constants';
 
 /** Try a list of selectors; return first visible Locator. */

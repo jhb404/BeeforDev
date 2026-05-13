@@ -23,10 +23,9 @@ export function Coin2uSendTab({ dashboard, loading, settings, onAfterTransfer, o
   const [message, setMessage] = useState('');
   const [transferring, setTransferring] = useState(false);
 
-  const members = dashboard?.Members ?? [];
   const filteredMembers = useMemo(
-    () => members.filter((m) => matchesMember(m, query)),
-    [members, query],
+    () => (dashboard?.Members ?? []).filter((m) => matchesMember(m, query)),
+    [dashboard?.Members, query],
   );
   const totalMemberPages = Math.max(1, Math.ceil(filteredMembers.length / MEMBERS_PER_PAGE));
   const visibleMembers = filteredMembers.slice(
@@ -116,7 +115,11 @@ export function Coin2uSendTab({ dashboard, loading, settings, onAfterTransfer, o
                 aria-selected={selected?.Value === m.Value}
               >
                 <span className="coin2u-member__avatar">
-                  {m.Text.split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase()}
+                  {m.Text.split(' ')
+                    .slice(0, 2)
+                    .map((p) => p[0])
+                    .join('')
+                    .toUpperCase()}
                 </span>
                 <span className="coin2u-member__name">{m.Text}</span>
               </button>
@@ -135,7 +138,9 @@ export function Coin2uSendTab({ dashboard, loading, settings, onAfterTransfer, o
             >
               Anterior
             </button>
-            <span>{memberPage} / {totalMemberPages} · {filteredMembers.length} pessoas</span>
+            <span>
+              {memberPage} / {totalMemberPages} · {filteredMembers.length} pessoas
+            </span>
             <button
               type="button"
               className="secondary compact"

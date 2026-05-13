@@ -1,4 +1,4 @@
-import { Menu, Tray, app } from 'electron';
+﻿import { Menu, Tray, app } from 'electron';
 import type { BrowserWindow } from 'electron';
 import { MOODS } from '../../shared/types';
 import { getBuildIconPath } from '../window';

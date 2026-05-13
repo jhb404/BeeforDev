@@ -1,4 +1,4 @@
-import type { Page } from 'playwright';
+﻿import type { Page } from 'playwright';
 import { BEEFOR_URL, NAV_TIMEOUT_MS } from '../../../shared/constants';
 
 export async function ensureBeeforOrigin(page: Page): Promise<void> {
@@ -9,10 +9,7 @@ export async function ensureBeeforOrigin(page: Page): Promise<void> {
   });
 }
 
-export async function beeforApiGet<T = unknown>(
-  page: Page,
-  url: string,
-): Promise<T> {
+export async function beeforApiGet<T = unknown>(page: Page, url: string): Promise<T> {
   await ensureBeeforOrigin(page);
   return page.evaluate(async (u) => {
     const storage = (globalThis as any).localStorage;
@@ -42,12 +39,7 @@ export async function getIdPessoa(page: Page): Promise<string> {
       const raw = (globalThis as any).localStorage?.getItem('user1');
       if (!raw) return null;
       const data = JSON.parse(raw);
-      return (
-        data?.idPessoa ??
-        data?.pessoa?.idPessoa ??
-        data?.user?.idPessoa ??
-        null
-      );
+      return data?.idPessoa ?? data?.pessoa?.idPessoa ?? data?.user?.idPessoa ?? null;
     } catch {
       return null;
     }

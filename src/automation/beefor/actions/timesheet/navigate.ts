@@ -1,4 +1,4 @@
-import type { Page } from 'playwright';
+﻿import type { Page } from 'playwright';
 import {
   BEEFOR_TIMESHEET_URL,
   DEFAULT_TIMEOUT_MS,
@@ -16,7 +16,11 @@ export async function pickMatSelect(
   await sel.waitFor({ state: 'visible', timeout: DEFAULT_TIMEOUT_MS });
 
   const currentText = (
-    await sel.locator('.mat-select-value-text').first().innerText().catch(() => '')
+    await sel
+      .locator('.mat-select-value-text')
+      .first()
+      .innerText()
+      .catch(() => '')
   ).trim();
   if (currentText === optionText) return;
 
@@ -28,9 +32,7 @@ export async function pickMatSelect(
   const optionsRoot = page.locator('.cdk-overlay-container mat-option');
   await optionsRoot.first().waitFor({ state: 'visible', timeout: 5000 });
 
-  const opt = page
-    .locator(`.cdk-overlay-container mat-option:has-text("${optionText}")`)
-    .first();
+  const opt = page.locator(`.cdk-overlay-container mat-option:has-text("${optionText}")`).first();
   await opt.click({ timeout: DEFAULT_TIMEOUT_MS });
 
   await optionsRoot
@@ -42,10 +44,7 @@ export async function pickMatSelect(
 export async function navigateTimesheet(page: Page): Promise<void> {
   const onTimesheetUrl = page.url().includes('/time-sheet-beefor/lancamentos');
   const root = page.locator(Selectors.timesheet.pageRoot);
-  if (
-    onTimesheetUrl &&
-    (await root.isVisible({ timeout: 1500 }).catch(() => false))
-  ) {
+  if (onTimesheetUrl && (await root.isVisible({ timeout: 1500 }).catch(() => false))) {
     return;
   }
 

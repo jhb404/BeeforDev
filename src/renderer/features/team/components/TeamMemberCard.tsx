@@ -1,4 +1,5 @@
-﻿import type { TeamMember } from '@shared/types';
+﻿import { memo } from 'react';
+import type { TeamMember } from '@shared/types';
 import type { BirthdayEntry } from '../../../utils/teamCache';
 import { Cake, Mail } from '../../../components/common/Icons';
 import { formatBirthdayPretty, isBirthdayToday } from '../../../utils/dateUtils';
@@ -9,10 +10,17 @@ interface Props {
   member: TeamMember;
   birthday?: BirthdayEntry;
   selected: boolean;
-  onSelect: () => void;
+  memberKey: string;
+  onSelect: (key: string) => void;
 }
 
-export function TeamMemberCard({ member, birthday, selected, onSelect }: Props) {
+export const TeamMemberCard = memo(function TeamMemberCard({
+  member,
+  birthday,
+  selected,
+  memberKey,
+  onSelect,
+}: Props) {
   const partyToday = isBirthdayToday(birthday?.birthday);
   const niceBirthday = formatBirthdayPretty(birthday?.birthday);
 
@@ -20,7 +28,7 @@ export function TeamMemberCard({ member, birthday, selected, onSelect }: Props) 
     <button
       type="button"
       className={`team-card ${selected ? 'team-card--active' : ''} ${partyToday ? 'team-card--party' : ''}`}
-      onClick={onSelect}
+      onClick={() => onSelect(memberKey)}
       data-sound="card-pick"
     >
       {partyToday && (
@@ -47,4 +55,4 @@ export function TeamMemberCard({ member, birthday, selected, onSelect }: Props) 
       </div>
     </button>
   );
-}
+});

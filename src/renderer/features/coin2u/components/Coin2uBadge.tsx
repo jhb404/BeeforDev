@@ -69,6 +69,7 @@ export function Coin2uBadge({ settings }: Props = {}) {
     return () => {
       if (timer) clearInterval(timer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (configured === false || configured === null) return null;
@@ -90,10 +91,10 @@ export function Coin2uBadge({ settings }: Props = {}) {
   const tip = errMsg
     ? `Coin2U: ${errMsg}`
     : data
-    ? `Coins: ${data.Coins} - Doar: ${data.ExchangeCoins} - Cotacao: R$ ${data.CurrentQuotation.toFixed(2)} - Expira em ${data.DaysToExpire}d`
-    : loading
-    ? 'Coin2U: carregando...'
-    : 'Coin2U';
+      ? `Coins: ${data.Coins} - Doar: ${data.ExchangeCoins} - Cotacao: R$ ${data.CurrentQuotation.toFixed(2)} - Expira em ${data.DaysToExpire}d`
+      : loading
+        ? 'Coin2U: carregando...'
+        : 'Coin2U';
 
   const goldVal = data?.Coins ?? 0;
   const purpleVal = data?.ExchangeCoins ?? 0;

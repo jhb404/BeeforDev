@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from 'electron';
+﻿import { BrowserWindow, ipcMain } from 'electron';
 import { IPC } from '../../../shared/ipc';
 import type { SendKudoCardRequest } from '../../../shared/types';
 import {
@@ -10,10 +10,7 @@ import {
 } from '../../../automation/beefor/beeforActions';
 import { logger } from '../../logger';
 import { ok, fail } from '../../services/result';
-import {
-  runBeeforAction,
-  runBeeforActionWithReconnect,
-} from '../../services/beeforActionRunner';
+import { runBeeforAction, runBeeforActionWithReconnect } from '../../services/beeforActionRunner';
 
 export function registerKudoHandlers(getWindow: () => BrowserWindow | null) {
   ipcMain.handle(IPC.ACTION_KUDO_COUNTS, async () => {
@@ -42,9 +39,7 @@ export function registerKudoHandlers(getWindow: () => BrowserWindow | null) {
     const win = getWindow();
     if (!id || typeof id !== 'string') return fail(new Error('id inválido.'));
     try {
-      const data = await runBeeforAction(win, (page) =>
-        doFetchKudoDetail(page, id),
-      );
+      const data = await runBeeforAction(win, (page) => doFetchKudoDetail(page, id));
       return ok(data);
     } catch (err) {
       logger.error('Kudo detail failed', err);
@@ -73,27 +68,22 @@ export function registerKudoHandlers(getWindow: () => BrowserWindow | null) {
     },
   );
 
-  ipcMain.handle(
-    IPC.ACTION_SEND_KUDO_CARD,
-    async (_e, req: SendKudoCardRequest) => {
-      const win = getWindow();
-      if (!req || typeof req !== 'object') return fail(new Error('Payload inválido.'));
-      if (!req.recipientName?.trim()) return fail(new Error('Informe o destinatário.'));
-      if (!req.message?.trim()) return fail(new Error('Mensagem não pode ser vazia.'));
-      if (req.recipientType !== 'person' && req.recipientType !== 'team') {
-        return fail(new Error('Tipo de destinatário inválido.'));
-      }
-      try {
-        const result = await runBeeforActionWithReconnect(
-          win,
-          'KudoCard',
-          (page) => doSendKudoCard(page, req),
-        );
-        return ok(result);
-      } catch (err) {
-        logger.error('Send KudoCard failed', err);
-        return fail(err);
-      }
-    },
-  );
+  ipcMain.handle(IPC.ACTION_SEND_KUDO_CARD, async (_e, req: SendKudoCardRequest) => {
+    const win = getWindow();
+    if (!req || typeof req !== 'object') return fail(new Error('Payload inválido.'));
+    if (!req.recipientName?.trim()) return fail(new Error('Informe o destinatário.'));
+    if (!req.message?.trim()) return fail(new Error('Mensagem não pode ser vazia.'));
+    if (req.recipientType !== 'person' && req.recipientType !== 'team') {
+      return fail(new Error('Tipo de destinatário inválido.'));
+    }
+    try {
+      const result = await runBeeforActionWithReconnect(win, 'KudoCard', (page) =>
+        doSendKudoCard(page, req),
+      );
+      return ok(result);
+    } catch (err) {
+      logger.error('Send KudoCard failed', err);
+      return fail(err);
+    }
+  });
 }

@@ -1,22 +1,16 @@
-import type { Page } from 'playwright';
+﻿import type { Page } from 'playwright';
 import type { TimesheetEntry } from '../../../../shared/types';
+import { BEEFOR_TIMESHEET_API } from '../../../../shared/constants';
 import { ensureBeeforOrigin } from '../../internals/beeforApi';
 import {
   cacheMonthPayload,
   getCachedDayPayload,
   replaceCachedDayPayload,
 } from '../../internals/timesheetCache';
-import {
-  TIME_KEYS,
-  normalizeTimeForCompare,
-  type TimeKey,
-} from './shared';
+import { TIME_KEYS, normalizeTimeForCompare, type TimeKey } from './shared';
 import { asRecord, extractDayPayload, extractSavedValues } from './payloadParse';
 
-export async function doLancarHoraViaApi(
-  page: Page,
-  entry: TimesheetEntry,
-): Promise<void> {
+export async function doLancarHoraViaApi(page: Page, entry: TimesheetEntry): Promise<void> {
   const [y, m, d] = entry.date.split('-').map(Number);
   if (!y || !m || !d) throw new Error(`Data inválida: ${entry.date}`);
 
@@ -24,9 +18,7 @@ export async function doLancarHoraViaApi(
 
   const cachedRow = getCachedDayPayload(y, m, d);
   const apiResult = await page.evaluate(
-    async ({ year, month, day, values, comentario, cachedRow }) => {
-      const endpoint =
-        'https://apiteams.goobee.com.br/timesheet-beefor/api/apontamento';
+    async ({ year, month, day, values, comentario, cachedRow, endpoint }) => {
       const storage = (globalThis as any).localStorage;
       const user = JSON.parse(storage.getItem('user1') || '{}');
       if (!user?.token) {
@@ -60,8 +52,7 @@ export async function doLancarHoraViaApi(
       const keys = ['entrada', 'int1', 'ret1', 'int2', 'ret2', 'saida'] as const;
       keys.forEach((key, index) => {
         const apontamento =
-          row.apontamentos.find((item: any) => item?.index === index) ??
-          row.apontamentos[index];
+          row.apontamentos.find((item: any) => item?.index === index) ?? row.apontamentos[index];
         if (!apontamento) return;
         const next = values[key] || null;
         if ((apontamento.valor ?? null) !== next) {
@@ -123,6 +114,7 @@ export async function doLancarHoraViaApi(
       },
       comentario: entry.comentario,
       cachedRow,
+      endpoint: BEEFOR_TIMESHEET_API,
     },
   );
   if (apiResult.monthData) cacheMonthPayload(y, m, apiResult.monthData);

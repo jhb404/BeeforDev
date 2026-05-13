@@ -1,19 +1,14 @@
-import type { Page } from 'playwright';
+﻿import type { Page } from 'playwright';
+import { BEEFOR_TIMESHEET_API } from '../../../../shared/constants';
 import { ensureBeeforOrigin } from '../../internals/beeforApi';
 import { cacheMonthPayload } from '../../internals/timesheetCache';
 import { TIME_KEYS, type FetchedRow } from './shared';
 import { asRecord } from './payloadParse';
 
-async function fetchMonthPayloadViaApi(
-  page: Page,
-  year: number,
-  month: number,
-): Promise<any> {
+async function fetchMonthPayloadViaApi(page: Page, year: number, month: number): Promise<any> {
   await ensureBeeforOrigin(page);
   const payload = await page.evaluate(
-    async ({ year, month }) => {
-      const endpoint =
-        'https://apiteams.goobee.com.br/timesheet-beefor/api/apontamento';
+    async ({ year, month, endpoint }) => {
       const storage = (globalThis as any).localStorage;
       const user = JSON.parse(storage.getItem('user1') || '{}');
       if (!user?.token) {
@@ -31,7 +26,7 @@ async function fetchMonthPayloadViaApi(
       }
       return JSON.parse(text);
     },
-    { year, month },
+    { year, month, endpoint: BEEFOR_TIMESHEET_API },
   );
   cacheMonthPayload(year, month, payload);
   return payload;
@@ -75,8 +70,8 @@ function parseFetchedRowsFromApi(payload: unknown): FetchedRow[] {
         typeof day.situacaoFormatada === 'string'
           ? day.situacaoFormatada
           : day.feriado
-          ? 'Feriado'
-          : '',
+            ? 'Feriado'
+            : '',
       editable: true,
     });
   }

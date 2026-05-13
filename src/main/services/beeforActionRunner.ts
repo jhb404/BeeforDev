@@ -1,4 +1,4 @@
-import type { BrowserWindow } from 'electron';
+﻿import type { BrowserWindow } from 'electron';
 import type { Page } from 'playwright';
 import { BeeforClient } from '../../automation/beefor/beeforClient';
 import { withPageLock } from '../../automation/beefor/pageLock';

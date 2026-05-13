@@ -1,4 +1,4 @@
-import type { Page } from 'playwright';
+﻿import type { Page } from 'playwright';
 import { BEEFOR_URL, NAV_TIMEOUT_MS } from '../../../shared/constants';
 import { logger } from '../../../main/logger';
 
@@ -22,10 +22,9 @@ export async function doFetchTeamMembers(page: Page): Promise<unknown[]> {
     timeoutMs: number,
   ): Promise<unknown[] | null> => {
     const responsePromise = page
-      .waitForResponse(
-        (r) => TEAM_LIST_URL_RE.test(r.url()) && r.request().method() === 'POST',
-        { timeout: timeoutMs },
-      )
+      .waitForResponse((r) => TEAM_LIST_URL_RE.test(r.url()) && r.request().method() === 'POST', {
+        timeout: timeoutMs,
+      })
       .catch(() => null);
     await trigger().catch(() => {});
     const response = await responsePromise;
@@ -54,15 +53,12 @@ export async function doFetchTeamMembers(page: Page): Promise<unknown[]> {
   let lastSeenEmpty = false;
   for (const route of routes) {
     const target = `${BEEFOR_URL}${route}`;
-    const captured = await tryCapture(
-      async () => {
-        await page.goto(target, {
-          waitUntil: 'domcontentloaded',
-          timeout: NAV_TIMEOUT_MS,
-        });
-      },
-      12_000,
-    );
+    const captured = await tryCapture(async () => {
+      await page.goto(target, {
+        waitUntil: 'domcontentloaded',
+        timeout: NAV_TIMEOUT_MS,
+      });
+    }, 12_000);
     if (captured && captured.length > 0) return captured;
     if (captured) lastSeenEmpty = true;
   }

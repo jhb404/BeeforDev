@@ -1,4 +1,4 @@
-import { app } from 'electron';
+﻿import { app } from 'electron';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import keytar from 'keytar';
@@ -291,7 +291,11 @@ export async function clearCoin2uCredentials(): Promise<void> {
 }
 
 export function onCoin2uLogin(
-  fn: (snap: { userId: number; tokenApi: string; info: Record<string, unknown> }) => void | Promise<void>,
+  fn: (snap: {
+    userId: number;
+    tokenApi: string;
+    info: Record<string, unknown>;
+  }) => void | Promise<void>,
 ): () => void {
   return coin2uAuth.onLogin(fn);
 }

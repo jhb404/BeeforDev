@@ -1,4 +1,4 @@
-import { BrowserWindow, Notification } from 'electron';
+﻿import { BrowserWindow, Notification } from 'electron';
 import { logger } from '../logger';
 import { IPC } from '../../shared/ipc';
 import { getBuildAssetPath } from '../window';

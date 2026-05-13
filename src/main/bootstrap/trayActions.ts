@@ -1,4 +1,4 @@
-import type { BrowserWindow } from 'electron';
+﻿import type { BrowserWindow } from 'electron';
 import {
   doAutoLancamento,
   doGetCurrentMood,
@@ -10,9 +10,7 @@ import { logger } from '../logger';
 import { runBeeforActionWithReconnect } from '../services/beeforActionRunner';
 import { notifyWindows } from './notifications';
 
-export async function runAutoLancamentoFromTray(
-  win: BrowserWindow | null,
-): Promise<void> {
+export async function runAutoLancamentoFromTray(win: BrowserWindow | null): Promise<void> {
   const title = 'Auto lançamento';
   try {
     notifyWindows('Beefor U', 'Auto lançamento iniciado. Vou avisar quando terminar.');
@@ -33,22 +31,15 @@ export async function runAutoLancamentoFromTray(
   }
 }
 
-export async function runMoodFromTray(
-  win: BrowserWindow | null,
-  mood: Mood,
-): Promise<void> {
+export async function runMoodFromTray(win: BrowserWindow | null, mood: Mood): Promise<void> {
   const title = 'Escolher mood';
   try {
-    const changed = await runBeeforActionWithReconnect(
-      win,
-      `${title} (${mood})`,
-      async (page) => {
-        const before = await doGetCurrentMood(page);
-        await doSelectMood(page, mood);
-        const after = await doGetCurrentMood(page);
-        return before !== after && after === mood;
-      },
-    );
+    const changed = await runBeeforActionWithReconnect(win, `${title} (${mood})`, async (page) => {
+      const before = await doGetCurrentMood(page);
+      await doSelectMood(page, mood);
+      const after = await doGetCurrentMood(page);
+      return before !== after && after === mood;
+    });
     if (changed) notifyWindows('Beefor U', `Mood aplicado: ${mood}`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

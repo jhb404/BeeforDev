@@ -1,18 +1,11 @@
-import type { Page } from 'playwright';
-import {
-  BEEFOR_LOGIN_URL,
-  BEEFOR_URL,
-  NAV_TIMEOUT_MS,
-} from '../../../shared/constants';
+﻿import type { Page } from 'playwright';
+import { BEEFOR_LOGIN_URL, BEEFOR_URL, NAV_TIMEOUT_MS } from '../../../shared/constants';
 import type { Credentials } from '../../../shared/types';
 import { logger } from '../../../main/logger';
 import { Selectors } from '../beeforSelectors';
 import { clickByAnyText, firstVisible } from '../internals/playwrightHelpers';
 
-export async function performLogin(
-  page: Page,
-  creds: Credentials,
-): Promise<void> {
+export async function performLogin(page: Page, creds: Credentials): Promise<void> {
   logger.info('Navigating to Beefor login');
   await page.goto(BEEFOR_LOGIN_URL, {
     waitUntil: 'domcontentloaded',

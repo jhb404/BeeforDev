@@ -1,11 +1,7 @@
-import { ipcMain } from 'electron';
+﻿import { ipcMain } from 'electron';
 import { IPC } from '../../../shared/ipc';
 import type { Credentials } from '../../../shared/types';
-import {
-  clearCredentials,
-  getCredentials,
-  saveCredentials,
-} from '../../secureStorage';
+import { clearCredentials, getCredentials, saveCredentials } from '../../secureStorage';
 import { ok, fail } from '../../services/result';
 
 export function registerCredentialsHandlers() {

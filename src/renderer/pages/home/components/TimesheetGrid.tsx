@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { WEEKDAY_SHORT_PT } from '../../../utils/dates';
 import { formatMinutes, workedMinutes } from '../../../utils/timeMath';
 import { FIELDS, rowStatusKind, type RowState } from '../utils/rowState';
@@ -12,7 +13,7 @@ interface TimesheetGridProps {
   onLancar: (idx: number) => void;
 }
 
-export function TimesheetGrid({
+export const TimesheetGrid = memo(function TimesheetGrid({
   rows,
   today,
   hoursPerDayMin,
@@ -45,13 +46,7 @@ export function TimesheetGrid({
         const totalLabel = worked > 0 ? formatMinutes(worked) : '00:00';
         const diffLabel = worked > 0 ? formatMinutes(diff, true) : '00:00';
         const diffClass =
-          worked === 0
-            ? ''
-            : diff > 0
-            ? 'diff-pos'
-            : diff < 0
-            ? 'diff-neg'
-            : 'diff-zero';
+          worked === 0 ? '' : diff > 0 ? 'diff-pos' : diff < 0 ? 'diff-neg' : 'diff-zero';
 
         return (
           <div
@@ -75,9 +70,7 @@ export function TimesheetGrid({
                   disabled={false}
                   value={r[f.key]}
                   aria-label={`${f.label} ${r.date}`}
-                  onChange={(e) =>
-                    onUpdateRow(i, { [f.key]: e.target.value } as Partial<RowState>)
-                  }
+                  onChange={(e) => onUpdateRow(i, { [f.key]: e.target.value } as Partial<RowState>)}
                 />
               </label>
             ))}
@@ -91,10 +84,7 @@ export function TimesheetGrid({
             </div>
             <div className="status-cell">
               <span className="mobile-label">Status</span>
-              <span
-                className={`status-pill status-pill--${statusKind}`}
-                aria-hidden="true"
-              />
+              <span className={`status-pill status-pill--${statusKind}`} aria-hidden="true" />
               <span>{r.status || (isToday ? 'Hoje' : '-')}</span>
             </div>
             <label className="comment-cell">
@@ -123,4 +113,4 @@ export function TimesheetGrid({
       })}
     </div>
   );
-}
+});

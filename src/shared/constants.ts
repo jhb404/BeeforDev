@@ -1,4 +1,9 @@
 export const BEEFOR_URL = 'https://app.beefor.io';
+export const BEEFOR_API_BASE = 'https://apiteams.goobee.com.br';
+export const BEEFOR_TIMESHEET_API = `${BEEFOR_API_BASE}/timesheet-beefor/api/apontamento`;
+export const BEEFOR_KUDO_API = `${BEEFOR_API_BASE}/api/KudoCard`;
+export const BEEFOR_PESSOA_API = `${BEEFOR_API_BASE}/api/Pessoa`;
+export const BEEFOR_HOME_API = `${BEEFOR_API_BASE}/api/Home`;
 export const BEEFOR_LOGIN_URL = `${BEEFOR_URL}/login`;
 export const BEEFOR_TIMESHEET_URL = `${BEEFOR_URL}/time-sheet-beefor/lancamentos`;
 

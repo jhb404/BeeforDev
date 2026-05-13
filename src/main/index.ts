@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+﻿import { app, BrowserWindow } from 'electron';
 import { createMainWindow } from './window';
 import { registerIpcHandlers } from './ipcHandlers';
 import { bindLoggerWindow, logger } from './logger';

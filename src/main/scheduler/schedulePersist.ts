@@ -1,4 +1,4 @@
-import { logger } from '../logger';
+﻿import { logger } from '../logger';
 import { saveSettings } from '../sessionStore';
 import type { AppSettings } from '../../shared/types';
 import { isWeekday } from './time';
@@ -31,7 +31,9 @@ export async function ensureKudocardSchedule(
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
-  const fixedTime = s.kudocardNotificationTime?.match(/^\d{2}:\d{2}$/) ? s.kudocardNotificationTime : null;
+  const fixedTime = s.kudocardNotificationTime?.match(/^\d{2}:\d{2}$/)
+    ? s.kudocardNotificationTime
+    : null;
   const ym = `${year}-${month}${fixedTime ? `@${fixedTime}` : ''}`;
 
   if (s.kudocardSchedule?.ym === ym) {
@@ -50,7 +52,9 @@ export async function ensureKudocardSchedule(
   }
 
   const slots = days.map((day) => ({ day, time: fixedTime ?? randomTimeInWorkday() }));
-  logger.info(`Kudocard schedule for ${ym}: ${slots.map((s) => `day ${s.day} @ ${s.time}`).join(', ')}`);
+  logger.info(
+    `Kudocard schedule for ${ym}: ${slots.map((s) => `day ${s.day} @ ${s.time}`).join(', ')}`,
+  );
 
   await saveSettings({ ...s, kudocardSchedule: { ym, slots } });
   return slots;

@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from 'electron';
+﻿import { BrowserWindow, ipcMain } from 'electron';
 import { IPC } from '../../../shared/ipc';
 import { doFetchTeamMembers } from '../../../automation/beefor/beeforActions';
 import { logger } from '../../logger';

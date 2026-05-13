@@ -1,4 +1,4 @@
-import { COIN2U_URL } from '../../shared/constants';
+﻿import { COIN2U_URL } from '../../shared/constants';
 import { logger } from '../logger';
 import { coin2uAuth } from './auth';
 
@@ -58,8 +58,7 @@ export async function coin2uAuthedGet(pathOrUrl: string): Promise<Response> {
   await coin2uAuth.ensureFresh();
 
   const url = toAbsoluteUrl(pathOrUrl);
-  const doFetch = () =>
-    fetch(url, { method: 'GET', headers: buildHeaders(), redirect: 'manual' });
+  const doFetch = () => fetch(url, { method: 'GET', headers: buildHeaders(), redirect: 'manual' });
   const res = await doFetch();
   return retryOnAuthFailure(url, 'GET', res, doFetch);
 }

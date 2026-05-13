@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron';
+﻿import { BrowserWindow } from 'electron';
 import { logger } from '../logger';
 import { loadSettings } from '../sessionStore';
 import type { AppSettings } from '../../shared/types';
@@ -36,12 +36,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
     !alreadyFired('mood')
   ) {
     if (!weekend) {
-      notify(
-        win,
-        '😊 Mood do dia',
-        'Não esquece de marcar seu mood no Beefor!',
-        s.moodAlarm,
-      );
+      notify(win, '😊 Mood do dia', 'Não esquece de marcar seu mood no Beefor!', s.moodAlarm);
       markFired('mood');
     }
   }
@@ -59,12 +54,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
     const slots = await ensureKudocardSchedule(s);
     const todaySlot = slots.find((slot) => slot.day === todayDay && slot.time === hhmm);
     if (todaySlot && !alreadyFired('kudocard')) {
-      notify(
-        win,
-        '🏆 Kudocard',
-        'Hoje é dia de reconhecer alguém — manda um kudocard!',
-        true,
-      );
+      notify(win, '🏆 Kudocard', 'Hoje é dia de reconhecer alguém — manda um kudocard!', true);
       markFired('kudocard');
     }
   }
@@ -111,9 +101,21 @@ export function fireTestNotification(
 ): void {
   if (!win) return;
   const map = {
-    mood: { title: '😊 Mood do dia', body: 'Não esquece de marcar seu mood no Beefor!', alarm: true },
-    lunch: { title: '🍽️ Hora do almoço', body: 'Bom apetite! Lembra de bater o ponto.', alarm: true },
-    kudocard: { title: '🏆 Kudocard', body: 'Hoje é dia de reconhecer alguém — manda um kudocard!', alarm: true },
+    mood: {
+      title: '😊 Mood do dia',
+      body: 'Não esquece de marcar seu mood no Beefor!',
+      alarm: true,
+    },
+    lunch: {
+      title: '🍽️ Hora do almoço',
+      body: 'Bom apetite! Lembra de bater o ponto.',
+      alarm: true,
+    },
+    kudocard: {
+      title: '🏆 Kudocard',
+      body: 'Hoje é dia de reconhecer alguém — manda um kudocard!',
+      alarm: true,
+    },
     punch: { title: '🟢 Ponto — Entrada', body: 'Hora de bater o ponto.', alarm: true },
   };
   const cfg = map[kind];

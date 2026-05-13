@@ -1,5 +1,10 @@
-import type { Locator, Page } from 'playwright';
-import { BEEFOR_URL, DEFAULT_TIMEOUT_MS, NAV_TIMEOUT_MS } from '../../../shared/constants';
+﻿import type { Locator, Page } from 'playwright';
+import {
+  BEEFOR_URL,
+  BEEFOR_HOME_API,
+  DEFAULT_TIMEOUT_MS,
+  NAV_TIMEOUT_MS,
+} from '../../../shared/constants';
 import type { Mood } from '../../../shared/types';
 import { logger } from '../../../main/logger';
 import { Selectors } from '../beeforSelectors';
@@ -122,7 +127,12 @@ async function isToggleActive(loc: Locator): Promise<boolean> {
     const innerClass = (await inner.getAttribute('class').catch(() => '')) ?? '';
     if (/(?:^|\s)mat-button-toggle-checked(?:\s|$)/.test(innerClass)) return true;
 
-    return (await loc.locator('input:checked').count().catch(() => 0)) > 0;
+    return (
+      (await loc
+        .locator('input:checked')
+        .count()
+        .catch(() => 0)) > 0
+    );
   } catch {
     return false;
   }
@@ -192,7 +202,7 @@ async function waitMoodHydrated(page: Page): Promise<void> {
 
 export async function doGetCurrentMoodViaApi(page: Page): Promise<Mood | null> {
   const idPessoa = await getIdPessoa(page);
-  const url = `https://apiteams.goobee.com.br/api/Home/InformaHumor?idPessoa=${idPessoa}`;
+  const url = `${BEEFOR_HOME_API}/InformaHumor?idPessoa=${idPessoa}`;
   const data = await beeforApiGet<any>(page, url);
   const sentimento = Number(data?.sentimento);
   if (!sentimento) return null;

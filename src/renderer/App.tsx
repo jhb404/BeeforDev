@@ -13,15 +13,14 @@ import { TopBar } from './app/components/TopBar';
 import { PatchJournalModal } from './app/components/PatchJournalModal';
 import { ToastProvider } from './app/providers/ToastProvider';
 import { ToastHost } from './app/components/ToastHost';
+import { ErrorBoundary } from './app/components/ErrorBoundary';
 
 type Tab = 'home' | 'settings';
 
 const Home = lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })));
-const SettingsPage = lazy(() =>
-  import('./pages/Settings').then((m) => ({ default: m.Settings })),
-);
+const SettingsPage = lazy(() => import('./pages/Settings').then((m) => ({ default: m.Settings })));
 const TeamModal = lazy(() =>
-  import('./components/team/TeamModal').then((m) => ({ default: m.TeamModal })),
+  import('./features/team/components/TeamModal').then((m) => ({ default: m.TeamModal })),
 );
 
 function AppShell() {
@@ -37,11 +36,7 @@ function AppShell() {
   const [loadingPatchJournal, setLoadingPatchJournal] = useState(false);
 
   const alerts = useAlerts();
-  const birthday = useBirthdayWatcher(
-    startupComplete,
-    !!appSettings?.uiSounds,
-    teamModalOpen,
-  );
+  const birthday = useBirthdayWatcher(startupComplete, !!appSettings?.uiSounds, teamModalOpen);
 
   useUiSoundsDelegate(!!appSettings?.uiSounds);
   useAlarmRouter();
@@ -82,31 +77,37 @@ function AppShell() {
 
       <main className="content">
         <section className="tab-panel" hidden={tab !== 'home'}>
-          <Suspense fallback={<div className="route-loader">Carregando...</div>}>
-            <Home
-              onMoodChanged={(mood) => alerts.setCurrentMoodExternal(mood)}
-              onBootReady={() => setHomeBootReady(true)}
-            />
-          </Suspense>
+          <ErrorBoundary label="home">
+            <Suspense fallback={<div className="route-loader">Carregando...</div>}>
+              <Home
+                onMoodChanged={(mood) => alerts.setCurrentMoodExternal(mood)}
+                onBootReady={() => setHomeBootReady(true)}
+              />
+            </Suspense>
+          </ErrorBoundary>
         </section>
         <section className="tab-panel" hidden={tab !== 'settings'}>
           {tab === 'settings' && (
-            <Suspense fallback={<div className="route-loader">Carregando...</div>}>
-              <SettingsPage
-                onSettingsChanged={() =>
-                  window.dispatchEvent(new Event('beefor:settings-changed'))
-                }
-              />
-            </Suspense>
+            <ErrorBoundary label="settings">
+              <Suspense fallback={<div className="route-loader">Carregando...</div>}>
+                <SettingsPage
+                  onSettingsChanged={() =>
+                    window.dispatchEvent(new Event('beefor:settings-changed'))
+                  }
+                />
+              </Suspense>
+            </ErrorBoundary>
           )}
         </section>
       </main>
 
-      <Suspense fallback={null}>
-        {teamModalOpen && (
-          <TeamModal open={teamModalOpen} onClose={() => setTeamModalOpen(false)} />
-        )}
-      </Suspense>
+      <ErrorBoundary label="team-modal">
+        <Suspense fallback={null}>
+          {teamModalOpen && (
+            <TeamModal open={teamModalOpen} onClose={() => setTeamModalOpen(false)} />
+          )}
+        </Suspense>
+      </ErrorBoundary>
 
       <PatchJournalModal
         open={patchModalOpen}

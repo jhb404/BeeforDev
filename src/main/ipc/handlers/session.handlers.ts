@@ -1,11 +1,7 @@
-import { BrowserWindow, ipcMain } from 'electron';
+﻿import { BrowserWindow, ipcMain } from 'electron';
 import { IPC } from '../../../shared/ipc';
 import { BeeforClient } from '../../../automation/beefor/beeforClient';
-import {
-  doLogout,
-  doVerifySession,
-  performLogin,
-} from '../../../automation/beefor/beeforActions';
+import { doLogout, doVerifySession, performLogin } from '../../../automation/beefor/beeforActions';
 import { withPageLock } from '../../../automation/beefor/pageLock';
 import { emitStatus, getCurrentStatus } from '../../statusBus';
 import { getCredentials } from '../../secureStorage';
@@ -24,8 +20,7 @@ export function registerSessionHandlers(getWindow: () => BrowserWindow | null) {
     try {
       await withPageLock(async () => {
         const creds = await getCredentials();
-        if (!creds)
-          throw new Error('Credenciais não configuradas. Abra Configurações.');
+        if (!creds) throw new Error('Credenciais não configuradas. Abra Configurações.');
         const page = await client.getPage();
         await performLogin(page, creds);
         await client.persistSession(sessionPath());

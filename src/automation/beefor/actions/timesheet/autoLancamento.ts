@@ -1,4 +1,4 @@
-import type { Locator, Page } from 'playwright';
+﻿import type { Locator, Page } from 'playwright';
 import { DEFAULT_TIMEOUT_MS } from '../../../../shared/constants';
 import { logger } from '../../../../main/logger';
 import { Selectors } from '../../beeforSelectors';
@@ -17,14 +17,9 @@ export async function doAutoLancamento(page: Page): Promise<void> {
   let target: Locator;
 
   if (await componentScope.count()) {
-    target = componentScope.getByText(
-      Selectors.autoLancamento.buttonByText,
-      { exact: false },
-    );
+    target = componentScope.getByText(Selectors.autoLancamento.buttonByText, { exact: false });
   } else {
-    target = page
-      .getByRole('button', { name: Selectors.autoLancamento.buttonByText })
-      .first();
+    target = page.getByRole('button', { name: Selectors.autoLancamento.buttonByText }).first();
   }
 
   try {

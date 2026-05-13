@@ -1,4 +1,4 @@
-import type { BrowserWindow } from 'electron';
+﻿import type { BrowserWindow } from 'electron';
 import { IPC } from '../shared/ipc';
 import type { SessionStatus } from '../shared/types';
 

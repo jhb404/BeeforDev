@@ -1,13 +1,8 @@
-import type { Mood } from '../../../shared/types';
+﻿import type { Mood } from '../../../shared/types';
 import { Selectors } from '../beeforSelectors';
 
 export function normalizeUiText(raw: string | null | undefined): string {
-  return (raw ?? '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
+  return (raw ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
 export function escapeRegex(s: string): string {

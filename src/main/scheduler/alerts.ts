@@ -1,4 +1,4 @@
-import { loadSettings } from '../sessionStore';
+﻿import { loadSettings } from '../sessionStore';
 import type { TodayAlert } from '../../shared/types';
 import { isWeekend } from './time';
 import { applyDailyDrift } from './drift';

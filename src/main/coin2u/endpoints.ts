@@ -1,4 +1,4 @@
-import { COIN2U_DASHBOARD_URL } from '../../shared/constants';
+﻿import { COIN2U_DASHBOARD_URL } from '../../shared/constants';
 import type {
   Coin2uBuyItemRequest,
   Coin2uDashboard,
@@ -25,9 +25,7 @@ function requireToken(): string {
   return token;
 }
 
-export async function getCoin2uDashboard(
-  fallbackUserId?: number,
-): Promise<Coin2uDashboard> {
+export async function getCoin2uDashboard(fallbackUserId?: number): Promise<Coin2uDashboard> {
   const userId = await requireUserId(fallbackUserId);
   const token = requireToken();
 
@@ -132,7 +130,8 @@ export async function transferCoin2uCoins(
 ): Promise<boolean> {
   const from = await requireUserId(fallbackUserId);
   if (!Number.isFinite(req.To) || req.To <= 0) throw new Error('Escolha quem vai receber.');
-  if (!Number.isFinite(req.Amount) || req.Amount <= 0) throw new Error('Informe uma quantia válida.');
+  if (!Number.isFinite(req.Amount) || req.Amount <= 0)
+    throw new Error('Informe uma quantia válida.');
 
   const res = await coin2uAuthedPost('/VentronCoins/TransferCoins', {
     transferCoins: {

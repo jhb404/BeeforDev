@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { TeamMember } from '@shared/types';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import { useTeamMembers } from '../../../hooks/useTeamMembers';
@@ -96,132 +96,138 @@ export function TeamModal({ open, onClose }: Props) {
   const showInitialLoader = loading && members.length === 0;
 
   return (
-    <ModalShell open={open} onClose={onClose} className="team-modal" labelledBy="team-modal-title" disableEsc>
-        <div className="modal-head">
-          <div>
-            <p className="eyebrow">Equipe</p>
-            <h2 id="team-modal-title">Quem é meu timão?</h2>
-            <p className="team-modal__subtitle">
-              {fromCache && !refreshing && 'Mostrando time salvo · '}
-              {refreshing && 'Atualizando time… · '}
-              {members.length > 0
-                ? `${members.length} ${members.length === 1 ? 'pessoa' : 'pessoas'}`
-                : 'Sem dados'}
-              {partyCount > 0 && ` · 🎂 ${partyCount} aniversário${partyCount > 1 ? 's' : ''} hoje`}
-              {lastUpdated && !refreshing && ` · atualizado ${formatLastUpdate(lastUpdated)}`}
-            </p>
-          </div>
-          <div className="team-modal__head-actions">
-            <button
-              type="button"
-              className="secondary compact"
-              onClick={() => void refresh()}
-              disabled={loading || refreshing}
-              data-sound="team-refresh"
-            >
-              <Refresh size={14} />
-              Atualizar
-            </button>
-            <button
-              type="button"
-              className="secondary compact"
-              onClick={onClose}
-              data-sound="close"
-            >
-              Fechar
-            </button>
-          </div>
+    <ModalShell
+      open={open}
+      onClose={onClose}
+      className="team-modal"
+      labelledBy="team-modal-title"
+      disableEsc
+    >
+      <div className="modal-head">
+        <div>
+          <p className="eyebrow">Equipe</p>
+          <h2 id="team-modal-title">Quem é meu timão?</h2>
+          <p className="team-modal__subtitle">
+            {fromCache && !refreshing && 'Mostrando time salvo · '}
+            {refreshing && 'Atualizando time… · '}
+            {members.length > 0
+              ? `${members.length} ${members.length === 1 ? 'pessoa' : 'pessoas'}`
+              : 'Sem dados'}
+            {partyCount > 0 && ` · 🎂 ${partyCount} aniversário${partyCount > 1 ? 's' : ''} hoje`}
+            {lastUpdated && !refreshing && ` · atualizado ${formatLastUpdate(lastUpdated)}`}
+          </p>
         </div>
+        <div className="team-modal__head-actions">
+          <button
+            type="button"
+            className="secondary compact"
+            onClick={() => void refresh()}
+            disabled={loading || refreshing}
+            data-sound="team-refresh"
+          >
+            <Refresh size={14} />
+            Atualizar
+          </button>
+          <button type="button" className="secondary compact" onClick={onClose} data-sound="close">
+            Fechar
+          </button>
+        </div>
+      </div>
 
-        <div className="team-modal__toolbar">
-          <label className="team-modal__search">
-            <Search size={14} />
-            <input
-              type="search"
-              placeholder="Buscar por nome, função ou e-mail"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </label>
-          <div className="team-modal__filters" role="tablist">
-            {([
+      <div className="team-modal__toolbar">
+        <label className="team-modal__search">
+          <Search size={14} />
+          <input
+            type="search"
+            placeholder="Buscar por nome, função ou e-mail"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+        <div className="team-modal__filters" role="tablist">
+          {(
+            [
               ['all', 'Todos'],
               ['active', 'Ativos'],
               ['inactive', 'Inativos'],
-            ] as const).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                aria-selected={statusFilter === value}
-                className={statusFilter === value ? 'active' : ''}
-                onClick={() => setStatusFilter(value)}
-                data-sound="tab-home"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={statusFilter === value}
+              className={statusFilter === value ? 'active' : ''}
+              onClick={() => setStatusFilter(value)}
+              data-sound="tab-home"
+            >
+              {label}
+            </button>
+          ))}
         </div>
+      </div>
 
-        <div className={`team-modal__body ${selected ? 'team-modal__body--with-drawer' : ''}`}>
-          <div className="team-modal__main">
-            {showInitialLoader ? (
-              <div className="team-modal__loader">
-                <FunnyLoader title="Reunindo o time" />
-              </div>
-            ) : error && members.length === 0 ? (
-              <div className="team-modal__error">
-                <strong>Não consegui buscar o time agora.</strong>
-                <span>{error}</span>
-                <button
-                  type="button"
-                  className="compact"
-                  onClick={() => void refresh()}
-                  data-sound="generic-click"
-                >
-                  Tentar novamente
-                </button>
-              </div>
-            ) : filtered.length === 0 ? (
-              <div className="team-modal__empty">
-                {members.length === 0 ? 'Sem pessoas no retorno.' : 'Nada encontrado pra esse filtro.'}
-              </div>
-            ) : (
-              <>
-                {error && (
-                  <div className="team-modal__warn">
-                    Falha ao atualizar — exibindo último cache. <span>({error})</span>
-                  </div>
-                )}
-                <ul className="team-grid">
-                  {filtered.map((m) => {
-                    const key = birthdayKey(m);
-                    return (
-                      <li key={key}>
-                        <TeamMemberCard
-                          member={m}
-                          birthday={birthdays[key]}
-                          selected={selectedKey === key}
-                          onSelect={() => setSelectedKey(key)}
-                        />
-                      </li>
-                    );
-                  })}
-                </ul>
-              </>
-            )}
-          </div>
-
-          {selected && (
-            <TeamMemberDetailsDrawer
-              member={selected}
-              birthday={birthdays[birthdayKey(selected)]}
-              onClose={() => setSelectedKey(null)}
-              onBirthdayChange={(next) => handleBirthdayChange(selected, next)}
-            />
+      <div className={`team-modal__body ${selected ? 'team-modal__body--with-drawer' : ''}`}>
+        <div className="team-modal__main">
+          {showInitialLoader ? (
+            <div className="team-modal__loader">
+              <FunnyLoader title="Reunindo o time" />
+            </div>
+          ) : error && members.length === 0 ? (
+            <div className="team-modal__error">
+              <strong>Não consegui buscar o time agora.</strong>
+              <span>{error}</span>
+              <button
+                type="button"
+                className="compact"
+                onClick={() => void refresh()}
+                data-sound="generic-click"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="team-modal__empty">
+              {members.length === 0
+                ? 'Sem pessoas no retorno.'
+                : 'Nada encontrado pra esse filtro.'}
+            </div>
+          ) : (
+            <>
+              {error && (
+                <div className="team-modal__warn">
+                  Falha ao atualizar — exibindo último cache. <span>({error})</span>
+                </div>
+              )}
+              <ul className="team-grid">
+                {filtered.map((m) => {
+                  const key = birthdayKey(m);
+                  return (
+                    <li key={key}>
+                      <TeamMemberCard
+                        member={m}
+                        birthday={birthdays[key]}
+                        selected={selectedKey === key}
+                        memberKey={key}
+                        onSelect={setSelectedKey}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
         </div>
+
+        {selected && (
+          <TeamMemberDetailsDrawer
+            member={selected}
+            birthday={birthdays[birthdayKey(selected)]}
+            onClose={() => setSelectedKey(null)}
+            onBirthdayChange={(next) => handleBirthdayChange(selected, next)}
+          />
+        )}
+      </div>
     </ModalShell>
   );
 }

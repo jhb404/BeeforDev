@@ -1,8 +1,4 @@
-import type {
-  Coin2uMember,
-  Coin2uShopItem,
-  Coin2uTransaction,
-} from '../../shared/types';
+﻿import type { Coin2uMember, Coin2uShopItem, Coin2uTransaction } from '../../shared/types';
 
 export function parseMembers(value: unknown): Coin2uMember[] {
   if (!Array.isArray(value)) return [];
@@ -53,9 +49,7 @@ export function parseShopItems(value: unknown): Coin2uShopItem[] {
       category: item?.category
         ? {
             Id: Number(item.category.Id ?? item.category.id ?? 0),
-            Decription: String(
-              item.category.Decription ?? item.category.Description ?? '',
-            ).trim(),
+            Decription: String(item.category.Decription ?? item.category.Description ?? '').trim(),
             BitActive: item.category.BitActive,
           }
         : null,

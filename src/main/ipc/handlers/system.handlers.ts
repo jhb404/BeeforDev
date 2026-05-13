@@ -1,4 +1,4 @@
-import { BrowserWindow, app, ipcMain } from 'electron';
+﻿import { BrowserWindow, app, ipcMain } from 'electron';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { IPC } from '../../../shared/ipc';
@@ -35,17 +35,14 @@ export function registerSystemHandlers(getWindow: () => BrowserWindow | null) {
     }
   });
 
-  ipcMain.handle(
-    IPC.NOTIFY_TEST,
-    async (_e, kind: 'mood' | 'lunch' | 'kudocard' | 'punch') => {
-      try {
-        fireTestNotification(getWindow(), kind);
-        return ok();
-      } catch (err) {
-        return fail(err);
-      }
-    },
-  );
+  ipcMain.handle(IPC.NOTIFY_TEST, async (_e, kind: 'mood' | 'lunch' | 'kudocard' | 'punch') => {
+    try {
+      fireTestNotification(getWindow(), kind);
+      return ok();
+    } catch (err) {
+      return fail(err);
+    }
+  });
 
   ipcMain.handle(IPC.ACTION_GET_TODAY_ALERTS, async () => {
     try {
