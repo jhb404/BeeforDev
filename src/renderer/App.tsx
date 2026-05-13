@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useState } from 'react';
-import { settingsClient } from './services/ipc';
+import { settingsClient, IpcProvider } from './services/ipc';
 import { TitleBar } from './components/layout/TitleBar';
 import { StartupOverlay } from './components/layout/StartupOverlay';
 import { SettingsProvider, useSettings } from './app/providers/SettingsProvider';
@@ -129,12 +129,14 @@ function AppShell() {
 
 export default function App() {
   return (
-    <SettingsProvider>
-      <ThemeProvider>
-        <ToastProvider>
-          <AppShell />
-        </ToastProvider>
-      </ThemeProvider>
-    </SettingsProvider>
+    <IpcProvider>
+      <SettingsProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <AppShell />
+          </ToastProvider>
+        </ThemeProvider>
+      </SettingsProvider>
+    </IpcProvider>
   );
 }

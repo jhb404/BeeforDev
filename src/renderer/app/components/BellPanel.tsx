@@ -1,4 +1,5 @@
-﻿import type { TodayAlert } from '@shared/types';
+﻿import { useTranslation } from 'react-i18next';
+import type { TodayAlert } from '@shared/types';
 
 interface BellPanelProps {
   alerts: TodayAlert[];
@@ -17,11 +18,12 @@ export function BellPanel({
   onOpenTeam,
   onGoToHome,
 }: BellPanelProps) {
+  const { t } = useTranslation();
   return (
-    <div className="bell-panel" role="dialog" aria-label="Avisos de hoje">
-      <div className="bell-panel__header">Avisos de hoje</div>
+    <div className="bell-panel" role="dialog" aria-label={t('alerts.header')}>
+      <div className="bell-panel__header">{t('alerts.header')}</div>
       {visibleAlerts.length === 0 ? (
-        <p className="bell-panel__empty">Nenhum aviso pendente.</p>
+        <p className="bell-panel__empty">{t('alerts.empty')}</p>
       ) : (
         <ul className="bell-panel__list">
           {visibleAlerts.map((a, i) => {

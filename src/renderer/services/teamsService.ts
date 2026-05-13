@@ -1,5 +1,6 @@
 ﻿import type { TeamMember } from '@shared/types';
 import { teamClient } from './ipc';
+import { getError } from '@shared/result';
 
 function asString(v: unknown): string {
   return typeof v === 'string' ? v : v == null ? '' : String(v);
@@ -21,7 +22,9 @@ function asNullableString(v: unknown): string | null {
 function normalizeMember(raw: unknown): TeamMember | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
-  const email = asString(o.email ?? o.Email ?? o.mail ?? '').trim().toLowerCase();
+  const email = asString(o.email ?? o.Email ?? o.mail ?? '')
+    .trim()
+    .toLowerCase();
   const nome = asString(o.nome ?? o.Nome ?? o.name ?? '').trim();
   if (!email && !nome) return null;
   const respostas = Array.isArray(o.respostasUltimoChecklist)
@@ -50,7 +53,7 @@ function normalizeMember(raw: unknown): TeamMember | null {
 
 export async function fetchTeamMembers(): Promise<TeamMember[]> {
   const res = await teamClient.fetchMembers();
-  if (!res.ok) throw new Error(res.error ?? 'Falha ao buscar time.');
+  if (!res.ok) throw new Error(getError(res) || 'Falha ao buscar time.');
   const list = Array.isArray(res.data) ? res.data : [];
   const out: TeamMember[] = [];
   const seen = new Set<string>();

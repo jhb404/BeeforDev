@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import type { AppSettings, Coin2uDashboard, Coin2uMember } from '@shared/types';
 import { Check, Search, Users } from '../../../components/common/Icons';
 import { playUiSound } from '../../../utils/alarm';
 import { coin2uClient } from '../../../services/ipc';
 import { matchesMember } from '../utils/coin2uFormat';
+import { getError } from '@shared/result';
 
 const MEMBERS_PER_PAGE = 48;
 
@@ -71,7 +72,7 @@ export function Coin2uSendTab({ dashboard, loading, settings, onAfterTransfer, o
         Amount: Math.floor(amountNumber),
         Message: message.trim(),
       });
-      if (!res.ok || !res.data) throw new Error(res.error ?? 'Transferencia recusada.');
+      if (!res.ok || !res.data) throw new Error(getError(res) || 'Transferencia recusada.');
       if (settings?.uiSounds) playUiSound('success');
       onToast('ok', 'Coins enviados.');
       setMessage('');

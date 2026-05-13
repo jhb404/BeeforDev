@@ -82,7 +82,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
         showToast({
           kind: 'err',
           title: 'Erro ao carregar',
-          msg: `Apontamentos: ${res.error ?? 'falhou'}`,
+          msg: `Apontamentos: ${res.ok ? '' : res.error}`,
         });
       }
     } finally {
@@ -171,7 +171,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
         saving: false,
         saved: res.ok,
         failed: !res.ok,
-        errMsg: res.error,
+        errMsg: res.ok ? undefined : res.error,
       });
       if (settings?.uiSounds && res.ok) playUiSound('success');
       showToast(
@@ -184,7 +184,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
           : {
               kind: 'err',
               title: 'Não foi possível salvar',
-              msg: `${r.date}: ${res.error ?? 'falhou'}`,
+              msg: `${r.date}: ${res.ok ? '' : res.error}`,
             },
       );
       if (res.ok && refreshAfter) await refreshTimesheet();
@@ -216,7 +216,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
           : {
               kind: 'err',
               title: 'Auto lançamento falhou',
-              msg: res.error ?? 'falhou',
+              msg: (res.ok ? '' : res.error) || 'falhou',
             },
       );
       if (res.ok) {
@@ -239,7 +239,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
         showToast({
           kind: 'err',
           title: 'Mood não salvo',
-          msg: res.error ?? 'falhou',
+          msg: (res.ok ? '' : res.error) || 'falhou',
         });
       } else {
         showToast({ kind: 'ok', title: 'Mood salvo', msg: m });
@@ -334,7 +334,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
             showToast({
               kind: 'err',
               title: 'Não abriu o Beefor',
-              msg: res.error ?? 'falhou',
+              msg: (res.ok ? '' : res.error) || 'falhou',
             });
           }
         }}

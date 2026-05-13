@@ -5,6 +5,7 @@ import { playUiCoin, playUiNotify } from '../../../utils/alarm';
 import { Coin2uModal } from './Coin2uModal';
 import { CoinIcon } from './Coin2uCoinIcon';
 import { coin2uClient } from '../../../services/ipc';
+import { getError } from '@shared/result';
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -49,7 +50,7 @@ export function Coin2uBadge({ settings }: Props = {}) {
           if (settings?.uiSounds) void playUiNotify();
         }
       } else {
-        setErrMsg(dashRes.error ?? 'Falha');
+        setErrMsg(getError(dashRes) || 'Falha');
       }
     } finally {
       setLoading(false);

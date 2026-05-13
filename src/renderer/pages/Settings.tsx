@@ -13,6 +13,7 @@ import { LunchCard } from './settings/sections/LunchCard';
 import { MoodCard } from './settings/sections/MoodCard';
 import { PunchCard } from './settings/sections/PunchCard';
 import { SecurityCard } from './settings/sections/SecurityCard';
+import { getError } from '@shared/result';
 
 interface SettingsProps {
   onSettingsChanged?: () => void;
@@ -83,7 +84,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
       password: coin2uPassword,
     });
     if (!res.ok) {
-      showToast({ kind: 'err', msg: `Erro Coin2U: ${res.error}` });
+      showToast({ kind: 'err', msg: `Erro Coin2U: ${getError(res)}` });
       return;
     }
     setCoin2uSavedEmail(coin2uEmail);
@@ -95,7 +96,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
       showToast({ kind: 'ok', msg: 'Coin2U: conectado.' });
     } else {
       setCoin2uConnected(false);
-      showToast({ kind: 'err', msg: `Coin2U: login falhou — ${verify.error}` });
+      showToast({ kind: 'err', msg: `Coin2U: login falhou — ${getError(verify)}` });
     }
     onSettingsChanged?.();
   };
@@ -109,13 +110,16 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
       onSettingsChanged?.();
     } else {
       setCoin2uConnected(false);
-      showToast({ kind: 'err', msg: `Coin2U: ${verify.error}` });
+      showToast({ kind: 'err', msg: `Coin2U: ${getError(verify)}` });
     }
   };
 
   const clearCoin2u = async () => {
     const res = await coin2uClient.clearCreds();
-    showToast({ kind: res.ok ? 'ok' : 'err', msg: res.ok ? 'Credenciais Coin2U removidas.' : `Erro Coin2U: ${res.error}` });
+    showToast({
+      kind: res.ok ? 'ok' : 'err',
+      msg: res.ok ? 'Credenciais Coin2U removidas.' : `Erro Coin2U: ${getError(res)}`,
+    });
     if (res.ok) {
       setCoin2uSavedEmail(null);
       setCoin2uEmail('');
@@ -135,7 +139,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
 
   const elevateNow = async () => {
     const res = await systemClient.relaunchAsAdmin();
-    if (!res.ok) showToast({ kind: 'err', msg: `Falha ao elevar: ${res.error}` });
+    if (!res.ok) showToast({ kind: 'err', msg: `Falha ao elevar: ${getError(res)}` });
   };
 
   const dismissAdminBanner = () => void update('adminBannerDismissed', true);
@@ -151,7 +155,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
 
   const testNotif = async (kind: 'mood' | 'lunch' | 'kudocard' | 'punch') => {
     const res = await systemClient.testNotification(kind);
-    if (!res.ok) showToast({ kind: 'err', msg: `Teste falhou: ${res.error}` });
+    if (!res.ok) showToast({ kind: 'err', msg: `Teste falhou: ${getError(res)}` });
   };
 
   const save = async () => {
@@ -160,7 +164,10 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
       return;
     }
     const res = await sessionClient.saveCredentials({ email, password });
-    showToast({ kind: res.ok ? 'ok' : 'err', msg: res.ok ? 'Credenciais salvas no Credential Manager.' : `Erro: ${res.error}` });
+    showToast({
+      kind: res.ok ? 'ok' : 'err',
+      msg: res.ok ? 'Credenciais salvas no Credential Manager.' : `Erro: ${getError(res)}`,
+    });
     if (res.ok) {
       setSavedEmail(email);
       setPassword('');
@@ -169,7 +176,10 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
 
   const clear = async () => {
     const res = await sessionClient.clearCredentials();
-    showToast({ kind: res.ok ? 'ok' : 'err', msg: res.ok ? 'Credenciais removidas.' : `Erro: ${res.error}` });
+    showToast({
+      kind: res.ok ? 'ok' : 'err',
+      msg: res.ok ? 'Credenciais removidas.' : `Erro: ${getError(res)}`,
+    });
     if (res.ok) {
       setSavedEmail(null);
       setEmail('');
@@ -180,18 +190,14 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
   return (
     <div className="settings-page">
       <AdminBanner
-        visible={
-          !!(needsAdmin && admin && !admin.elevated && admin.platform === 'win32')
-        }
+        visible={!!(needsAdmin && admin && !admin.elevated && admin.platform === 'win32')}
         onElevate={() => void elevateNow()}
         onDismiss={dismissAdminBanner}
       />
 
       <section className="settings-section">
         <h3 className="settings-section__title">GERAL</h3>
-        <p className="settings-section__hint">
-          CREDENCIAIS | CONFIGURAÇÃO GERAL | JORNADA
-        </p>
+        <p className="settings-section__hint">CREDENCIAIS | CONFIGURAÇÃO GERAL | JORNADA</p>
         <div className="settings-grid grid-3">
           <CredentialsCard
             email={email}
@@ -218,9 +224,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
 
       <section className="settings-section">
         <h3 className="settings-section__title">ALERTAS / AUTOMAÇÃO</h3>
-        <p className="settings-section__hint">
-          BATIDA DE PONTO | MOOD | ALMOÇO | KUDOCARD
-        </p>
+        <p className="settings-section__hint">BATIDA DE PONTO | MOOD | ALMOÇO | KUDOCARD</p>
         <div className="settings-grid grid-2">
           <PunchCard
             settings={settings}
@@ -228,16 +232,8 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
             onUpdatePunchTime={updatePunchTime}
             onTest={() => void testNotif('punch')}
           />
-          <MoodCard
-            settings={settings}
-            onUpdate={update}
-            onTest={() => void testNotif('mood')}
-          />
-          <LunchCard
-            settings={settings}
-            onUpdate={update}
-            onTest={() => void testNotif('lunch')}
-          />
+          <MoodCard settings={settings} onUpdate={update} onTest={() => void testNotif('mood')} />
+          <LunchCard settings={settings} onUpdate={update} onTest={() => void testNotif('lunch')} />
           <KudoCardSettings
             settings={settings}
             onUpdate={update}
@@ -247,11 +243,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
         </div>
       </section>
 
-      <AppearanceSection
-        settings={settings}
-        onUpdate={update}
-        onChangeViewMode={changeViewMode}
-      />
+      <AppearanceSection settings={settings} onUpdate={update} onChangeViewMode={changeViewMode} />
 
       <SecurityCard />
     </div>

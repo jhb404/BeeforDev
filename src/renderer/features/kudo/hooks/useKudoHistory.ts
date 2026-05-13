@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import type {
   KudoCardCounts,
   KudoCardDetail,
@@ -6,6 +6,7 @@ import type {
   KudoCardLists,
 } from '@shared/types';
 import { kudoClient } from '../../../services/ipc';
+import { getError } from '@shared/result';
 
 interface UseKudoHistoryResult {
   counts: KudoCardCounts | null;
@@ -38,15 +39,12 @@ export function useKudoHistory(open: boolean): UseKudoHistoryResult {
     setLoading(true);
     setErrMsg(null);
     void (async () => {
-      const [cRes, lRes] = await Promise.all([
-        kudoClient.getCounts(),
-        kudoClient.getLists(),
-      ]);
+      const [cRes, lRes] = await Promise.all([kudoClient.getCounts(), kudoClient.getLists()]);
       if (cancelled) return;
       if (cRes.ok && cRes.data) setCounts(cRes.data);
       if (lRes.ok && lRes.data) setLists(lRes.data);
       if (!cRes.ok || !lRes.ok) {
-        setErrMsg(cRes.error ?? lRes.error ?? 'Falha ao carregar.');
+        setErrMsg(getError(cRes) || getError(lRes) || 'Falha ao carregar.');
       }
       setLoading(false);
     })();
