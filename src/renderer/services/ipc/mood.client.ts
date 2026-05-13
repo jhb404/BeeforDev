@@ -1,4 +1,4 @@
-import type { ActionResult, Mood } from '../../../shared/types';
+﻿import type { ActionResult, Mood } from '@shared/types';
 
 export const moodClient = {
   select: (mood: Mood): Promise<ActionResult> => window.beefor.selectMood(mood),

@@ -1,4 +1,4 @@
-import type { ActionResult, TodayAlert } from '../../../shared/types';
+﻿import type { ActionResult, TodayAlert } from '@shared/types';
 
 export const systemClient = {
   getAdminStatus: (): Promise<{ elevated: boolean; platform: string }> =>

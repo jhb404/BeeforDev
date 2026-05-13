@@ -1,4 +1,4 @@
-import type { AppSettings } from '../../../../shared/types';
+﻿import type { AppSettings } from '@shared/types';
 
 interface JornadaCardProps {
   settings: AppSettings;

@@ -1,4 +1,4 @@
-import type { AppSettings } from '../../../../shared/types';
+﻿import type { AppSettings } from '@shared/types';
 import { PUNCH_LABELS } from '../defaults';
 import { Switch } from '../Switch';
 

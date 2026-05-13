@@ -1,8 +1,8 @@
-import type {
+﻿import type {
   ActionResult,
   FetchedTimesheetRow,
   TimesheetEntry,
-} from '../../../shared/types';
+} from '@shared/types';
 
 export const timesheetClient = {
   autoLancamento: (): Promise<ActionResult> => window.beefor.autoLancamento(),

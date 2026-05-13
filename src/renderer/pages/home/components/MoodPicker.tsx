@@ -1,4 +1,4 @@
-import { MOODS, type Mood } from '../../../../shared/types';
+﻿import { MOODS, type Mood } from '@shared/types';
 
 const EMOJI: Record<Mood, string> = {
   'Dia feliz': '😄',

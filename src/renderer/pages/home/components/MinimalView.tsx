@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import type { TimesheetEntry } from '../../../../shared/types';
+﻿import { useMemo, useState } from 'react';
+import type { TimesheetEntry } from '@shared/types';
 import { MONTHS_PT, WEEKDAY_SHORT_PT, todayIso } from '../../../utils/dates';
 import { formatMinutes, workedMinutes } from '../../../utils/timeMath';
 

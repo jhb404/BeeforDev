@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import {
   KUDO_CARD_EMOJI,
@@ -8,7 +8,7 @@ import {
   type KudoCardType,
   type KudoSearchResult,
   type SendKudoCardRequest,
-} from '../../../../shared/types';
+} from '@shared/types';
 import { kudoClient } from '../../../services/ipc';
 
 interface Props {

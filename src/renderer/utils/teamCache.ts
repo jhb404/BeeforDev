@@ -1,4 +1,4 @@
-import type { TeamMember } from '../../shared/types';
+﻿import type { TeamMember } from '@shared/types';
 
 const MEMBERS_KEY = 'beefor-team-members';
 const BIRTHDAY_KEY = 'beefor-team-birthdays';

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import { kudoClient } from '../../../services/ipc';
 import {
@@ -9,7 +9,7 @@ import {
   type KudoCardDetail,
   type KudoCardListItem,
   type KudoCardLists,
-} from '../../../../shared/types';
+} from '@shared/types';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
 import { useSlowHint } from '../../../hooks/useSlowHint';
 

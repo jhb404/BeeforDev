@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { TeamMember } from '../../../../shared/types';
+﻿import { useEffect, useMemo, useState } from 'react';
+import type { TeamMember } from '@shared/types';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import { useTeamMembers } from '../../../hooks/useTeamMembers';
 import { useEscapeToClose } from '../../../hooks/useEscapeToClose';

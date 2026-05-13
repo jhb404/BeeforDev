@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   ActionResult,
   KudoCardCounts,
   KudoCardDetail,
@@ -7,7 +7,7 @@ import type {
   KudoSearchResult,
   SendKudoCardRequest,
   SendKudoCardResult,
-} from '../../../shared/types';
+} from '@shared/types';
 
 export const kudoClient = {
   send: (req: SendKudoCardRequest): Promise<ActionResult<SendKudoCardResult>> =>

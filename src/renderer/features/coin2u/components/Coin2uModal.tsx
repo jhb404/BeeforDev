@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
-import type { AppSettings, Coin2uDashboard, Coin2uMember, Coin2uShopItem, Coin2uTransaction } from '../../../../shared/types';
+import type { AppSettings, Coin2uDashboard, Coin2uMember, Coin2uShopItem, Coin2uTransaction } from '@shared/types';
 import { loadCoin2uCache, saveCoin2uCache, transactionSignature } from '../../../utils/coin2uCache';
 import { playUiSound } from '../../../utils/alarm';
 import { useEscapeToClose } from '../../../hooks/useEscapeToClose';

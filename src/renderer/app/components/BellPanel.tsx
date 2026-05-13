@@ -1,4 +1,4 @@
-import type { TodayAlert } from '../../../shared/types';
+﻿import type { TodayAlert } from '@shared/types';
 
 interface BellPanelProps {
   alerts: TodayAlert[];

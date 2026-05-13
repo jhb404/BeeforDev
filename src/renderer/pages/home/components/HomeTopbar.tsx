@@ -1,4 +1,4 @@
-import type { SessionStatus } from '../../../../shared/types';
+﻿import type { SessionStatus } from '@shared/types';
 import { StatusBadge } from '../../../components/common/StatusBadge';
 
 interface HomeTopbarProps {

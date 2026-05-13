@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { AppSettings } from '../../../shared/types';
+﻿import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import type { AppSettings } from '@shared/types';
 import { settingsClient } from '../../services/ipc';
 
 type SettingsCtx = {

@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   ActionResult,
   Coin2uBuyItemRequest,
   Coin2uCredentials,
@@ -6,7 +6,7 @@ import type {
   Coin2uLog,
   Coin2uShop,
   Coin2uTransferRequest,
-} from '../../../shared/types';
+} from '@shared/types';
 
 export const coin2uClient = {
   saveCreds: (payload: { email: string; password: string }): Promise<ActionResult> =>

@@ -1,7 +1,7 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+﻿import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Bell, Moon, Newspaper, Sun } from '../../components/common/Icons';
 import { TeamButton } from '../../features/team/components/TeamButton';
-import type { AppSettings, TodayAlert } from '../../../shared/types';
+import type { AppSettings, TodayAlert } from '@shared/types';
 import { BellPanel } from './BellPanel';
 
 const Coin2uBadge = lazy(() =>

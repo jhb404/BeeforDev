@@ -1,4 +1,4 @@
-import type { ActionResult, Credentials, SessionStatus } from '../../../shared/types';
+﻿import type { ActionResult, Credentials, SessionStatus } from '@shared/types';
 
 export const sessionClient = {
   getStatus: (): Promise<SessionStatus> => window.beefor.getStatus(),

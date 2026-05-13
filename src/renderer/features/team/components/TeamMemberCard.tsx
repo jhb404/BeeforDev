@@ -1,4 +1,4 @@
-import type { TeamMember } from '../../../../shared/types';
+﻿import type { TeamMember } from '@shared/types';
 import type { BirthdayEntry } from '../../../utils/teamCache';
 import { Cake, Mail } from '../../../components/common/Icons';
 import { formatBirthdayPretty, isBirthdayToday } from '../../../utils/dateUtils';

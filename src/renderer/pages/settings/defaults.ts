@@ -1,4 +1,4 @@
-import type { AppSettings } from '../../../shared/types';
+﻿import type { AppSettings } from '@shared/types';
 
 const DEFAULT_PUNCH: AppSettings['punchTimes'] = ['09:00', '12:00', '13:00', '18:00'];
 

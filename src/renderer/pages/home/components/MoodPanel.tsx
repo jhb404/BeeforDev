@@ -1,4 +1,4 @@
-import type { Mood } from '../../../../shared/types';
+﻿import type { Mood } from '@shared/types';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
 import { MoodPicker } from './MoodPicker';
 

@@ -1,4 +1,4 @@
-import type { TeamMember } from '../../shared/types';
+﻿import type { TeamMember } from '@shared/types';
 import { teamClient } from './ipc';
 
 function asString(v: unknown): string {

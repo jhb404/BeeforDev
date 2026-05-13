@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import type { AppSettings, Coin2uDashboard, Coin2uTransaction } from '../../../../shared/types';
+﻿import { useEffect, useState } from 'react';
+import type { AppSettings, Coin2uDashboard, Coin2uTransaction } from '@shared/types';
 import { loadCoin2uCache, saveCoin2uCache, transactionSignature } from '../../../utils/coin2uCache';
 import { playUiCoin, playUiNotify } from '../../../utils/alarm';
 import { Coin2uModal } from './Coin2uModal';

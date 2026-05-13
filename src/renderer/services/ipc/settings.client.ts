@@ -1,4 +1,4 @@
-import type { ActionResult, AppSettings } from '../../../shared/types';
+﻿import type { ActionResult, AppSettings } from '@shared/types';
 
 export const settingsClient = {
   get: (): Promise<AppSettings> => window.beefor.getSettings(),
