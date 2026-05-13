@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron';
+﻿import { BrowserWindow } from 'electron';
 import { BeeforClient } from '../automation/beefor/beeforClient';
 import { performLogin, doVerifySession } from '../automation/beefor/beeforActions';
 import { withPageLock } from '../automation/beefor/pageLock';

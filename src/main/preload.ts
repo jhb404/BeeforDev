@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+﻿import { contextBridge, ipcRenderer } from 'electron';
 import { IPC } from '../shared/ipc';
 import type {
   ActionResult,
@@ -28,40 +28,28 @@ import type {
 const api = {
   saveCredentials: (creds: Credentials): Promise<ActionResult> =>
     ipcRenderer.invoke(IPC.CREDS_SAVE, creds),
-  getCredentials: (): Promise<{ email: string } | null> =>
-    ipcRenderer.invoke(IPC.CREDS_GET),
-  clearCredentials: (): Promise<ActionResult> =>
-    ipcRenderer.invoke(IPC.CREDS_CLEAR),
+  getCredentials: (): Promise<{ email: string } | null> => ipcRenderer.invoke(IPC.CREDS_GET),
+  clearCredentials: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.CREDS_CLEAR),
 
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke(IPC.SETTINGS_GET),
-  setSettings: (s: AppSettings): Promise<ActionResult> =>
-    ipcRenderer.invoke(IPC.SETTINGS_SET, s),
+  setSettings: (s: AppSettings): Promise<ActionResult> => ipcRenderer.invoke(IPC.SETTINGS_SET, s),
 
-  getStatus: (): Promise<SessionStatus> =>
-    ipcRenderer.invoke(IPC.SESSION_STATUS),
+  getStatus: (): Promise<SessionStatus> => ipcRenderer.invoke(IPC.SESSION_STATUS),
   login: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.SESSION_LOGIN),
   logout: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.SESSION_LOGOUT),
-  verifySession: (): Promise<ActionResult<SessionStatus>> =>
-    ipcRenderer.invoke(IPC.SESSION_VERIFY),
+  verifySession: (): Promise<ActionResult<SessionStatus>> => ipcRenderer.invoke(IPC.SESSION_VERIFY),
 
-  autoLancamento: (): Promise<ActionResult> =>
-    ipcRenderer.invoke(IPC.ACTION_AUTO_LANCAMENTO),
+  autoLancamento: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.ACTION_AUTO_LANCAMENTO),
   selectMood: (mood: Mood): Promise<ActionResult> =>
     ipcRenderer.invoke(IPC.ACTION_SELECT_MOOD, mood),
-  openBeefor: (): Promise<ActionResult> =>
-    ipcRenderer.invoke(IPC.ACTION_OPEN_BEEFOR),
+  openBeefor: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.ACTION_OPEN_BEEFOR),
   lancarHora: (entry: TimesheetEntry): Promise<ActionResult> =>
     ipcRenderer.invoke(IPC.ACTION_LANCAR_HORA, entry),
-  fetchTimesheet: (
-    year: number,
-    month: number,
-  ): Promise<ActionResult<FetchedTimesheetRow[]>> =>
+  fetchTimesheet: (year: number, month: number): Promise<ActionResult<FetchedTimesheetRow[]>> =>
     ipcRenderer.invoke(IPC.ACTION_FETCH_TIMESHEET, year, month),
   getCurrentMood: (): Promise<ActionResult<string | null>> =>
     ipcRenderer.invoke(IPC.ACTION_GET_CURRENT_MOOD),
-  sendKudoCard: (
-    req: SendKudoCardRequest,
-  ): Promise<ActionResult<SendKudoCardResult>> =>
+  sendKudoCard: (req: SendKudoCardRequest): Promise<ActionResult<SendKudoCardResult>> =>
     ipcRenderer.invoke(IPC.ACTION_SEND_KUDO_CARD, req),
   searchKudoRecipient: (
     type: KudoCardRecipientType,
@@ -89,15 +77,12 @@ const api = {
   // admin / system
   getAdminStatus: (): Promise<{ elevated: boolean; platform: string }> =>
     ipcRenderer.invoke(IPC.ADMIN_STATUS),
-  relaunchAsAdmin: (): Promise<ActionResult> =>
-    ipcRenderer.invoke(IPC.ADMIN_RELAUNCH),
-  relaunchApp: (): Promise<ActionResult> =>
-    ipcRenderer.invoke(IPC.APP_RELAUNCH),
+  relaunchAsAdmin: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.ADMIN_RELAUNCH),
+  relaunchApp: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.APP_RELAUNCH),
 
   // notification testing
-  testNotification: (
-    kind: 'mood' | 'lunch' | 'kudocard' | 'punch',
-  ): Promise<ActionResult> => ipcRenderer.invoke(IPC.NOTIFY_TEST, kind),
+  testNotification: (kind: 'mood' | 'lunch' | 'kudocard' | 'punch'): Promise<ActionResult> =>
+    ipcRenderer.invoke(IPC.NOTIFY_TEST, kind),
 
   getTodayAlerts: (): Promise<ActionResult<TodayAlert[]>> =>
     ipcRenderer.invoke(IPC.ACTION_GET_TODAY_ALERTS),
@@ -124,20 +109,14 @@ const api = {
     ipcRenderer.invoke(IPC.APP_READ_ASSET, fileName),
 
   // Coin2U
-  saveCoin2uCreds: (
-    payload: { email: string; password: string },
-  ): Promise<ActionResult> =>
+  saveCoin2uCreds: (payload: { email: string; password: string }): Promise<ActionResult> =>
     ipcRenderer.invoke(IPC.COIN2U_SAVE_CREDS, payload),
-  getCoin2uCreds: (): Promise<Coin2uCredentials | null> =>
-    ipcRenderer.invoke(IPC.COIN2U_GET_CREDS),
-  clearCoin2uCreds: (): Promise<ActionResult> =>
-    ipcRenderer.invoke(IPC.COIN2U_CLEAR_CREDS),
+  getCoin2uCreds: (): Promise<Coin2uCredentials | null> => ipcRenderer.invoke(IPC.COIN2U_GET_CREDS),
+  clearCoin2uCreds: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.COIN2U_CLEAR_CREDS),
   getCoin2uDashboard: (): Promise<ActionResult<Coin2uDashboard>> =>
     ipcRenderer.invoke(IPC.COIN2U_GET_DASHBOARD),
-  getCoin2uLog: (): Promise<ActionResult<Coin2uLog>> =>
-    ipcRenderer.invoke(IPC.COIN2U_GET_LOG),
-  getCoin2uShop: (): Promise<ActionResult<Coin2uShop>> =>
-    ipcRenderer.invoke(IPC.COIN2U_GET_SHOP),
+  getCoin2uLog: (): Promise<ActionResult<Coin2uLog>> => ipcRenderer.invoke(IPC.COIN2U_GET_LOG),
+  getCoin2uShop: (): Promise<ActionResult<Coin2uShop>> => ipcRenderer.invoke(IPC.COIN2U_GET_SHOP),
   buyCoin2uItem: (payload: Coin2uBuyItemRequest): Promise<ActionResult<boolean>> =>
     ipcRenderer.invoke(IPC.COIN2U_BUY_ITEM, payload),
   transferCoin2uCoins: (payload: Coin2uTransferRequest): Promise<ActionResult<boolean>> =>

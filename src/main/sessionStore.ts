@@ -1,4 +1,4 @@
-import { app } from 'electron';
+﻿import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { SESSION_FILE, SETTINGS_FILE } from '../shared/constants';

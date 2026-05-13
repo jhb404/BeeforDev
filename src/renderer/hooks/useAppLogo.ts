@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { systemClient } from '../services/ipc';
 
 export function useAppLogo(variant: 'orange' | 'purple', size: 'icon' | 'logo') {
   const [src, setSrc] = useState<string | null>(null);
@@ -17,7 +18,7 @@ export function useAppLogo(variant: 'orange' | 'purple', size: 'icon' | 'logo') 
 
     const load = async () => {
       for (const file of files) {
-        const dataUrl = await window.beefor.readAsset(file);
+        const dataUrl = await systemClient.readAsset(file);
         if (dataUrl) {
           if (!cancelled) setSrc(dataUrl);
           return;
