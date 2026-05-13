@@ -15,7 +15,9 @@
     "declaration": false,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["src/shared/*"],
+      "@main/*": ["src/main/*"],
+      "@automation/*": ["src/automation/*"]
     }
   },
   "include": ["src/main/**/*", "src/automation/**/*", "src/shared/**/*"],

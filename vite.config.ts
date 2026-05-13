@@ -10,6 +10,7 @@ export default defineConfig({
     alias: {
       '@shared': path.resolve(__dirname, 'src/shared'),
       '@renderer': path.resolve(__dirname, 'src/renderer'),
+      '@automation': path.resolve(__dirname, 'src/automation'),
     },
   },
   build: {
