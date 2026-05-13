@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { ModalShell } from '../../../components/ui/ModalShell';
 import type { AppSettings, Coin2uDashboard, Coin2uMember, Coin2uShopItem, Coin2uTransaction } from '../../../../shared/types';
 import { loadCoin2uCache, saveCoin2uCache, transactionSignature } from '../../../utils/coin2uCache';
 import { playUiSound } from '../../../utils/alarm';
@@ -196,8 +196,6 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
     onClose();
   });
 
-  if (!open) return null;
-
   const maxDonation = dashboard?.ExchangeCoins ?? 0;
   const amountNumber = Number(amount);
   const canTransfer =
@@ -265,14 +263,8 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
     }
   };
 
-  return createPortal(
-    <div className="modal-backdrop" role="presentation">
-      <section
-        className="modal-card coin2u-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="coin2u-modal-title"
-      >
+  return (
+    <ModalShell open={open} onClose={onClose} className="coin2u-modal" labelledBy="coin2u-modal-title" disableEsc>
         <div className="modal-head">
           <div>
             <p className="eyebrow">Coin2U</p>
@@ -674,8 +666,6 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
             </section>
           </div>
         )}
-      </section>
-    </div>,
-    document.body,
+    </ModalShell>
   );
 }

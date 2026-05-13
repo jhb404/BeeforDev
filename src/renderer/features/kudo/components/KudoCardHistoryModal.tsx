@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { ModalShell } from '../../../components/ui/ModalShell';
 import {
   KUDO_CARD_EMOJI,
   KUDO_CARD_LABELS,
@@ -11,7 +11,6 @@ import {
 } from '../../../../shared/types';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
 import { useSlowHint } from '../../../hooks/useSlowHint';
-import { useEscapeToClose } from '../../../hooks/useEscapeToClose';
 
 type Tab = 'recebidos' | 'enviados';
 
@@ -101,20 +100,10 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
     };
   }, [selected]);
 
-  useEscapeToClose(open, onClose);
-
-  if (!open) return null;
-
   const items = lists ? lists[tab] : [];
 
-  return createPortal(
-    <div className="modal-backdrop" role="presentation">
-      <section
-        aria-labelledby="kudo-history-title"
-        aria-modal="true"
-        className="modal-card kudo-history-modal"
-        role="dialog"
-      >
+  return (
+    <ModalShell open={open} onClose={onClose} className="kudo-history-modal" labelledBy="kudo-history-title">
         <div className="modal-head">
           <div>
             <p className="eyebrow">Histórico</p>
@@ -244,8 +233,6 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
             </div>
           )}
         </div>
-      </section>
-    </div>,
-    document.body,
+    </ModalShell>
   );
 }

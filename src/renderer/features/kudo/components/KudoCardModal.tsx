@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { ModalShell } from '../../../components/ui/ModalShell';
 import {
   KUDO_CARD_EMOJI,
   KUDO_CARD_LABELS,
@@ -9,7 +9,6 @@ import {
   type KudoSearchResult,
   type SendKudoCardRequest,
 } from '../../../../shared/types';
-import { useEscapeToClose } from '../../../hooks/useEscapeToClose';
 
 interface Props {
   open: boolean;
@@ -100,10 +99,6 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
     return () => document.removeEventListener('mousedown', handler);
   }, [suggestOpen]);
 
-  useEscapeToClose(open && !submitting, onClose);
-
-  if (!open) return null;
-
   const handleClose = () => {
     if (submitting) return;
     onClose();
@@ -153,14 +148,8 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
     }
   };
 
-  return createPortal(
-    <div className="modal-backdrop" role="presentation">
-      <section
-        aria-labelledby="kudo-modal-title"
-        aria-modal="true"
-        className="modal-card kudo-modal"
-        role="dialog"
-      >
+  return (
+    <ModalShell open={open} onClose={handleClose} className="kudo-modal" labelledBy="kudo-modal-title" disableEsc={submitting}>
         <div className="modal-head">
           <div>
             <p className="eyebrow">Reconhecimento</p>
@@ -296,8 +285,6 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
             </button>
           </div>
         </div>
-      </section>
-    </div>,
-    document.body,
+    </ModalShell>
   );
 }

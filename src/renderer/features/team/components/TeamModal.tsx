@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
 import type { TeamMember } from '../../../../shared/types';
+import { ModalShell } from '../../../components/ui/ModalShell';
 import { useTeamMembers } from '../../../hooks/useTeamMembers';
 import { useEscapeToClose } from '../../../hooks/useEscapeToClose';
 import { birthdayKey, type BirthdayEntry } from '../../../utils/teamCache';
@@ -85,8 +85,6 @@ export function TeamModal({ open, onClose }: Props) {
     return members.find((m) => birthdayKey(m) === selectedKey) ?? null;
   }, [selectedKey, members]);
 
-  if (!open) return null;
-
   const handleBirthdayChange = (member: TeamMember, next: BirthdayEntry | null) => {
     const key = birthdayKey(member);
     const copy = { ...birthdays };
@@ -97,14 +95,8 @@ export function TeamModal({ open, onClose }: Props) {
 
   const showInitialLoader = loading && members.length === 0;
 
-  return createPortal(
-    <div className="modal-backdrop" role="presentation">
-      <section
-        aria-labelledby="team-modal-title"
-        aria-modal="true"
-        className="modal-card team-modal"
-        role="dialog"
-      >
+  return (
+    <ModalShell open={open} onClose={onClose} className="team-modal" labelledBy="team-modal-title" disableEsc>
         <div className="modal-head">
           <div>
             <p className="eyebrow">Equipe</p>
@@ -230,8 +222,6 @@ export function TeamModal({ open, onClose }: Props) {
             />
           )}
         </div>
-      </section>
-    </div>,
-    document.body,
+    </ModalShell>
   );
 }
