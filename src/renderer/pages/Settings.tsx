@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useToast } from '../app/providers/ToastProvider';
 import type { AppSettings } from '../../shared/types';
 import { SETTINGS_DEFAULTS } from './settings/defaults';
 import { AdminBanner } from './settings/sections/AdminBanner';
@@ -21,7 +22,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
   const [password, setPassword] = useState('');
   const [savedEmail, setSavedEmail] = useState<string | null>(null);
   const [settings, setSettings] = useState<AppSettings>(SETTINGS_DEFAULTS);
-  const [msg, setMsg] = useState<string | null>(null);
+  const showToast = useToast();
   const [admin, setAdmin] = useState<{ elevated: boolean; platform: string } | null>(null);
   const [coin2uEmail, setCoin2uEmail] = useState('');
   const [coin2uPassword, setCoin2uPassword] = useState('');
@@ -73,7 +74,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
 
   const saveCoin2u = async () => {
     if (!coin2uEmail || !coin2uPassword) {
-      setMsg('Coin2U: preencha e-mail e senha.');
+      showToast({ kind: 'err', msg: 'Coin2U: preencha e-mail e senha.' });
       return;
     }
     const res = await window.beefor.saveCoin2uCreds({
@@ -81,39 +82,39 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
       password: coin2uPassword,
     });
     if (!res.ok) {
-      setMsg(`Erro Coin2U: ${res.error}`);
+      showToast({ kind: 'err', msg: `Erro Coin2U: ${res.error}` });
       return;
     }
     setCoin2uSavedEmail(coin2uEmail);
     setCoin2uPassword('');
-    setMsg('Coin2U: credenciais salvas. Testando login…');
+    showToast({ kind: 'ok', msg: 'Coin2U: credenciais salvas. Testando login…' });
     const verify = await window.beefor.verifyCoin2u();
     if (verify.ok && verify.data) {
       setCoin2uConnected(true);
-      setMsg('Coin2U: conectado.');
+      showToast({ kind: 'ok', msg: 'Coin2U: conectado.' });
     } else {
       setCoin2uConnected(false);
-      setMsg(`Coin2U: login falhou — ${verify.error}`);
+      showToast({ kind: 'err', msg: `Coin2U: login falhou — ${verify.error}` });
     }
     onSettingsChanged?.();
   };
 
   const testCoin2u = async () => {
-    setMsg('Coin2U: testando…');
+    showToast({ kind: 'ok', msg: 'Coin2U: testando…' });
     const verify = await window.beefor.verifyCoin2u();
     if (verify.ok && verify.data) {
       setCoin2uConnected(true);
-      setMsg('Coin2U: conectado.');
+      showToast({ kind: 'ok', msg: 'Coin2U: conectado.' });
       onSettingsChanged?.();
     } else {
       setCoin2uConnected(false);
-      setMsg(`Coin2U: ${verify.error}`);
+      showToast({ kind: 'err', msg: `Coin2U: ${verify.error}` });
     }
   };
 
   const clearCoin2u = async () => {
     const res = await window.beefor.clearCoin2uCreds();
-    setMsg(res.ok ? 'Credenciais Coin2U removidas.' : `Erro Coin2U: ${res.error}`);
+    showToast({ kind: res.ok ? 'ok' : 'err', msg: res.ok ? 'Credenciais Coin2U removidas.' : `Erro Coin2U: ${res.error}` });
     if (res.ok) {
       setCoin2uSavedEmail(null);
       setCoin2uEmail('');
@@ -133,7 +134,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
 
   const elevateNow = async () => {
     const res = await window.beefor.relaunchAsAdmin();
-    if (!res.ok) setMsg(`Falha ao elevar: ${res.error}`);
+    if (!res.ok) showToast({ kind: 'err', msg: `Falha ao elevar: ${res.error}` });
   };
 
   const dismissAdminBanner = () => void update('adminBannerDismissed', true);
@@ -143,22 +144,22 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
     const next = { ...settings, viewMode: mode };
     setSettings(next);
     await window.beefor.setSettings(next);
-    setMsg('Reiniciando para aplicar...');
+    showToast({ kind: 'ok', msg: 'Reiniciando para aplicar...' });
     setTimeout(() => void window.beefor.relaunchApp(), 400);
   };
 
   const testNotif = async (kind: 'mood' | 'lunch' | 'kudocard' | 'punch') => {
     const res = await window.beefor.testNotification(kind);
-    if (!res.ok) setMsg(`Teste falhou: ${res.error}`);
+    if (!res.ok) showToast({ kind: 'err', msg: `Teste falhou: ${res.error}` });
   };
 
   const save = async () => {
     if (!email || !password) {
-      setMsg('Preencha e-mail e senha.');
+      showToast({ kind: 'err', msg: 'Preencha e-mail e senha.' });
       return;
     }
     const res = await window.beefor.saveCredentials({ email, password });
-    setMsg(res.ok ? 'Credenciais salvas no Credential Manager.' : `Erro: ${res.error}`);
+    showToast({ kind: res.ok ? 'ok' : 'err', msg: res.ok ? 'Credenciais salvas no Credential Manager.' : `Erro: ${res.error}` });
     if (res.ok) {
       setSavedEmail(email);
       setPassword('');
@@ -167,7 +168,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
 
   const clear = async () => {
     const res = await window.beefor.clearCredentials();
-    setMsg(res.ok ? 'Credenciais removidas.' : `Erro: ${res.error}`);
+    showToast({ kind: res.ok ? 'ok' : 'err', msg: res.ok ? 'Credenciais removidas.' : `Erro: ${res.error}` });
     if (res.ok) {
       setSavedEmail(null);
       setEmail('');
@@ -252,12 +253,6 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
       />
 
       <SecurityCard />
-
-      {msg && (
-        <div className="settings-toast" role="status">
-          {msg}
-        </div>
-      )}
     </div>
   );
 }

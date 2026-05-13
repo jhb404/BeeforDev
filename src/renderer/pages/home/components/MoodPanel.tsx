@@ -1,6 +1,6 @@
 import type { Mood } from '../../../../shared/types';
-import { FunnyLoader } from '../../../components/FunnyLoader';
-import { MoodPicker } from '../../../components/MoodPicker';
+import { FunnyLoader } from '../../../components/common/FunnyLoader';
+import { MoodPicker } from './MoodPicker';
 
 interface MoodPanelProps {
   loading: boolean;

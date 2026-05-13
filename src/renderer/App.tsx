@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useState } from 'react';
-import { TitleBar } from './components/TitleBar';
-import { StartupOverlay } from './components/StartupOverlay';
+import { TitleBar } from './components/layout/TitleBar';
+import { StartupOverlay } from './components/layout/StartupOverlay';
 import { SettingsProvider, useSettings } from './app/providers/SettingsProvider';
 import { ThemeProvider, useTheme } from './app/providers/ThemeProvider';
 import { useAlerts } from './app/hooks/useAlerts';
@@ -10,6 +10,8 @@ import { useBirthdayWatcher } from './app/hooks/useBirthdayWatcher';
 import { useTeamPhotoPreload } from './app/hooks/useTeamPhotoPreload';
 import { TopBar } from './app/components/TopBar';
 import { PatchJournalModal } from './app/components/PatchJournalModal';
+import { ToastProvider } from './app/providers/ToastProvider';
+import { ToastHost } from './app/components/ToastHost';
 
 type Tab = 'home' | 'settings';
 
@@ -112,6 +114,7 @@ function AppShell() {
         onClose={() => setPatchModalOpen(false)}
       />
 
+      <ToastHost />
       <footer className="appfoot">Beefor U - JB</footer>
       <StartupOverlay
         logoVariant={logoVariant}
@@ -126,7 +129,9 @@ export default function App() {
   return (
     <SettingsProvider>
       <ThemeProvider>
-        <AppShell />
+        <ToastProvider>
+          <AppShell />
+        </ToastProvider>
       </ThemeProvider>
     </SettingsProvider>
   );

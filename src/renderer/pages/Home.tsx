@@ -2,16 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AppSettings, Mood } from '../../shared/types';
 import { MOODS } from '../../shared/types';
 import { useBeefor } from '../hooks/useBeefor';
-import { MinimalView } from '../components/MinimalView';
-import { KudoCardModal } from '../components/KudoCardModal';
-import { KudoCardHistoryModal } from '../components/KudoCardHistoryModal';
-import { FunnyLoader } from '../components/FunnyLoader';
+import { MinimalView } from './home/components/MinimalView';
+import { KudoCardModal } from '../features/kudo/components/KudoCardModal';
+import { KudoCardHistoryModal } from '../features/kudo/components/KudoCardHistoryModal';
+import { FunnyLoader } from '../components/common/FunnyLoader';
 import { todayIso } from '../utils/dates';
 import { workedMinutes } from '../utils/timeMath';
 import { playUiSound } from '../utils/alarm';
 import { useEscapeToClose } from '../hooks/useEscapeToClose';
 import { buildEmpty, mergeFetched, type RowState } from './home/utils/rowState';
-import { Toast, type ToastData } from './home/components/Toast';
+import { useToast } from '../app/providers/ToastProvider';
 import { MoodPanel } from './home/components/MoodPanel';
 import { SummaryStrip } from './home/components/SummaryStrip';
 import { TimesheetToolbar } from './home/components/TimesheetToolbar';
@@ -39,7 +39,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
   const [timesheetLoaded, setTimesheetLoaded] = useState(false);
   const [loadingMood, setLoadingMood] = useState(false);
   const [moodLoaded, setMoodLoaded] = useState(false);
-  const [toast, setToast] = useState<ToastData | null>(null);
+  const showToast = useToast();
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [showKudoModal, setShowKudoModal] = useState(false);
   const [showKudoHistory, setShowKudoHistory] = useState(false);
@@ -65,10 +65,6 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, year, month, moodLoaded]);
 
-  const showToast = (t: ToastData) => {
-    setToast(t);
-    setTimeout(() => setToast(null), 3500);
-  };
 
   const refreshTimesheet = async () => {
     if (fetchInFlight.current) return;
@@ -425,7 +421,6 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
         onClose={() => setShowKudoHistory(false)}
       />
 
-      <Toast toast={toast} />
     </div>
   );
 }

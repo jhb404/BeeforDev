@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { PatchJournal } from '../../components/PatchJournal';
+import { PatchJournal } from './PatchJournal';
 import { useEscapeToClose } from '../../hooks/useEscapeToClose';
 
 interface PatchJournalModalProps {

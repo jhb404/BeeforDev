@@ -1,5 +1,5 @@
 import type { SessionStatus } from '../../../../shared/types';
-import { StatusBadge } from '../../../components/StatusBadge';
+import { StatusBadge } from '../../../components/common/StatusBadge';
 
 interface HomeTopbarProps {
   status: SessionStatus;

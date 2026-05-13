@@ -1,4 +1,4 @@
-import { Bolt, Calendar, Clock, Heart, Trophy } from '../../../components/Icons';
+import { Bolt, Calendar, Clock, Heart, Trophy } from '../../../components/common/Icons';
 import { formatMinutes } from '../../../utils/timeMath';
 
 export interface SummaryStripData {
