@@ -1,7 +1,8 @@
-import { useCallback, useMemo, useState } from 'react';
+﻿import { useCallback, useMemo, useState } from 'react';
 import type { Coin2uDashboard, Coin2uTransaction } from '@shared/types';
-import { coin2uClient } from '../../../services/ipc';
+import { useIpc } from '../../../services/ipc';
 import { loadCoin2uCache, saveCoin2uCache, transactionSignature } from '../../../utils/coin2uCache';
+import { getError } from '@shared/result';
 
 interface UseCoin2uDataOptions {
   onDataChanged?: (dashboard: Coin2uDashboard | null, log: Coin2uTransaction[]) => void;
@@ -21,6 +22,7 @@ interface UseCoin2uDataResult {
 }
 
 export function useCoin2uData({ onDataChanged }: UseCoin2uDataOptions): UseCoin2uDataResult {
+  const { coin2u: coin2uClient } = useIpc();
   const cached = useMemo(() => loadCoin2uCache(), []);
   const [dashboard, setDashboard] = useState<Coin2uDashboard | null>(cached.dashboard);
   const [log, setLog] = useState<Coin2uTransaction[]>(cached.log);
@@ -51,8 +53,8 @@ export function useCoin2uData({ onDataChanged }: UseCoin2uDataOptions): UseCoin2
         coin2uClient.getLog(),
       ]);
       if (creds?.userId) setUserId(creds.userId);
-      if (!dashRes.ok || !dashRes.data) throw new Error(dashRes.error ?? 'Falha no dashboard.');
-      if (!logRes.ok || !logRes.data) throw new Error(logRes.error ?? 'Falha no historico.');
+      if (!dashRes.ok || !dashRes.data) throw new Error(getError(dashRes) || 'Falha no dashboard.');
+      if (!logRes.ok || !logRes.data) throw new Error(getError(logRes) || 'Falha no historico.');
       setDashboard(dashRes.data);
       setLog(logRes.data.Log);
       persist(dashRes.data, logRes.data.Log);
@@ -62,7 +64,7 @@ export function useCoin2uData({ onDataChanged }: UseCoin2uDataOptions): UseCoin2
     } finally {
       setLoading(false);
     }
-  }, [persist]);
+  }, [persist, coin2uClient]);
 
   return {
     dashboard,

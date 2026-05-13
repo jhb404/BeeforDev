@@ -11,6 +11,7 @@ import { initCoin2u } from './coin2uClient';
 import { createStartupSplash } from './startupSplash';
 import { revealMainWindow } from './bootstrap/windowReveal';
 import { ensureTray } from './bootstrap/tray';
+import { setupAutoUpdater } from './updater';
 
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false;
@@ -82,6 +83,7 @@ async function bootstrap() {
   void revealMainWindow(mainWindow, splash).then(() => {
     startWatchdog(getWindow);
     startScheduler(getWindow);
+    setupAutoUpdater();
   });
 
   app.on('activate', () => {

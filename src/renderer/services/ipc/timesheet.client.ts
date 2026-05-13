@@ -1,17 +1,15 @@
-﻿import type {
-  ActionResult,
-  FetchedTimesheetRow,
-  TimesheetEntry,
-} from '@shared/types';
+import type { ActionResult, FetchedTimesheetRow, TimesheetEntry } from '@shared/types';
+import type { BeeforApi } from '../../../main/preload';
 
-export const timesheetClient = {
-  autoLancamento: (): Promise<ActionResult> => window.beefor.autoLancamento(),
-  lancarHora: (entry: TimesheetEntry): Promise<ActionResult> =>
-    window.beefor.lancarHora(entry),
-  fetch: (
-    year: number,
-    month: number,
-  ): Promise<ActionResult<FetchedTimesheetRow[]>> =>
-    window.beefor.fetchTimesheet(year, month),
-  openBeefor: (): Promise<ActionResult> => window.beefor.openBeefor(),
-};
+export function createTimesheetClient(api: BeeforApi) {
+  return {
+    autoLancamento: (): Promise<ActionResult> => api.autoLancamento(),
+    lancarHora: (entry: TimesheetEntry): Promise<ActionResult> => api.lancarHora(entry),
+    fetch: (year: number, month: number): Promise<ActionResult<FetchedTimesheetRow[]>> =>
+      api.fetchTimesheet(year, month),
+    openBeefor: (): Promise<ActionResult> => api.openBeefor(),
+  };
+}
+
+export const timesheetClient = createTimesheetClient(window.beefor);
+export type TimesheetClient = ReturnType<typeof createTimesheetClient>;

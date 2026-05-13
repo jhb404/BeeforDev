@@ -1,0 +1,22 @@
+{
+  "common": {
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "error": "Error",
+    "ok": "OK",
+    "retry": "Retry",
+    "yes": "Yes",
+    "no": "No",
+    "search": "Search"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong in this section.",
+    "retry": "Retry"
+  },
+  "alerts": {
+    "header": "Today's alerts",
+    "empty": "No pending alerts."
+  }
+}

@@ -6,3 +6,4 @@ export { kudoClient } from './kudo.client';
 export { teamClient } from './team.client';
 export { coin2uClient } from './coin2u.client';
 export { systemClient, windowClient } from './system.client';
+export { IpcProvider, useIpc, type IpcClients } from './IpcProvider';

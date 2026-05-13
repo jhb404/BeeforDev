@@ -18,6 +18,8 @@ export const SETTINGS_DEFAULTS: AppSettings = {
   kudocardDays: [],
   hoursPerDay: 8,
   hourRate: 0,
+  showOvertimeValue: true,
+  showTotalSalary: true,
   patchJournal: '',
   uiSounds: false,
 };

@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
 
-const SLOW_HINTS = [
-  '🐌 Reclama com o beefor, o endpoint é dele kk'
-];
+const SLOW_HINTS = ['🐌 As vezes demora mesmo...vai tomar uma agua!'];
 
 /**
  * Returns a hint string after `loading` stays true for `delayMs`.
  * Picks a random message once per slow event.
  */
-export function useSlowHint(loading: boolean, delayMs = 10_000): string | null {
+export function useSlowHint(loading: boolean, delayMs = 12_000): string | null {
   const [hint, setHint] = useState<string | null>(null);
 
   useEffect(() => {

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import type { KudoCardType, SendKudoCardRequest } from '@shared/types';
 import { KUDO_CARD_TYPES } from '@shared/types';
 import { kudoClient } from '../../../services/ipc';
+import { getError } from '@shared/result';
 
 interface UseKudoCardSendOptions {
   onSent: (msg: string) => void;
@@ -59,7 +60,7 @@ export function useKudoCardSend({
         onSent(res.data?.message ?? 'KudoCard enviado.');
         onClose();
       } else {
-        const msg = res.error ?? 'Falha ao enviar KudoCard.';
+        const msg = getError(res) || 'Falha ao enviar KudoCard.';
         setErrMsg(msg);
         onError(msg);
       }

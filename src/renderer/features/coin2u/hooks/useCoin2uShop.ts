@@ -1,6 +1,7 @@
-import { useCallback, useState } from 'react';
+﻿import { useCallback, useState } from 'react';
 import type { Coin2uDashboard, Coin2uShopItem } from '@shared/types';
 import { coin2uClient } from '../../../services/ipc';
+import { getError } from '@shared/result';
 
 interface UseCoin2uShopOptions {
   setDashboard: React.Dispatch<React.SetStateAction<Coin2uDashboard | null>>;
@@ -13,7 +14,10 @@ interface UseCoin2uShopResult {
   refreshShop: (showLoading?: boolean) => Promise<void>;
 }
 
-export function useCoin2uShop({ setDashboard, setError }: UseCoin2uShopOptions): UseCoin2uShopResult {
+export function useCoin2uShop({
+  setDashboard,
+  setError,
+}: UseCoin2uShopOptions): UseCoin2uShopResult {
   const [shopItems, setShopItems] = useState<Coin2uShopItem[]>([]);
   const [shopLoading, setShopLoading] = useState(false);
 
@@ -22,7 +26,7 @@ export function useCoin2uShop({ setDashboard, setError }: UseCoin2uShopOptions):
       if (showLoading) setShopLoading(true);
       try {
         const res = await coin2uClient.getShop();
-        if (!res.ok || !res.data) throw new Error(res.error ?? 'Falha ao carregar loja.');
+        if (!res.ok || !res.data) throw new Error(getError(res) || 'Falha ao carregar loja.');
         const shop = res.data;
         setShopItems(shop.ShopItems);
         setDashboard((prev) => (prev ? { ...prev, Coins: shop.Coins } : prev));

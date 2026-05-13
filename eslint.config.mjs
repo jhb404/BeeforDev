@@ -35,6 +35,14 @@ export default [
           ],
         },
       ],
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+    },
+  },
+  {
+    // logger.ts is the one allowed console-using file
+    files: ['src/renderer/services/logger.ts'],
+    rules: {
+      'no-console': 'off',
     },
   },
 ];

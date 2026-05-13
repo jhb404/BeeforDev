@@ -1,0 +1,22 @@
+{
+  "common": {
+    "close": "Fechar",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "ok": "OK",
+    "retry": "Tentar novamente",
+    "yes": "Sim",
+    "no": "Não",
+    "search": "Buscar"
+  },
+  "errorBoundary": {
+    "title": "Algo deu errado nesta seção.",
+    "retry": "Tentar novamente"
+  },
+  "alerts": {
+    "header": "Avisos de hoje",
+    "empty": "Nenhum aviso pendente."
+  }
+}

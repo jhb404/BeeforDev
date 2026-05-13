@@ -1,8 +1,6 @@
-export interface ActionResult<T = void> {
-  ok: boolean;
-  data?: T;
-  error?: string;
-}
+export type ActionResult<T = void> =
+  | { ok: true; data: T extends void ? undefined : T }
+  | { ok: false; error: string };
 
 export interface LogEntry {
   ts: number;

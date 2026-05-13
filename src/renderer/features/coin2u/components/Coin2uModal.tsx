@@ -1,6 +1,11 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
-import type { AppSettings, Coin2uDashboard, Coin2uShopItem, Coin2uTransaction } from '@shared/types';
+import type {
+  AppSettings,
+  Coin2uDashboard,
+  Coin2uShopItem,
+  Coin2uTransaction,
+} from '@shared/types';
 import { playUiSound } from '../../../utils/alarm';
 import { useEscapeToClose } from '../../../hooks/useEscapeToClose';
 import { coin2uClient } from '../../../services/ipc';
@@ -14,6 +19,7 @@ import { Coin2uHistoryTab } from './Coin2uHistoryTab';
 import { Coin2uPurchasesTab } from './Coin2uPurchasesTab';
 import { Coin2uConfirmPurchase } from './Coin2uConfirmPurchase';
 import { Coin2uToast } from './Coin2uToast';
+import { getError } from '@shared/result';
 
 interface Props {
   open: boolean;
@@ -61,7 +67,7 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
         shopItemId: confirmItem.Id,
         price: Math.floor(confirmItem.Price),
       });
-      if (!res.ok || !res.data) throw new Error(res.error ?? 'Compra recusada.');
+      if (!res.ok || !res.data) throw new Error(getError(res) || 'Compra recusada.');
       if (settings?.uiSounds) playUiSound('success');
       toastApi.showToast('ok', 'Compra realizada.');
       setConfirmItem(null);
@@ -75,7 +81,13 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
   };
 
   return (
-    <ModalShell open={open} onClose={onClose} className="coin2u-modal" labelledBy="coin2u-modal-title" disableEsc>
+    <ModalShell
+      open={open}
+      onClose={onClose}
+      className="coin2u-modal"
+      labelledBy="coin2u-modal-title"
+      disableEsc
+    >
       <Coin2uHeader
         dashboard={data.dashboard}
         loading={data.loading}

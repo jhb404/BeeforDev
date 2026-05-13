@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { logger } from '../../services/logger';
 
 interface Props {
   children: ReactNode;
@@ -19,7 +20,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     const label = this.props.label ?? 'unknown';
-    console.error(`[ErrorBoundary:${label}]`, error, info.componentStack);
+    logger.error(`[ErrorBoundary:${label}]`, error, info.componentStack);
   }
 
   reset = () => this.setState({ error: null });

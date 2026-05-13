@@ -1889,14 +1889,18 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 
 .summary-strip {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
   padding: 12px;
   border-bottom: 1px solid var(--border);
   background: var(--summary-bg);
 }
+/* 4 cards → 4 lado a lado */
+.summary-strip:has(> .summary-card:nth-child(4):last-child) {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
 @media (max-width: 1180px) {
-  .summary-strip { grid-template-columns: repeat(2, 1fr); }
+  .summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 700px) {
   .summary-strip { grid-template-columns: 1fr; }
@@ -2186,6 +2190,10 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   background: var(--mood-active-bg);
   color: var(--mood-active-text);
   border-color: var(--mood-active-border);
+}
+
+.mood-grid button:hover:not(:disabled) {
+  color: #fff;
 }
 
 .mood-emoji { font-size: 18px; }

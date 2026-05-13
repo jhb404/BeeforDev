@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import type { KudoCardRecipientType, KudoSearchResult } from '@shared/types';
 import { kudoClient } from '../../../services/ipc';
+import { getError } from '@shared/result';
 
 interface UseKudoRecipientSearchResult {
   recipientName: string;
@@ -63,7 +64,7 @@ export function useKudoRecipientSearch(
         } else {
           setSuggestions([]);
           setSuggestOpen(true);
-          setSuggestErr(res.error ?? 'Falha ao buscar.');
+          setSuggestErr(getError(res) || 'Falha ao buscar.');
         }
       } finally {
         if (mySeq === seqRef.current) setSearching(false);
