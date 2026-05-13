@@ -1,0 +1,32 @@
+﻿name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci --legacy-peer-deps
+
+      - name: Type check
+        run: |
+          npx tsc --noEmit
+          npx tsc --noEmit -p tsconfig.main.json
+
+      - name: Test
+        run: npx vitest run
+
+      - name: Build and publish
+        run: npm run package:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

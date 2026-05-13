@@ -1,15 +1,18 @@
-﻿import type { ActionResult, Credentials, SessionStatus } from '@shared/types';
+import type { ActionResult, Credentials, SessionStatus } from '@shared/types';
+import type { BeeforApi } from '../../../main/preload';
 
-export const sessionClient = {
-  getStatus: (): Promise<SessionStatus> => window.beefor.getStatus(),
-  login: (): Promise<ActionResult> => window.beefor.login(),
-  logout: (): Promise<ActionResult> => window.beefor.logout(),
-  verify: (): Promise<ActionResult<SessionStatus>> => window.beefor.verifySession(),
-  onStatus: (cb: (s: SessionStatus) => void): (() => void) =>
-    window.beefor.onStatus(cb),
-  saveCredentials: (creds: Credentials): Promise<ActionResult> =>
-    window.beefor.saveCredentials(creds),
-  getCredentials: (): Promise<{ email: string } | null> =>
-    window.beefor.getCredentials(),
-  clearCredentials: (): Promise<ActionResult> => window.beefor.clearCredentials(),
-};
+export function createSessionClient(api: BeeforApi) {
+  return {
+    getStatus: (): Promise<SessionStatus> => api.getStatus(),
+    login: (): Promise<ActionResult> => api.login(),
+    logout: (): Promise<ActionResult> => api.logout(),
+    verify: (): Promise<ActionResult<SessionStatus>> => api.verifySession(),
+    onStatus: (cb: (s: SessionStatus) => void): (() => void) => api.onStatus(cb),
+    saveCredentials: (creds: Credentials): Promise<ActionResult> => api.saveCredentials(creds),
+    getCredentials: (): Promise<{ email: string } | null> => api.getCredentials(),
+    clearCredentials: (): Promise<ActionResult> => api.clearCredentials(),
+  };
+}
+
+export const sessionClient = createSessionClient(window.beefor);
+export type SessionClient = ReturnType<typeof createSessionClient>;

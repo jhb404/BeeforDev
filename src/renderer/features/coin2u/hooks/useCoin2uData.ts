@@ -1,6 +1,6 @@
 ﻿import { useCallback, useMemo, useState } from 'react';
 import type { Coin2uDashboard, Coin2uTransaction } from '@shared/types';
-import { coin2uClient } from '../../../services/ipc';
+import { useIpc } from '../../../services/ipc';
 import { loadCoin2uCache, saveCoin2uCache, transactionSignature } from '../../../utils/coin2uCache';
 import { getError } from '@shared/result';
 
@@ -22,6 +22,7 @@ interface UseCoin2uDataResult {
 }
 
 export function useCoin2uData({ onDataChanged }: UseCoin2uDataOptions): UseCoin2uDataResult {
+  const { coin2u: coin2uClient } = useIpc();
   const cached = useMemo(() => loadCoin2uCache(), []);
   const [dashboard, setDashboard] = useState<Coin2uDashboard | null>(cached.dashboard);
   const [log, setLog] = useState<Coin2uTransaction[]>(cached.log);
@@ -63,7 +64,7 @@ export function useCoin2uData({ onDataChanged }: UseCoin2uDataOptions): UseCoin2
     } finally {
       setLoading(false);
     }
-  }, [persist]);
+  }, [persist, coin2uClient]);
 
   return {
     dashboard,

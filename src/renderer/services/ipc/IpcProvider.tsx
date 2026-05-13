@@ -1,23 +1,23 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import { sessionClient } from './session.client';
-import { settingsClient } from './settings.client';
-import { timesheetClient } from './timesheet.client';
-import { moodClient } from './mood.client';
-import { kudoClient } from './kudo.client';
-import { teamClient } from './team.client';
-import { coin2uClient } from './coin2u.client';
-import { systemClient, windowClient } from './system.client';
+import { sessionClient, type SessionClient } from './session.client';
+import { settingsClient, type SettingsClient } from './settings.client';
+import { timesheetClient, type TimesheetClient } from './timesheet.client';
+import { moodClient, type MoodClient } from './mood.client';
+import { kudoClient, type KudoClient } from './kudo.client';
+import { teamClient, type TeamClient } from './team.client';
+import { coin2uClient, type Coin2uClient } from './coin2u.client';
+import { systemClient, windowClient, type SystemClient, type WindowClient } from './system.client';
 
 export interface IpcClients {
-  session: typeof sessionClient;
-  settings: typeof settingsClient;
-  timesheet: typeof timesheetClient;
-  mood: typeof moodClient;
-  kudo: typeof kudoClient;
-  team: typeof teamClient;
-  coin2u: typeof coin2uClient;
-  system: typeof systemClient;
-  window: typeof windowClient;
+  session: SessionClient;
+  settings: SettingsClient;
+  timesheet: TimesheetClient;
+  mood: MoodClient;
+  kudo: KudoClient;
+  team: TeamClient;
+  coin2u: Coin2uClient;
+  system: SystemClient;
+  window: WindowClient;
 }
 
 const defaultClients: IpcClients = {
