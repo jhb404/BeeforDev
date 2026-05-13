@@ -6,6 +6,7 @@ import { playUiSound } from '../../../utils/alarm';
 import { useEscapeToClose } from '../../../hooks/useEscapeToClose';
 import { Check, Clock, Package, Refresh, Search, ShoppingBag, Users } from '../../../components/common/Icons';
 import { CoinIcon } from './Coin2uCoinIcon';
+import { coin2uClient } from '../../../services/ipc';
 
 type Tab = 'send' | 'shop' | 'purchases' | 'history';
 type HistoryFilter = 'all' | 'sent' | 'received';
@@ -130,9 +131,9 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
     setError(null);
     try {
       const [creds, dashRes, logRes] = await Promise.all([
-        window.beefor.getCoin2uCreds(),
-        window.beefor.getCoin2uDashboard(),
-        window.beefor.getCoin2uLog(),
+        coin2uClient.getCreds(),
+        coin2uClient.getDashboard(),
+        coin2uClient.getLog(),
       ]);
       if (creds?.userId) setUserId(creds.userId);
       if (!dashRes.ok || !dashRes.data) throw new Error(dashRes.error ?? 'Falha no dashboard.');
@@ -152,7 +153,7 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
   const refreshShop = async (showLoading = true) => {
     if (showLoading) setShopLoading(true);
     try {
-      const res = await window.beefor.getCoin2uShop();
+      const res = await coin2uClient.getShop();
       if (!res.ok || !res.data) throw new Error(res.error ?? 'Falha ao carregar loja.');
       const shop = res.data;
       setShopItems(shop.ShopItems);
@@ -168,7 +169,7 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
   useEffect(() => {
     if (!open) return;
     setToast(null);
-    void window.beefor.getCoin2uCreds().then((creds) => {
+    void coin2uClient.getCreds().then((creds) => {
       if (creds?.userId) setUserId(creds.userId);
     });
     void refresh();
@@ -221,7 +222,7 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
 
     setTransferring(true);
     try {
-      const res = await window.beefor.transferCoin2uCoins({
+      const res = await coin2uClient.transfer({
         To: selected.Value,
         Amount: Math.floor(amountNumber),
         Message: message.trim(),
@@ -246,7 +247,7 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
     if (!confirmItem) return;
     setPurchasing(true);
     try {
-      const res = await window.beefor.buyCoin2uItem({
+      const res = await coin2uClient.buyItem({
         shopItemId: confirmItem.Id,
         price: Math.floor(confirmItem.Price),
       });

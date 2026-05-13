@@ -1,4 +1,5 @@
 import { Suspense, lazy, useCallback, useState } from 'react';
+import { settingsClient } from './services/ipc';
 import { TitleBar } from './components/layout/TitleBar';
 import { StartupOverlay } from './components/layout/StartupOverlay';
 import { SettingsProvider, useSettings } from './app/providers/SettingsProvider';
@@ -51,7 +52,7 @@ function AppShell() {
   const openPatchJournal = async () => {
     setPatchModalOpen(true);
     setLoadingPatchJournal(true);
-    const res = await window.beefor.getSettings();
+    const res = await settingsClient.get();
     setPatchJournal(res.patchJournal?.trim() || 'Nenhuma atualizacao publicada ainda.');
     setLoadingPatchJournal(false);
   };

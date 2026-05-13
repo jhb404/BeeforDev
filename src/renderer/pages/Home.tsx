@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AppSettings, Mood } from '../../shared/types';
+import { moodClient, settingsClient, systemClient, timesheetClient } from '../services/ipc';
 import { MOODS } from '../../shared/types';
 import { useBeefor } from '../hooks/useBeefor';
 import { MinimalView } from './home/components/MinimalView';
@@ -52,7 +53,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
   useEffect(() => { monthRef.current = month; }, [month]);
 
   useEffect(() => {
-    void window.beefor.getSettings().then(setSettings);
+    void settingsClient.get().then(setSettings);
   }, []);
 
   useEffect(() => {
@@ -71,7 +72,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
     fetchInFlight.current = true;
     setLoadingTs(true);
     try {
-      const res = await window.beefor.fetchTimesheet(year, month);
+      const res = await timesheetClient.fetch(year, month);
       if (res.ok && res.data) {
         setRows(mergeFetched(year, month, res.data));
       } else if (!res.ok) {
@@ -93,7 +94,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
   const refreshMood = async () => {
     setLoadingMood(true);
     try {
-      const res = await window.beefor.getCurrentMood();
+      const res = await moodClient.getCurrent();
       if (res.ok) {
         const m = res.data ?? null;
         const matched = (MOODS as readonly string[]).includes(m ?? '')
@@ -128,12 +129,12 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
   }, [ready, month, year]);
 
   useEffect(() => {
-    const off = window.beefor.onNotify((info) => {
+    const off = systemClient.onNotify((info) => {
       if (info.title === 'sync:autoLancamento' && info.body === 'ok') {
         const y = yearRef.current;
         const m = monthRef.current;
         lastFetchKey.current = '';
-        void window.beefor.fetchTimesheet(y, m).then((res) => {
+        void timesheetClient.fetch(y, m).then((res) => {
           if (res.ok && res.data) {
             setRows(mergeFetched(y, m, res.data));
             setTimesheetLoaded(true);
@@ -155,7 +156,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
     const r = rows[idx];
     updateRow(idx, { saving: true, saved: false, failed: false, errMsg: undefined });
     await wrap(async () => {
-      const res = await window.beefor.lancarHora({
+      const res = await timesheetClient.lancarHora({
         date: r.date,
         entrada: r.entrada,
         int1: r.int1,
@@ -202,7 +203,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
 
   const autoLancamento = async () => {
     await wrap(async () => {
-      const res = await window.beefor.autoLancamento();
+      const res = await timesheetClient.autoLancamento();
       if (settings?.uiSounds && res.ok) playUiSound('auto-lancar-success');
       showToast(
         res.ok
@@ -230,7 +231,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
     const previous = currentMood;
     setCurrentMood(m);
     await wrap(async () => {
-      const res = await window.beefor.selectMood(m);
+      const res = await moodClient.select(m);
       if (!res.ok) {
         setCurrentMood(previous);
         notifyMoodChanged(previous);
@@ -330,7 +331,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
         ready={ready}
         onReload={() => void refreshAll()}
         onOpenBeefor={async () => {
-          const res = await window.beefor.openBeefor();
+          const res = await timesheetClient.openBeefor();
           if (!res.ok) {
             showToast({
               kind: 'err',

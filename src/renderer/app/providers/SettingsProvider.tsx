@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { AppSettings } from '../../../shared/types';
+import { settingsClient } from '../../services/ipc';
 
 type SettingsCtx = {
   settings: AppSettings | null;
@@ -28,7 +29,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<AppSettings | null>(null);
 
   const load = () => {
-    void window.beefor.getSettings().then((s) => {
+    void settingsClient.get().then((s) => {
       setSettings(s);
       applyDensity(s.uiDensity);
       applyThemeOverrides(s.themeOverrides);

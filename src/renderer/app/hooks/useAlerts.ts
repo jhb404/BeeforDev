@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { TodayAlert } from '../../../shared/types';
+import { moodClient, systemClient } from '../../services/ipc';
 
 function nowHHMM(): string {
   const d = new Date();
@@ -27,16 +28,16 @@ export function useAlerts(): AlertsApi {
   const [currentMoodExternal, setCurrentMoodExternal] = useState<string | null>(null);
 
   useEffect(() => {
-    void window.beefor.getTodayAlerts().then((res) => {
+    void systemClient.getTodayAlerts().then((res) => {
       if (res.ok && res.data) setAlerts(res.data);
     });
-    void window.beefor.getCurrentMood().then((res) => {
+    void moodClient.getCurrent().then((res) => {
       if (res.ok) setCurrentMoodExternal(res.data ?? null);
     });
   }, []);
 
   useEffect(() => {
-    const off = window.beefor.onNotify((info) => {
+    const off = systemClient.onNotify((info) => {
       if (info.title === 'sync:autoLancamento' && info.body === 'ok') return;
     });
     return off;

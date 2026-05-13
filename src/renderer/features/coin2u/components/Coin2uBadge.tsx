@@ -4,6 +4,7 @@ import { loadCoin2uCache, saveCoin2uCache, transactionSignature } from '../../..
 import { playUiCoin, playUiNotify } from '../../../utils/alarm';
 import { Coin2uModal } from './Coin2uModal';
 import { CoinIcon } from './Coin2uCoinIcon';
+import { coin2uClient } from '../../../services/ipc';
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -27,8 +28,8 @@ export function Coin2uBadge({ settings }: Props = {}) {
     setErrMsg(null);
     try {
       const [dashRes, logRes] = await Promise.all([
-        window.beefor.getCoin2uDashboard(),
-        window.beefor.getCoin2uLog(),
+        coin2uClient.getDashboard(),
+        coin2uClient.getLog(),
       ]);
       if (dashRes.ok && dashRes.data) {
         const nextLog = logRes.ok && logRes.data ? logRes.data.Log : log;
@@ -58,7 +59,7 @@ export function Coin2uBadge({ settings }: Props = {}) {
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | null = null;
     void (async () => {
-      const creds = await window.beefor.getCoin2uCreds();
+      const creds = await coin2uClient.getCreds();
       const ready = !!(creds && creds.email);
       setConfigured(ready);
       if (!ready) return;

@@ -1,4 +1,5 @@
 import type { TeamMember } from '../../shared/types';
+import { teamClient } from './ipc';
 
 function asString(v: unknown): string {
   return typeof v === 'string' ? v : v == null ? '' : String(v);
@@ -48,7 +49,7 @@ function normalizeMember(raw: unknown): TeamMember | null {
 }
 
 export async function fetchTeamMembers(): Promise<TeamMember[]> {
-  const res = await window.beefor.fetchTeamMembers();
+  const res = await teamClient.fetchMembers();
   if (!res.ok) throw new Error(res.error ?? 'Falha ao buscar time.');
   const list = Array.isArray(res.data) ? res.data : [];
   const out: TeamMember[] = [];

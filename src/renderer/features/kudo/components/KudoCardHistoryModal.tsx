@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
+import { kudoClient } from '../../../services/ipc';
 import {
   KUDO_CARD_EMOJI,
   KUDO_CARD_LABELS,
@@ -65,8 +66,8 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
     setErrMsg(null);
     void (async () => {
       const [cRes, lRes] = await Promise.all([
-        window.beefor.getKudoCounts(),
-        window.beefor.getKudoLists(),
+        kudoClient.getCounts(),
+        kudoClient.getLists(),
       ]);
       if (cancelled) return;
       if (cRes.ok && cRes.data) setCounts(cRes.data);
@@ -89,7 +90,7 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
     let cancelled = false;
     setLoadingDetail(true);
     void (async () => {
-      const res = await window.beefor.getKudoDetail(selected.id);
+      const res = await kudoClient.getDetail(selected.id);
       if (cancelled) return;
       if (res.ok && res.data) setDetail(res.data);
       else setDetail(null);

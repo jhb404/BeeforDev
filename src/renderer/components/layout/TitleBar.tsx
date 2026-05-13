@@ -1,5 +1,6 @@
 import { useAppLogo } from '../../hooks/useAppLogo';
 import { BrandLogo } from '../common/Icons';
+import { windowClient } from '../../services/ipc';
 
 interface Props {
   logoVariant?: 'orange' | 'purple';
@@ -24,7 +25,7 @@ export function TitleBar({ logoVariant = 'orange' }: Props) {
         <button
           className="titlebar-btn titlebar-btn--min"
           aria-label="Minimizar"
-          onClick={() => window.beefor.winMinimize()}
+          onClick={() => windowClient.minimize()}
         >
           <svg width="10" height="1" viewBox="0 0 10 1" fill="currentColor">
             <rect width="10" height="1" />
@@ -33,7 +34,7 @@ export function TitleBar({ logoVariant = 'orange' }: Props) {
         <button
           className="titlebar-btn titlebar-btn--max"
           aria-label="Maximizar"
-          onClick={() => window.beefor.winMaximize()}
+          onClick={() => windowClient.maximize()}
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1">
             <rect x="0.5" y="0.5" width="9" height="9" />
@@ -42,7 +43,7 @@ export function TitleBar({ logoVariant = 'orange' }: Props) {
         <button
           className="titlebar-btn titlebar-btn--close"
           aria-label="Fechar"
-          onClick={() => window.beefor.winClose()}
+          onClick={() => windowClient.close()}
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
             <line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" strokeWidth="1.2" />

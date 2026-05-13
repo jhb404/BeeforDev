@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { playAlarmByKind } from '../../utils/alarm';
+import { systemClient } from '../../services/ipc';
 
 type AlarmKind = 'mood' | 'lunch' | 'punch' | 'kudocard' | 'default';
 
@@ -16,7 +17,7 @@ function classifyAlarm(title: string): AlarmKind {
  */
 export function useAlarmRouter(): void {
   useEffect(() => {
-    const off = window.beefor.onPlayAlarm((info) => {
+    const off = systemClient.onPlayAlarm((info) => {
       void playAlarmByKind(classifyAlarm(info.title));
     });
     return off;

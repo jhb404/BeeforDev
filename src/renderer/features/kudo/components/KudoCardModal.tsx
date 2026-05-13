@@ -9,6 +9,7 @@ import {
   type KudoSearchResult,
   type SendKudoCardRequest,
 } from '../../../../shared/types';
+import { kudoClient } from '../../../services/ipc';
 
 interface Props {
   open: boolean;
@@ -68,7 +69,7 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
     setSearching(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await window.beefor.searchKudoRecipient(recipientType, q);
+        const res = await kudoClient.searchRecipient(recipientType, q);
         if (mySeq !== seqRef.current) return;
         if (res.ok && res.data) {
           setSuggestions(res.data);
@@ -130,7 +131,7 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
       cardType,
     };
     try {
-      const res = await window.beefor.sendKudoCard(payload);
+      const res = await kudoClient.send(payload);
       if (res.ok) {
         onSent(res.data?.message ?? 'KudoCard enviado.');
         onClose();
