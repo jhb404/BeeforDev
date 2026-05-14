@@ -5,6 +5,7 @@ import type { AppSettings, TodayAlert } from '@shared/types';
 import { BellPanel } from './BellPanel';
 import { UpdateBadge } from './UpdateBadge';
 import { LunchTimerWidget } from './LunchTimerWidget';
+import { BeeforLogo } from '../../components/common/BeeforLogo';
 
 const Coin2uBadge = lazy(() =>
   import('../../features/coin2u/components/Coin2uBadge').then((m) => ({ default: m.Coin2uBadge })),
@@ -181,24 +182,7 @@ export function TopBar({
           onClick={onOpenProfile}
           data-sound="profile-open"
         >
-          <svg viewBox="0 0 1024 1024" aria-hidden="true" className="profile-btn__bee">
-            <path
-              d="M46.6971 315.833V484.735L184.341 568.226L321.984 484.735V315.833L184.341 232.34L46.6971 315.833Z"
-              stroke="currentColor"
-              strokeWidth="50"
-              fill="none"
-            />
-            <path
-              d="M977.303 315.833V484.735L839.659 568.226L702.016 484.735V315.833L839.659 232.34L977.303 315.833Z"
-              stroke="currentColor"
-              strokeWidth="50"
-              fill="none"
-            />
-            <path
-              d="M662.093 750.788H361.907V273.242H662.093V750.788ZM395.573 695.058H627.493V622.994H395.573V695.058ZM395.573 511.535V583.598H627.493V511.535H395.573ZM395.573 472.139H627.493V400.075H395.573V472.139Z"
-              fill="currentColor"
-            />
-          </svg>
+          <BeeforLogo size={22} className="profile-btn__bee" />
           <span className="profile-btn__init">
             {(profileInitials ?? 'JB').slice(0, 2).toUpperCase()}
           </span>

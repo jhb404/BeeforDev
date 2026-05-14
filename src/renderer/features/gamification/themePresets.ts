@@ -27,7 +27,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'ocean',
     name: 'Oceano',
     description: 'Azul calmo, tons frios.',
-    requires: null,
+    requires: 'kudo-10',
     tokens: {
       dark: {
         accent: '#3b82f6',
@@ -81,7 +81,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'forest',
     name: 'Floresta',
     description: 'Verde escuro, natureza.',
-    requires: 'mood-week',
+    requires: 'mood-2-weeks',
     tokens: {
       dark: {
         accent: '#10b981',
@@ -267,6 +267,8 @@ export const THEME_PRESETS: ThemePreset[] = [
         'tab-active-text': '#fef3c7',
         'tab-active-border': 'rgba(251,191,36,0.45)',
         'focus-ring': 'rgba(251,191,36,0.3)',
+        'text-on-warm': '#1a1408',
+        'text-on-accent': '#1a1408',
       },
       light: {
         accent: '#b45309',
@@ -429,6 +431,8 @@ export const THEME_PRESETS: ThemePreset[] = [
         'tab-active-text': '#fef3c7',
         'tab-active-border': 'rgba(251,191,36,0.5)',
         'focus-ring': 'rgba(251,191,36,0.35)',
+        'text-on-accent': '#000000',
+        'text-on-warm': '#ffffff',
       },
       light: {
         accent: '#92400e',
@@ -462,7 +466,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'sakura',
     name: 'Sakura',
     description: 'Rosa suave, primavera japonesa.',
-    requires: null,
+    requires: 'lancar-month',
     tokens: {
       dark: {
         accent: '#f472b6',
@@ -516,7 +520,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'mint',
     name: 'Menta',
     description: 'Verde claro refrescante.',
-    requires: null,
+    requires: 'auto-lancar-5',
     tokens: {
       dark: {
         accent: '#14b8a6',
@@ -570,7 +574,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'sunset',
     name: 'Pôr do Sol',
     description: 'Laranja + rosa quentes.',
-    requires: null,
+    requires: 'punch-month',
     tokens: {
       dark: {
         accent: '#f97316',
@@ -624,7 +628,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'cyber',
     name: 'Cyber',
     description: 'Ciano neon, futurista.',
-    requires: null,
+    requires: 'mood-2-months',
     tokens: {
       dark: {
         accent: '#06b6d4',
@@ -678,7 +682,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'mocha',
     name: 'Mocha',
     description: 'Café + creme, tons aconchegantes.',
-    requires: null,
+    requires: 'coin-collector',
     tokens: {
       dark: {
         accent: '#d4a574',
@@ -732,7 +736,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'lavender',
     name: 'Lavanda',
     description: 'Lilás suave, calmo.',
-    requires: null,
+    requires: 'lvl-10',
     tokens: {
       dark: {
         accent: '#c4b5fd',

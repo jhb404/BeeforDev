@@ -82,8 +82,12 @@ export interface IconVariant {
   description: string;
   /** Achievement ID required (or null = always unlocked). */
   requires: string | null;
-  /** Emoji or short SVG fragment for preview. */
-  preview: string;
+  /** Emoji shown as overlay (top-right corner). */
+  overlay?: string;
+  /** Color applied to BeeforLogo (CSS color). */
+  color: string;
+  /** Extra CSS class applied to the preview wrapper for FX (filter/glow/anim). */
+  effectClass?: string;
 }
 
 /** Default empty stats — used when no localStorage. */
@@ -113,7 +117,17 @@ export const MOCK_STATS: UserStats = {
   totalKudos: 14,
   totalAutoLancamentos: 5,
   coinsGanhos: 3200,
-  unlockedAchievementIds: ['first-lancar', 'mood-week', 'kudo-giver'],
+  unlockedAchievementIds: [
+    'first-lancar',
+    'mood-first',
+    'kudo-first',
+    'auto-lancar-first',
+    'mood-week',
+    'punch-week',
+    'kudo-5',
+    'lvl-5',
+    'kudo-10',
+  ],
   unlockedThemePresetIds: ['default', 'forest'],
   unlockedIconVariantIds: ['orange', 'crowned'],
 };

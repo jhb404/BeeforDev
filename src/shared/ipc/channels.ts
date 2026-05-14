@@ -72,6 +72,7 @@ export const IPC = {
   EVT_TRAY_OPEN_KUDO: 'evt:trayOpenKudo',
   EVT_TRAY_OPEN_COINS: 'evt:trayOpenCoins',
   TRAY_SET_LUNCH_ACTIVE: 'tray:setLunchActive',
+  WIN_SET_ICON: 'win:setIcon',
 
   // updater
   UPDATER_QUIT_AND_INSTALL: 'updater:quitAndInstall',

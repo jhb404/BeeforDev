@@ -1,15 +1,66 @@
-- v0.1.2: Instalação ignorante 🎨
+- v0.1.6: GAMIFICAÇÃO + Beefor Master 🐝👑
 
-One-click install, sem perguntar pasta, sem tela chata.
-Auto-update agressivo: baixa silencioso → instala → reinicia sozinho.
+🎮 Sistema completo de gamificação:
+XP, níveis, conquistas, streaks e ranking do time inteiro 🚀
+
+🔥 Clicou no foguinho ali do lado no mood?
+Então… eu sei exatamente o que você fez semana passada 👀😭🏆
+
+🌲 +9 temas desbloqueáveis:
+Floresta, Inferno, Realeza, Galáxia… e vários outros absurdos.
+
+🏆 E claro:
+o tema Mestre — o platinum supremo da Beefor.
+
+https://media1.tenor.com/m/wK6AX19xWlEAAAAd/good-morning-bom-dia.gif
+...tá frio demais esses dias em Sorocaba, né!? (11-14/05/2026)
 
 ---
 
-- v0.1.1: Auto-update chegou 🚀
+- v0.1.5: TEEEMAAAAA + VISUAL NOVINHO 🔥🎨
 
-Agora o app se atualiza sozinho em background yeeeah.
-Quando uma versão nova sair, ele baixa silencioso e instala no próximo restart.
-Você nunca mais vai precisar baixar manualmente. Bem-vindo ao futuro kk 😎
+Agora os temas mudam TUDO MESMO 😮‍💨
+Fundo, cards, hover, sumário, calendário, inputs… literalmente o app inteiro :D
+
+☀️ Light mode + 🌙 dark mode com palettas próprias por preset
+
+🌊 Troca de tema agora usa View Transition API
+Com animação ripple saindo direto do botão sol/lua (Testem)
+
+🎨 Novos temas adicionados:
+Varios...ve lá, não vou escrever todos não
+
+Loaders, spinners e startup overlay agora acompanham automaticamente a cor do tema escolhido 💫
+
+https://s3-alpha.figma.com/hub/file/2154203155504415001/0c8a337f-6d08-4e50-8e7e-edb1007f1e54-cover.png
+
+---
+
+- v0.1.4: Nova aba de Configurações
+
+⚙️ Nova tela de Settings com sidebar por categorias:
+🛠️ Geral / 🔔 Alertas / 🎨 Aparência / 🔒 Segurança.
+
+Tray ganhou ações rápidas novas:
+    Timer de almoço (1h)
+    Enviar KudoCard
+    Enviar coins
+
+⏳ Timer de almoço agora aparece na topbar com uma pill animada + countdown clicável 👀
+
+🚀 Inicialização ~13s mais rápida:
+troca de networkidle por waitForResponse.
+
+🖥️ Auto-start finalmente funcionando direito —
+sem mais splash perdido do Electron no boot 🙏✨
+
+https://media1.tenor.com/m/9ItR8nSuxE0AAAAC/thumbs-up-computer.gif
+
+---
+
+- v0.1.1 | v0.1.2 | v0.1.3: Umas coisa ai...
+
+Fiz umas coisa ai...mas n lembro tudo n, só imaginem que ficou bom, fecho!?
 
 ---
 

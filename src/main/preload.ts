@@ -135,6 +135,7 @@ const api = {
   winMinimize: () => ipcRenderer.send(IPC.WIN_MINIMIZE),
   winMaximize: () => ipcRenderer.send(IPC.WIN_MAXIMIZE),
   winClose: () => ipcRenderer.send(IPC.WIN_CLOSE),
+  winSetIcon: (dataUrl: string) => ipcRenderer.send(IPC.WIN_SET_ICON, dataUrl),
 
   // App info
   getAssetPath: (): Promise<string> => ipcRenderer.invoke(IPC.APP_GET_ASSET_PATH),

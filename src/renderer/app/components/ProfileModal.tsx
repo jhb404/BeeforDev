@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { ModalShell } from '../../components/ui/ModalShell';
+import { BeeforLogo } from '../../components/common/BeeforLogo';
 import {
   ACHIEVEMENTS,
   ICON_VARIANTS,
   XP_REWARDS,
   useGamification,
+  type IconVariant,
   type XpAction,
 } from '../../features/gamification';
 
@@ -76,7 +78,7 @@ export function ProfileModal({ open, onClose, userName, userEmail }: Props) {
             userEmail={userEmail}
             xpPct={xpPct}
             stats={stats}
-            activeIcon={activeIcon?.preview ?? '🐝'}
+            activeIcon={activeIcon ?? ICON_VARIANTS[0]}
             isAchievementUnlocked={isAchievementUnlocked}
             onOpenXpInfo={() => setView('xp-info')}
             onOpenIcons={() => setView('icons')}
@@ -98,7 +100,7 @@ interface ProfileHomeProps {
   userEmail?: string;
   xpPct: number;
   stats: ReturnType<typeof useGamification>['stats'];
-  activeIcon: string;
+  activeIcon: IconVariant;
   isAchievementUnlocked: (id: string) => boolean;
   onOpenXpInfo: () => void;
   onOpenIcons: () => void;
@@ -119,12 +121,17 @@ function ProfileHome({
       <div className="profile-modal__header">
         <button
           type="button"
-          className="profile-modal__avatar profile-modal__avatar--button"
+          className={`profile-modal__avatar profile-modal__avatar--button ${activeIcon.effectClass ?? ''}`}
           onClick={onOpenIcons}
           title="Trocar ícone"
           aria-label="Trocar variante de ícone"
         >
-          <span className="profile-modal__avatar-icon">{activeIcon}</span>
+          <BeeforLogo size={48} style={{ color: activeIcon.color }} />
+          {activeIcon.overlay && (
+            <span className="profile-modal__avatar-overlay" aria-hidden="true">
+              {activeIcon.overlay}
+            </span>
+          )}
           <div className="profile-modal__level-badge">Lv {stats.level}</div>
         </button>
         <div className="profile-modal__identity">
@@ -259,8 +266,18 @@ function IconsView({ isIconUnlocked, activeIconId }: IconsViewProps) {
               title={unlocked ? v.description : `Bloqueado: requer conquista "${v.requires}"`}
               data-sound="click"
             >
-              <span className="icon-variant__preview" aria-hidden="true">
-                {v.preview}
+              <span
+                className={`icon-variant__preview ${unlocked ? (v.effectClass ?? '') : ''}`}
+                aria-hidden="true"
+              >
+                {unlocked ? (
+                  <>
+                    <BeeforLogo size={40} style={{ color: v.color }} />
+                    {v.overlay && <span className="icon-variant__overlay">{v.overlay}</span>}
+                  </>
+                ) : (
+                  <BeeforLogo size={40} className="icon-variant__mystery-bee" />
+                )}
               </span>
               <strong>{v.name}</strong>
               <small>{v.description}</small>

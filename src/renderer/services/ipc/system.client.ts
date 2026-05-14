@@ -32,6 +32,7 @@ export function createWindowClient(api: BeeforApi) {
     minimize: () => api.winMinimize(),
     maximize: () => api.winMaximize(),
     close: () => api.winClose(),
+    setIcon: (dataUrl: string) => api.winSetIcon(dataUrl),
   };
 }
 

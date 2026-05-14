@@ -51,6 +51,11 @@ const THEME_TOKEN_KEYS = [
   'tab-active-bg',
   'tab-active-text',
   'tab-active-border',
+  'text-on-warm',
+  'text-on-accent',
+  'today-accent',
+  'weekend-bg',
+  'today-bg',
   'radius',
 ] as const;
 
