@@ -1,8 +1,23 @@
--v0.1.7: Fiz uns ajustes bons ai...
+-v0.1.7: Ajustes™, temas™ e sofrimento™
 
-Eu tenho q escrever isso aq toda vez? Alguem realmente lê isso aq?
+Eu tenho q escrever isso aq toda vez? Alguem realmente lê!?
 
+Enfim...
+To dando um jeito de desenrolar as coisas desde ontem pq meu teclado aparentemente desenvolveu falência múltipla de keycaps 💀
+(Deus o tenha 🙏)
+Já tiveram que copiar um "R", numeros e outras teclas no ctrl+c ctrl+v? Sintam minha dor...
 
+🙏 Mas boas notícias:
+meu novo filho tá vindo pelo correio… HOJE EU ESPERO PELO MERCADO LIVRE GRITANDO😭✨
+
+Novidades:
+Adicionei uns temas novos enquanto mexo nas partes mais obscuras e amaldiçoadas do sistema…
+Porque nem só de UI/UX vive o homem
+Às vezes ele vive de debugar evento aleatório, ou entender o pq raios de prego o git n colabora
+bom...divirtam-se
+
+https://media1.tenor.com/m/pWmNeGfJ7v4AAAAd/cat-cathuman.gif
+OBS: Só eu que fiquei animado pelo BK colocar a coca-cola nas maquinas de bebida agr? TOMA ESSA McDonald's
 
 ---
 
