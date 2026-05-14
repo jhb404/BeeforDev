@@ -681,7 +681,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   gap: 5px;
   height: 28px;
   padding: 0 10px 0 6px;
-  border-radius: 999px;
+  border-radius: 8px;
   background: color-mix(in srgb, var(--ok) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--ok) 30%, transparent);
   color: var(--ok);
