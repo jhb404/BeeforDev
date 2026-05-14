@@ -13,6 +13,11 @@ export function createSystemClient(api: BeeforApi) {
       api.onPlayAlarm(cb),
     onNotify: (cb: (info: { title: string; body: string }) => void): (() => void) =>
       api.onNotify(cb),
+    onUpdateAvailable: (cb: (info: { version: string }) => void): (() => void) =>
+      api.onUpdateAvailable(cb),
+    onUpdateDownloaded: (cb: (info: { version: string }) => void): (() => void) =>
+      api.onUpdateDownloaded(cb),
+    quitAndInstallUpdate: (): Promise<void> => api.quitAndInstallUpdate(),
     getAssetPath: (): Promise<string> => api.getAssetPath(),
     readAsset: (fileName: string): Promise<string | null> => api.readAsset(fileName),
   };

@@ -66,6 +66,11 @@ export const IPC = {
   EVT_STATUS: 'evt:status',
   EVT_PLAY_ALARM: 'evt:playAlarm',
   EVT_NOTIFY: 'evt:notify',
+  EVT_UPDATE_AVAILABLE: 'evt:updateAvailable',
+  EVT_UPDATE_DOWNLOADED: 'evt:updateDownloaded',
+
+  // updater
+  UPDATER_QUIT_AND_INSTALL: 'updater:quitAndInstall',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];
