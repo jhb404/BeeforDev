@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useToast } from '../app/providers/ToastProvider';
 import { coin2uClient, sessionClient, settingsClient, systemClient } from '../services/ipc';
 import type { AppSettings } from '@shared/types';
@@ -20,6 +20,15 @@ interface SettingsProps {
   onSettingsChanged?: () => void;
 }
 
+type SettingsCategory = 'geral' | 'alertas' | 'aparencia' | 'seguranca';
+
+const CATEGORIES: Array<{ id: SettingsCategory; label: string; icon: string; hint: string }> = [
+  { id: 'geral', label: 'Geral', icon: '⚙️', hint: 'Configuração geral, jornada, tray' },
+  { id: 'alertas', label: 'Alertas', icon: '🔔', hint: 'Ponto, mood, almoço, KudoCard' },
+  { id: 'aparencia', label: 'Aparência', icon: '🎨', hint: 'Tema, densidade, layout' },
+  { id: 'seguranca', label: 'Segurança', icon: '🔒', hint: 'Credenciais, Coin2U, sessão' },
+];
+
 export function Settings({ onSettingsChanged }: SettingsProps = {}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,6 +40,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
   const [coin2uPassword, setCoin2uPassword] = useState('');
   const [coin2uSavedEmail, setCoin2uSavedEmail] = useState<string | null>(null);
   const [coin2uConnected, setCoin2uConnected] = useState<boolean>(false);
+  const [category, setCategory] = useState<SettingsCategory>('geral');
 
   const refreshAdmin = () => void systemClient.getAdminStatus().then(setAdmin);
 
@@ -188,66 +198,108 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
     }
   };
 
+  const activeCat = CATEGORIES.find((c) => c.id === category) ?? CATEGORIES[0];
+
   return (
-    <div className="settings-page">
-      <AdminBanner
-        visible={!!(needsAdmin && admin && !admin.elevated && admin.platform === 'win32')}
-        onElevate={() => void elevateNow()}
-        onDismiss={dismissAdminBanner}
-      />
+    <div className="settings-page settings-layout">
+      <aside className="settings-sidebar">
+        <h3 className="settings-sidebar__title">Configurações</h3>
+        <nav className="settings-sidebar__nav">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              className={`settings-sidebar__item ${category === cat.id ? 'active' : ''}`}
+              onClick={() => setCategory(cat.id)}
+              data-sound="tab-settings"
+            >
+              <span className="settings-sidebar__icon" aria-hidden="true">
+                {cat.icon}
+              </span>
+              <span className="settings-sidebar__label">
+                <strong>{cat.label}</strong>
+                <small>{cat.hint}</small>
+              </span>
+            </button>
+          ))}
+        </nav>
+      </aside>
 
-      <section className="settings-section">
-        <h3 className="settings-section__title">GERAL</h3>
-        <p className="settings-section__hint">CREDENCIAIS | CONFIGURAÇÃO GERAL | JORNADA</p>
-        <div className="settings-grid grid-3">
-          <CredentialsCard
-            email={email}
-            password={password}
-            savedEmail={savedEmail}
-            onEmailChange={setEmail}
-            onPasswordChange={setPassword}
-            onSave={() => void save()}
-            onClear={() => void clear()}
-            coin2uEmail={coin2uEmail}
-            coin2uPassword={coin2uPassword}
-            coin2uSavedEmail={coin2uSavedEmail}
-            coin2uConnected={coin2uConnected}
-            onCoin2uEmailChange={setCoin2uEmail}
-            onCoin2uPasswordChange={setCoin2uPassword}
-            onCoin2uSave={() => void saveCoin2u()}
-            onCoin2uTest={() => void testCoin2u()}
-            onCoin2uClear={() => void clearCoin2u()}
-          />
-          <GeneralCard settings={settings} onUpdate={update} />
-          <JornadaCard settings={settings} onUpdate={update} />
-          <TrayMenuCard settings={settings} onUpdate={update} />
-        </div>
-      </section>
+      <div className="settings-content">
+        <AdminBanner
+          visible={!!(needsAdmin && admin && !admin.elevated && admin.platform === 'win32')}
+          onElevate={() => void elevateNow()}
+          onDismiss={dismissAdminBanner}
+        />
 
-      <section className="settings-section">
-        <h3 className="settings-section__title">ALERTAS / AUTOMAÇÃO</h3>
-        <p className="settings-section__hint">BATIDA DE PONTO | MOOD | ALMOÇO | KUDOCARD</p>
-        <div className="settings-grid grid-2">
-          <PunchCard
+        <header className="settings-content__head">
+          <h2>{activeCat.label}</h2>
+          <p>{activeCat.hint}</p>
+        </header>
+
+        {category === 'geral' && (
+          <div className="settings-grid grid-2">
+            <GeneralCard settings={settings} onUpdate={update} />
+            <JornadaCard settings={settings} onUpdate={update} />
+            <TrayMenuCard settings={settings} onUpdate={update} />
+          </div>
+        )}
+
+        {category === 'alertas' && (
+          <div className="settings-grid grid-2">
+            <PunchCard
+              settings={settings}
+              onUpdate={update}
+              onUpdatePunchTime={updatePunchTime}
+              onTest={() => void testNotif('punch')}
+            />
+            <MoodCard settings={settings} onUpdate={update} onTest={() => void testNotif('mood')} />
+            <LunchCard
+              settings={settings}
+              onUpdate={update}
+              onTest={() => void testNotif('lunch')}
+            />
+            <KudoCardSettings
+              settings={settings}
+              onUpdate={update}
+              onToggleDay={toggleKudocardDay}
+              onTest={() => void testNotif('kudocard')}
+            />
+          </div>
+        )}
+
+        {category === 'aparencia' && (
+          <AppearanceSection
             settings={settings}
             onUpdate={update}
-            onUpdatePunchTime={updatePunchTime}
-            onTest={() => void testNotif('punch')}
+            onChangeViewMode={changeViewMode}
           />
-          <MoodCard settings={settings} onUpdate={update} onTest={() => void testNotif('mood')} />
-          <LunchCard settings={settings} onUpdate={update} onTest={() => void testNotif('lunch')} />
-          <KudoCardSettings
-            settings={settings}
-            onUpdate={update}
-            onToggleDay={toggleKudocardDay}
-            onTest={() => void testNotif('kudocard')}
-          />
-        </div>
-      </section>
+        )}
 
-      <AppearanceSection settings={settings} onUpdate={update} onChangeViewMode={changeViewMode} />
-
-      <SecurityCard />
+        {category === 'seguranca' && (
+          <div className="settings-grid grid-1">
+            <CredentialsCard
+              email={email}
+              password={password}
+              savedEmail={savedEmail}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+              onSave={() => void save()}
+              onClear={() => void clear()}
+              coin2uEmail={coin2uEmail}
+              coin2uPassword={coin2uPassword}
+              coin2uSavedEmail={coin2uSavedEmail}
+              coin2uConnected={coin2uConnected}
+              onCoin2uEmailChange={setCoin2uEmail}
+              onCoin2uPasswordChange={setCoin2uPassword}
+              onCoin2uSave={() => void saveCoin2u()}
+              onCoin2uTest={() => void testCoin2u()}
+              onCoin2uClear={() => void clearCoin2u()}
+            />
+            <SecurityCard />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
