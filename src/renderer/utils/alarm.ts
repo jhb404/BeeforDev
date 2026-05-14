@@ -7,7 +7,11 @@ function getCtx(): AudioContext {
 
 async function ensureRunning(audio: AudioContext) {
   if (audio.state === 'suspended') {
-    try { await audio.resume(); } catch { /* ignore */ }
+    try {
+      await audio.resume();
+    } catch {
+      /* ignore */
+    }
   }
 }
 
@@ -258,16 +262,16 @@ export async function playUiTeamOpen(): Promise<void> {
   const s = audio.currentTime;
 
   const arpeggio = [
-    { f: 587,  t: 0.00, d: 0.10 }, // D5
-    { f: 740,  t: 0.05, d: 0.10 }, // F#5
-    { f: 880,  t: 0.10, d: 0.12 }, // A5
-    { f: 1175, t: 0.15, d: 0.30 }, // D6 — sustained
+    { f: 587, t: 0.0, d: 0.1 }, // D5
+    { f: 740, t: 0.05, d: 0.1 }, // F#5
+    { f: 880, t: 0.1, d: 0.12 }, // A5
+    { f: 1175, t: 0.15, d: 0.3 }, // D6 — sustained
   ];
 
   // Triangle (warm, Nintendo-ish bass-mid)
   for (const n of arpeggio) {
     const osc = audio.createOscillator();
-    const g   = audio.createGain();
+    const g = audio.createGain();
     osc.type = 'triangle';
     osc.frequency.value = n.f;
     g.gain.setValueAtTime(0.0001, s + n.t);
@@ -280,7 +284,7 @@ export async function playUiTeamOpen(): Promise<void> {
 
   // Square layer ONLY on top note for sparkle (one octave above)
   const sparkle = audio.createOscillator();
-  const sg     = audio.createGain();
+  const sg = audio.createGain();
   sparkle.type = 'square';
   sparkle.frequency.value = 2349; // D7
   sg.gain.setValueAtTime(0.0001, s + 0.15);
@@ -298,15 +302,15 @@ export async function playUiBirthdayAlert(): Promise<void> {
   const s = audio.currentTime;
   // ascending pentatonic jingle
   const melody = [
-    { f: 523,  t: 0.00, d: 0.12 }, // C5
-    { f: 659,  t: 0.10, d: 0.12 }, // E5
-    { f: 784,  t: 0.20, d: 0.12 }, // G5
-    { f: 1047, t: 0.30, d: 0.16 }, // C6
-    { f: 1319, t: 0.40, d: 0.30 }, // E6 — held
+    { f: 523, t: 0.0, d: 0.12 }, // C5
+    { f: 659, t: 0.1, d: 0.12 }, // E5
+    { f: 784, t: 0.2, d: 0.12 }, // G5
+    { f: 1047, t: 0.3, d: 0.16 }, // C6
+    { f: 1319, t: 0.4, d: 0.3 }, // E6 — held
   ];
   for (const n of melody) {
     const osc = audio.createOscillator();
-    const g   = audio.createGain();
+    const g = audio.createGain();
     osc.type = 'triangle';
     osc.frequency.value = n.f;
     g.gain.setValueAtTime(0.0001, s + n.t);
@@ -318,13 +322,13 @@ export async function playUiBirthdayAlert(): Promise<void> {
   }
   // tiny shimmer trill on top (E7 + C7 square blips)
   const trill = [
-    { f: 2637, t: 0.40, d: 0.04 },
+    { f: 2637, t: 0.4, d: 0.04 },
     { f: 2093, t: 0.46, d: 0.04 },
     { f: 2637, t: 0.52, d: 0.06 },
   ];
   for (const n of trill) {
     const osc = audio.createOscillator();
-    const g   = audio.createGain();
+    const g = audio.createGain();
     osc.type = 'square';
     osc.frequency.value = n.f;
     g.gain.setValueAtTime(0.0001, s + n.t);
@@ -339,10 +343,110 @@ export async function playUiBirthdayAlert(): Promise<void> {
 // team refresh: quick 3-note spin (like NES disk load)
 export async function playUiTeamRefresh(): Promise<void> {
   playSequence([
-    { freq: 880,  offset: 0,    dur: 0.06, gain: 0.12, type: 'square' },
+    { freq: 880, offset: 0, dur: 0.06, gain: 0.12, type: 'square' },
     { freq: 1047, offset: 0.07, dur: 0.06, gain: 0.12, type: 'square' },
-    { freq: 1319, offset: 0.14, dur: 0.10, gain: 0.14, type: 'triangle' },
+    { freq: 1319, offset: 0.14, dur: 0.1, gain: 0.14, type: 'triangle' },
   ]);
+}
+
+// boot sound — memorable bee signature: 5 fast triangle plucks ascending +
+// sub-bass swell + shimmer + buzzing bee detune. Chiclete vibe.
+export async function playUiBoot(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+
+  const flutter = [
+    { f: 523, t: 0.0, d: 0.08 },
+    { f: 659, t: 0.07, d: 0.08 },
+    { f: 784, t: 0.14, d: 0.08 },
+    { f: 988, t: 0.21, d: 0.1 },
+    { f: 1175, t: 0.3, d: 0.2 },
+  ];
+  for (const n of flutter) {
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = n.f;
+    g.gain.setValueAtTime(0.0001, s + n.t);
+    g.gain.exponentialRampToValueAtTime(0.22, s + n.t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + n.t + n.d);
+    osc.connect(g).connect(audio.destination);
+    osc.start(s + n.t);
+    osc.stop(s + n.t + n.d + 0.02);
+  }
+
+  const sub = audio.createOscillator();
+  const subG = audio.createGain();
+  sub.type = 'sine';
+  sub.frequency.value = 98;
+  subG.gain.setValueAtTime(0.0001, s + 0.05);
+  subG.gain.exponentialRampToValueAtTime(0.14, s + 0.25);
+  subG.gain.exponentialRampToValueAtTime(0.0001, s + 0.7);
+  sub.connect(subG).connect(audio.destination);
+  sub.start(s + 0.05);
+  sub.stop(s + 0.75);
+
+  const shimmer = [
+    { f: 2349, t: 0.34, d: 0.05 },
+    { f: 2637, t: 0.42, d: 0.05 },
+    { f: 3136, t: 0.5, d: 0.1 },
+  ];
+  for (const n of shimmer) {
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = 'square';
+    osc.frequency.value = n.f;
+    g.gain.setValueAtTime(0.0001, s + n.t);
+    g.gain.exponentialRampToValueAtTime(0.04, s + n.t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + n.t + n.d);
+    osc.connect(g).connect(audio.destination);
+    osc.start(s + n.t);
+    osc.stop(s + n.t + n.d + 0.01);
+  }
+
+  const buzz1 = audio.createOscillator();
+  const buzz2 = audio.createOscillator();
+  const buzzG = audio.createGain();
+  buzz1.type = 'sawtooth';
+  buzz2.type = 'sawtooth';
+  buzz1.frequency.value = 392;
+  buzz2.frequency.value = 394;
+  buzzG.gain.setValueAtTime(0.0001, s + 0.3);
+  buzzG.gain.exponentialRampToValueAtTime(0.06, s + 0.32);
+  buzzG.gain.exponentialRampToValueAtTime(0.0001, s + 0.55);
+  buzz1.connect(buzzG);
+  buzz2.connect(buzzG);
+  buzzG.connect(audio.destination);
+  buzz1.start(s + 0.3);
+  buzz2.start(s + 0.3);
+  buzz1.stop(s + 0.58);
+  buzz2.stop(s + 0.58);
+}
+
+// profile-open — soft major chord chime (Cmaj add9)
+export async function playUiProfileOpen(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  const notes = [
+    { f: 523, t: 0.0, d: 0.3 }, // C5
+    { f: 659, t: 0.04, d: 0.3 }, // E5
+    { f: 784, t: 0.08, d: 0.32 }, // G5
+    { f: 1175, t: 0.12, d: 0.34 }, // D6 (add9)
+  ];
+  for (const n of notes) {
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = n.f;
+    g.gain.setValueAtTime(0.0001, s + n.t);
+    g.gain.exponentialRampToValueAtTime(0.14, s + n.t + 0.025);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + n.t + n.d);
+    osc.connect(g).connect(audio.destination);
+    osc.start(s + n.t);
+    osc.stop(s + n.t + n.d + 0.02);
+  }
 }
 
 // coin pickup — Mario "ding" two-note (B5 → E6)
@@ -381,29 +485,75 @@ export type UiSoundKind =
   | 'success'
   | 'team-open'
   | 'team-refresh'
-  | 'birthday';
+  | 'birthday'
+  | 'boot'
+  | 'profile-open';
 
 export function playUiSound(kind: UiSoundKind): void {
   switch (kind) {
-    case 'click': void playUiClick(); return;
-    case 'close': void playUiClose(); return;
-    case 'tab-home': void playUiTabHome(); return;
-    case 'tab-settings': void playUiTabSettings(); return;
-    case 'calendar-pick': void playUiCalendarPick(); return;
-    case 'mood-select': void playUiMoodSelect(); return;
-    case 'auto-lancar-start': void playUiAutoLancarStart(); return;
-    case 'auto-lancar-success': void playUiAutoLancarSuccess(); return;
-    case 'kudo-open': void playUiKudoOpen(); return;
-    case 'kudo-sent': void playUiKudoSent(); return;
-    case 'theme-toggle': void playUiThemeToggle(); return;
-    case 'journal': void playUiJournal(); return;
-    case 'lancar-dia': void playUiLancarDia(); return;
-    case 'notify': void playUiNotify(); return;
-    case 'coin': void playUiCoin(); return;
-    case 'success': void playUiSuccess(); return;
-    case 'team-open': void playUiTeamOpen(); return;
-    case 'team-refresh': void playUiTeamRefresh(); return;
-    case 'birthday': void playUiBirthdayAlert(); return;
+    case 'click':
+      void playUiClick();
+      return;
+    case 'close':
+      void playUiClose();
+      return;
+    case 'tab-home':
+      void playUiTabHome();
+      return;
+    case 'tab-settings':
+      void playUiTabSettings();
+      return;
+    case 'calendar-pick':
+      void playUiCalendarPick();
+      return;
+    case 'mood-select':
+      void playUiMoodSelect();
+      return;
+    case 'auto-lancar-start':
+      void playUiAutoLancarStart();
+      return;
+    case 'auto-lancar-success':
+      void playUiAutoLancarSuccess();
+      return;
+    case 'kudo-open':
+      void playUiKudoOpen();
+      return;
+    case 'kudo-sent':
+      void playUiKudoSent();
+      return;
+    case 'theme-toggle':
+      void playUiThemeToggle();
+      return;
+    case 'journal':
+      void playUiJournal();
+      return;
+    case 'lancar-dia':
+      void playUiLancarDia();
+      return;
+    case 'notify':
+      void playUiNotify();
+      return;
+    case 'coin':
+      void playUiCoin();
+      return;
+    case 'success':
+      void playUiSuccess();
+      return;
+    case 'team-open':
+      void playUiTeamOpen();
+      return;
+    case 'team-refresh':
+      void playUiTeamRefresh();
+      return;
+    case 'birthday':
+      void playUiBirthdayAlert();
+      return;
+    case 'boot':
+      void playUiBoot();
+      return;
+    case 'profile-open':
+      void playUiProfileOpen();
+      return;
   }
 }
 
@@ -411,10 +561,15 @@ export type AlarmKind = 'mood' | 'lunch' | 'punch' | 'kudocard' | 'default';
 
 export async function playAlarmByKind(kind: AlarmKind): Promise<void> {
   switch (kind) {
-    case 'mood': return playMoodAlarm();
-    case 'lunch': return playLunchAlarm();
-    case 'punch': return playPunchAlarm();
-    case 'kudocard': return playKudocardAlarm();
-    default: return playAlarm();
+    case 'mood':
+      return playMoodAlarm();
+    case 'lunch':
+      return playLunchAlarm();
+    case 'punch':
+      return playPunchAlarm();
+    case 'kudocard':
+      return playKudocardAlarm();
+    default:
+      return playAlarm();
   }
 }

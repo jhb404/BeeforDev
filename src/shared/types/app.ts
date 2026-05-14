@@ -2,6 +2,32 @@ import type { Coin2uOrg } from './coin2u';
 
 export type KudocardFrequency = 'once' | 'twice' | 'custom';
 
+export type TrayMenuItemType =
+  | 'open'
+  | 'autoLancamento'
+  | 'mood'
+  | 'openBeefor'
+  | 'logout'
+  | 'separator'
+  | 'quit'
+  | 'lunchTimer'
+  | 'sendKudo'
+  | 'sendCoins';
+
+export interface TrayMenuItem {
+  id: string;
+  type: TrayMenuItemType;
+}
+
+export const DEFAULT_TRAY_MENU: TrayMenuItem[] = [
+  { id: '1', type: 'open' },
+  { id: '2', type: 'separator' },
+  { id: '3', type: 'autoLancamento' },
+  { id: '4', type: 'mood' },
+  { id: '5', type: 'separator' },
+  { id: '6', type: 'quit' },
+];
+
 export interface ThemeOverrides {
   accent: string;
   accentHover: string;
@@ -69,6 +95,9 @@ export interface AppSettings {
 
   /** UI click/hover sound effects */
   uiSounds?: boolean;
+
+  /** Custom tray menu items in order */
+  trayMenu?: TrayMenuItem[];
 
   /** Coin2U userId (numeric) for dashboard fetch — auto-captured on login */
   coin2uUserId?: number;

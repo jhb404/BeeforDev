@@ -68,6 +68,10 @@ export const IPC = {
   EVT_NOTIFY: 'evt:notify',
   EVT_UPDATE_AVAILABLE: 'evt:updateAvailable',
   EVT_UPDATE_DOWNLOADED: 'evt:updateDownloaded',
+  EVT_TRAY_LUNCH_TIMER: 'evt:trayLunchTimer',
+  EVT_TRAY_OPEN_KUDO: 'evt:trayOpenKudo',
+  EVT_TRAY_OPEN_COINS: 'evt:trayOpenCoins',
+  TRAY_SET_LUNCH_ACTIVE: 'tray:setLunchActive',
 
   // updater
   UPDATER_QUIT_AND_INSTALL: 'updater:quitAndInstall',

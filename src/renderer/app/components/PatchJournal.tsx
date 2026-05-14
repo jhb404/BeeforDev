@@ -98,13 +98,40 @@ function renderTokens(text: string): ReactNode[] {
 }
 
 function renderJournal(raw: string): ReactNode {
-  const lines = raw.split('\n');
-  return lines.map((line, i) => (
-    <Fragment key={i}>
-      {renderTokens(line)}
-      {i < lines.length - 1 && <br />}
-    </Fragment>
-  ));
+  // Split into version cards by `---` separator
+  const blocks = raw
+    .split(/\n\s*---\s*\n/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+
+  if (blocks.length === 0) return null;
+
+  return blocks.map((block, idx) => {
+    const lines = block.split('\n');
+    let title = '';
+    let body = lines;
+    const first = lines[0]?.trim() ?? '';
+    // Match "- vX.Y.Z: rest"
+    const versionMatch = first.match(/^-?\s*(v[\d.]+):\s*(.*)$/i);
+    if (versionMatch) {
+      const [, version, rest] = versionMatch;
+      title = rest ? `${version} — ${rest}` : version;
+      body = lines.slice(1);
+    }
+    return (
+      <article key={idx} className="patch-card">
+        {title && <h3 className="patch-card__version">{title}</h3>}
+        <div className="patch-card__body">
+          {body.map((line, i) => (
+            <Fragment key={i}>
+              {renderTokens(line)}
+              {i < body.length - 1 && <br />}
+            </Fragment>
+          ))}
+        </div>
+      </article>
+    );
+  });
 }
 
 function RoadmapBlock({ section }: { section: RoadmapSection }) {

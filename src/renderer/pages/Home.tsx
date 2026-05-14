@@ -202,6 +202,12 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
 
   useEscapeToClose(showBatchModal, () => setShowBatchModal(false));
 
+  useEffect(() => {
+    const handler = () => setShowKudoModal(true);
+    window.addEventListener('beefor:open-kudo', handler);
+    return () => window.removeEventListener('beefor:open-kudo', handler);
+  }, []);
+
   const autoLancamento = async () => {
     await wrap(async () => {
       const res = await timesheetClient.autoLancamento();
