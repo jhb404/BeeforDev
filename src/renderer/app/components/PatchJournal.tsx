@@ -1,70 +1,73 @@
 import { Fragment, type ReactNode } from 'react';
 
-const ROADMAP: string[] = [
-'Sistema de notificações reformulado',
-'Melhorias gerais de UI/UX',
-'Redução de consumo de CPU e RAM',
-'Refatoração de código',
-'Implementação de cache',
-'Melhorias de loading e inicialização',
-'Atualizações automáticas do app',
-'Retry automático configurável',
-'Backup automático de configurações',
-'Novas opções de customização',
-'Suporte multi-idioma (PT-BR / EN-US / EN-GB)',
-'Envio de coins direto pelo app',
-'Porte para MacBook em andamento 🍎',
+interface RoadmapSection {
+  title: string;
+  items: string[];
+}
 
-// 🎨 Customização
-'Escolha da cor do ícone do Beefor',
-'Tema totalmente dinâmico',
-'Customização de dark/light mode',
-'Layouts Minimalista e Padrão',
-'Atalhos de teclado configuráveis',
-'Home customizável via drag-and-drop',
-'Menu da bandeja editável',
-'Sons personalizados para ações',
-
-// 🚀 Performance
-'Nova animação de loading',
-'Splash screen animada',
-'Asas animadas na inicialização 🪽',
-'Som especial ao abrir o app 🎮',
-'Inicialização mais rápida e inteligente',
-
-// 🫂 Social
-'Meme Center™',
-'Envio de memes entre amigos',
-'Mensagens internas divertidas',
-'Urso pidão pedindo coin2u 🐻💸',
-'Meu Timão Lindo 💛',
-
-// ⚙️ Melhorias úteis
-'Auto lançamento mais rápido',
-'Atualização automática do calendário',
-'Integração com notificações do Niko',
-'Melhorias no Kudocard e histórico',
-'Integração com coin2u',
-'Correções nas notificações do Kudocard',
-
-// 🔮 Futuro
-'App extremamente otimizado',
-'Uso mínimo de memória RAM',
-'Integração com Lark/Teams/LocalWeb',
-'Automação de batida de ponto',
-'Histórico salarial',
-'Armazenamento de documentos importantes',
-'Integração com assessments/cards',
-'Exportar/importar configurações em JSON',
-'API local para automações externas',
-'Backup automático de sessão/config',
-
-// 🎨 White Mode
-'Revamp completo do White Mode',
-'Melhor contraste e legibilidade',
-'Visual mais moderno e premium ✨',
+const RELEASED: RoadmapSection[] = [
+  {
+    title: '✨ Novidades recentes',
+    items: [
+      '🚀 Melhorias de perrformance',
+      '💰 Cards de "Valor extras" e "Total estimado" opcionais (Settings → Jornada)',
+      '📐 Layout responsivo dos cards de resumo',
+      '🌗 Hover do mood btn corrigido no light mode',
+    ],
+  },
+  {
+    title: '🏗️ Bastidores (arquitetura)',
+    items: [
+      'Refactor pra feature-sliced (coin2u, kudo, team isolados)',
+      'Dependency Injection nos IPC clients (testável + mobile-ready)',
+      'Typed Result com discriminated union — menos bugs de tipo',
+      '55+ testes automatizados (hooks puros + utils)',
+      'ErrorBoundary por aba — crash em uma área não derruba app',
+      'ESLint + Prettier + Husky — código sempre consistente',
+      'i18n setup (pt-BR + en) — preparado pra internacional',
+    ],
+  },
 ];
 
+const UPCOMING: RoadmapSection[] = [
+  {
+    title: '🔮 Próxima release',
+    items: [
+      '🔔 Notificações',
+      '📊 Dashboard mensal com gráficos',
+      '📅 Agendamento de auto-lançamento em horário fixo',
+      '🐛 Logger unificado (menos console.log perdido)',
+      'Tem mais coisas mas to planejando ainda...',
+    ],
+  },
+  {
+    title: '🛣️ Em breve',
+    items: [
+      '🌐 Migrar Beefor 100% pra API REST (sem Playwright = mais rápido)',
+      '📱 Versão mobile (iOS + Android) — code share via Capacitor',
+      '🍎 Suporte completo macOS (build + signing + notarization)',
+      '🔐 Code signing Windows (sem warning "Unknown publisher")',
+      'Tem mais coisas mas to planejando ainda...',
+    ],
+  },
+  {
+    title: '💭 Wishlist',
+    items: [
+      '🔗 Sincronização cross-device (configs entre PCs)',
+      '📆 Integração com Google Calendar / Outlook',
+      '🧩 Plugin system pra extensões custom',
+      '📈 Telemetria local opt-in (saber padrões pessoais)',
+      'Tem mais coisas mas to planejando ainda...',
+    ],
+  },
+];
+
+const HISTORY: RoadmapSection[] = [
+  {
+    title: '📦 v0.1.2 — Discord installer',
+    items: ['One-click installer', 'Auto-update agressivo', 'CI/CD release automatizado no merge'],
+  },
+];
 
 const URL_RE = /(https?:\/\/[^\s)]+)/g;
 const IMG_EXT = /\.(gif|png|jpe?g|webp|svg)(\?.*)?$/i;
@@ -79,13 +82,7 @@ function renderTokens(text: string): ReactNode[] {
     if (idx > lastIdx) out.push(text.slice(lastIdx, idx));
     if (IMG_EXT.test(url)) {
       out.push(
-        <img
-          key={`img-${key++}`}
-          src={url}
-          alt=""
-          className="patch-journal-img"
-          loading="lazy"
-        />,
+        <img key={`img-${key++}`} src={url} alt="" className="patch-journal-img" loading="lazy" />,
       );
     } else {
       out.push(
@@ -110,19 +107,40 @@ function renderJournal(raw: string): ReactNode {
   ));
 }
 
+function RoadmapBlock({ section }: { section: RoadmapSection }) {
+  return (
+    <div className="roadmap-block">
+      <h4 className="roadmap-subtitle">{section.title}</h4>
+      <ol className="roadmap-list">
+        {section.items.map((step, i) => (
+          <li key={i} className="roadmap-item">
+            <span className="roadmap-dot" aria-hidden="true" />
+            <span className="roadmap-label">{step}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 export function PatchJournal({ text }: { text: string }) {
   return (
     <div className="patch-journal-wrap">
       <section className="roadmap">
-        <h3 className="roadmap-title">Próximos passos</h3>
-        <ol className="roadmap-list">
-          {ROADMAP.map((step, i) => (
-            <li key={i} className="roadmap-item">
-              <span className="roadmap-dot" aria-hidden="true" />
-              <span className="roadmap-label">{step}</span>
-            </li>
-          ))}
-        </ol>
+        <h3 className="roadmap-title">🆕 v0.1.x — Em produção</h3>
+        {RELEASED.map((s, i) => (
+          <RoadmapBlock key={`r-${i}`} section={s} />
+        ))}
+
+        <h3 className="roadmap-title">🔮 O que tá vindo</h3>
+        {UPCOMING.map((s, i) => (
+          <RoadmapBlock key={`u-${i}`} section={s} />
+        ))}
+
+        <h3 className="roadmap-title">📜 Histórico</h3>
+        {HISTORY.map((s, i) => (
+          <RoadmapBlock key={`h-${i}`} section={s} />
+        ))}
       </section>
       <div className="patch-journal-copy">{renderJournal(text)}</div>
     </div>

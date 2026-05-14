@@ -98,6 +98,19 @@ const api = {
     return () => ipcRenderer.removeListener(IPC.EVT_NOTIFY, listener);
   },
 
+  // Updater events
+  onUpdateAvailable: (cb: (info: { version: string }) => void): (() => void) => {
+    const listener = (_e: unknown, info: { version: string }) => cb(info);
+    ipcRenderer.on(IPC.EVT_UPDATE_AVAILABLE, listener);
+    return () => ipcRenderer.removeListener(IPC.EVT_UPDATE_AVAILABLE, listener);
+  },
+  onUpdateDownloaded: (cb: (info: { version: string }) => void): (() => void) => {
+    const listener = (_e: unknown, info: { version: string }) => cb(info);
+    ipcRenderer.on(IPC.EVT_UPDATE_DOWNLOADED, listener);
+    return () => ipcRenderer.removeListener(IPC.EVT_UPDATE_DOWNLOADED, listener);
+  },
+  quitAndInstallUpdate: (): Promise<void> => ipcRenderer.invoke(IPC.UPDATER_QUIT_AND_INSTALL),
+
   // Window controls (frameless)
   winMinimize: () => ipcRenderer.send(IPC.WIN_MINIMIZE),
   winMaximize: () => ipcRenderer.send(IPC.WIN_MAXIMIZE),

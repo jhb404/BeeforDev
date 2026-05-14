@@ -83,7 +83,7 @@ async function bootstrap() {
   void revealMainWindow(mainWindow, splash).then(() => {
     startWatchdog(getWindow);
     startScheduler(getWindow);
-    setupAutoUpdater();
+    setupAutoUpdater(getWindow);
   });
 
   app.on('activate', () => {

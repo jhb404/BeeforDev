@@ -3,6 +3,7 @@ import { Bell, Moon, Newspaper, Sun } from '../../components/common/Icons';
 import { TeamButton } from '../../features/team/components/TeamButton';
 import type { AppSettings, TodayAlert } from '@shared/types';
 import { BellPanel } from './BellPanel';
+import { UpdateBadge } from './UpdateBadge';
 
 const Coin2uBadge = lazy(() =>
   import('../../features/coin2u/components/Coin2uBadge').then((m) => ({ default: m.Coin2uBadge })),
@@ -11,8 +12,18 @@ const Coin2uBadge = lazy(() =>
 type Tab = 'home' | 'settings';
 
 const MONTH_NAMES_PT = [
-  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
 ];
 
 function currentMonthLabel(): string {
@@ -85,6 +96,7 @@ export function TopBar({
         </div>
       </div>
       <div className="topbar-actions">
+        <UpdateBadge />
         <div className="bell-wrap" ref={bellRef}>
           <button
             className="icon-btn"
@@ -92,9 +104,7 @@ export function TopBar({
             onClick={() => setBellOpen((o) => !o)}
           >
             <Bell size={18} />
-            {visibleAlerts.length > 0 && (
-              <span className="bell-badge">{visibleAlerts.length}</span>
-            )}
+            {visibleAlerts.length > 0 && <span className="bell-badge">{visibleAlerts.length}</span>}
           </button>
           {bellOpen && (
             <BellPanel

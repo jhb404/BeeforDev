@@ -1,3 +1,18 @@
+- v0.1.2: Instalado ignorante 🎨
+
+One-click install, sem perguntar pasta, sem tela chata.
+Auto-update agressivo: baixa silencioso → instala → reinicia sozinho.
+
+---
+
+- v0.1.1: Auto-update chegou 🚀
+
+Agora o app se atualiza sozinho em background yeeeah.
+Quando uma versão nova sair, ele baixa silencioso e instala no próximo restart.
+Você nunca mais vai precisar baixar manualmente. Bem-vindo ao futuro kk 😎
+
+---
+
 - v0.1.0: Oiiieee 👋😊
 
 Se tu abriu isso aqui, parabéns 🎉 tu oficialmente virou beta tester da primeira versão desse app kkk.
