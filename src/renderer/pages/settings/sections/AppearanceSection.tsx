@@ -1,5 +1,7 @@
 ﻿import type { AppSettings } from '@shared/types';
 import { Switch } from '../Switch';
+import { useGamification } from '../../../features/gamification';
+import type { ThemePreset } from '../../../features/gamification';
 
 interface AppearanceSectionProps {
   settings: AppSettings;
@@ -22,16 +24,11 @@ export function AppearanceSection({
   return (
     <section className="settings-section">
       <h3 className="settings-section__title">PERSONALIZAÇÃO / APARÊNCIA</h3>
-      <p className="settings-section__hint">
-        VISUALIZAÇÃO | DENSIDADE | EDITOR DE TEMA | LOGO
-      </p>
+      <p className="settings-section__hint">VISUALIZAÇÃO | DENSIDADE | EDITOR DE TEMA | LOGO</p>
       <div className="settings-grid grid-1">
-        <ViewModeCard
-          settings={settings}
-          onUpdate={onUpdate}
-          onChangeViewMode={onChangeViewMode}
-        />
+        <ViewModeCard settings={settings} onUpdate={onUpdate} onChangeViewMode={onChangeViewMode} />
         <DensityCard settings={settings} onUpdate={onUpdate} />
+        <ThemePresetsCard settings={settings} onUpdate={onUpdate} />
         <ThemeEditorCard settings={settings} onUpdate={onUpdate} />
         <LogoCard settings={settings} onUpdate={onUpdate} />
       </div>
@@ -39,11 +36,65 @@ export function AppearanceSection({
   );
 }
 
-function ViewModeCard({
+function ThemePresetsCard({
   settings,
   onUpdate,
-  onChangeViewMode,
-}: AppearanceSectionProps) {
+}: Pick<AppearanceSectionProps, 'settings' | 'onUpdate'>) {
+  const { themePresets, isThemePresetUnlocked } = useGamification();
+
+  const applyPreset = (preset: ThemePreset) => {
+    if (!isThemePresetUnlocked(preset.id)) return;
+    onUpdate('themeOverrides', preset.tokens);
+  };
+
+  const activePresetId = themePresets.find(
+    (p) => JSON.stringify(p.tokens) === JSON.stringify(settings.themeOverrides ?? {}),
+  )?.id;
+
+  return (
+    <div className="card">
+      <h2>Temas</h2>
+      <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
+        Presets prontos. Alguns são desbloqueados ao alcançar conquistas.{' '}
+        <em style={{ color: 'var(--warm)' }}>Em desenvolvimento — persistência virá em breve.</em>
+      </p>
+      <div className="theme-presets-grid">
+        {themePresets.map((preset) => {
+          const unlocked = isThemePresetUnlocked(preset.id);
+          const active = activePresetId === preset.id;
+          return (
+            <button
+              key={preset.id}
+              type="button"
+              className={`theme-preset ${active ? 'theme-preset--active' : ''} ${unlocked ? '' : 'theme-preset--locked'}`}
+              onClick={() => applyPreset(preset)}
+              disabled={!unlocked}
+              title={
+                unlocked ? preset.description : `Bloqueado — requer conquista "${preset.requires}"`
+              }
+              data-sound="click"
+            >
+              <span className="theme-preset__swatches" aria-hidden="true">
+                {preset.swatches.map((c, i) => (
+                  <span key={i} className="theme-preset__swatch" style={{ background: c }} />
+                ))}
+              </span>
+              <strong>{preset.name}</strong>
+              <small>{preset.description}</small>
+              {!unlocked && (
+                <span className="theme-preset__lock" aria-hidden="true">
+                  🔒
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ViewModeCard({ settings, onUpdate, onChangeViewMode }: AppearanceSectionProps) {
   return (
     <div className="card">
       <h2>Visualização</h2>
@@ -255,10 +306,7 @@ function ThemeEditorCard({
   );
 }
 
-function LogoCard({
-  settings,
-  onUpdate,
-}: Pick<AppearanceSectionProps, 'settings' | 'onUpdate'>) {
+function LogoCard({ settings, onUpdate }: Pick<AppearanceSectionProps, 'settings' | 'onUpdate'>) {
   return (
     <div className="card">
       <h2>Logo do app</h2>

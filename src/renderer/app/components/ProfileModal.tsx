@@ -1,4 +1,12 @@
+import { useState } from 'react';
 import { ModalShell } from '../../components/ui/ModalShell';
+import {
+  ACHIEVEMENTS,
+  ICON_VARIANTS,
+  XP_REWARDS,
+  useGamification,
+  type XpAction,
+} from '../../features/gamification';
 
 interface Props {
   open: boolean;
@@ -7,113 +15,267 @@ interface Props {
   userEmail?: string;
 }
 
-// Mock stats — will come from real data later
-const MOCK_STATS = {
-  level: 7,
-  xp: 1240,
-  xpNext: 2000,
-  streak: 12,
-  totalLancamentos: 87,
-  totalKudos: 14,
-  coinsGanhos: 3200,
-};
-
-const ACHIEVEMENTS = [
-  { id: 'first-lancar', icon: '⚡', label: 'Primeiro lançamento', unlocked: true },
-  { id: 'mood-week', icon: '😄', label: '7 dias de mood', unlocked: true },
-  { id: 'kudo-giver', icon: '🎁', label: 'Enviou 10 kudos', unlocked: true },
-  { id: 'streak-month', icon: '🔥', label: '30 dias de streak', unlocked: false },
-  { id: 'coin-collector', icon: '💰', label: '5000 coins', unlocked: false },
-  { id: 'beefor-master', icon: '🐝', label: 'Beefor Master', unlocked: false },
-];
+type View = 'home' | 'xp-info' | 'icons';
 
 export function ProfileModal({ open, onClose, userName, userEmail }: Props) {
-  const xpPct = Math.min(100, Math.round((MOCK_STATS.xp / MOCK_STATS.xpNext) * 100));
+  const { stats, isAchievementUnlocked, isIconUnlocked } = useGamification();
+  const [view, setView] = useState<View>('home');
+
+  const xpPct = Math.min(100, Math.round((stats.xp / stats.xpNext) * 100));
+  const activeIconId =
+    stats.unlockedIconVariantIds[stats.unlockedIconVariantIds.length - 1] ?? 'orange';
+  const activeIcon = ICON_VARIANTS.find((v) => v.id === activeIconId);
+
+  const handleClose = () => {
+    setView('home');
+    onClose();
+  };
 
   return (
     <ModalShell
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       className="profile-modal"
       labelledBy="profile-modal-title"
     >
       <div className="modal-head">
         <div>
           <p className="eyebrow">Perfil</p>
-          <h2 id="profile-modal-title">Meu perfil</h2>
+          <h2 id="profile-modal-title">
+            {view === 'home' && 'Meu perfil'}
+            {view === 'xp-info' && 'Como funciona o XP'}
+            {view === 'icons' && 'Variantes de ícone'}
+          </h2>
         </div>
-        <button type="button" className="secondary compact" onClick={onClose} data-sound="close">
-          Fechar
-        </button>
+        <div className="profile-modal__head-actions">
+          {view !== 'home' && (
+            <button
+              type="button"
+              className="secondary compact"
+              onClick={() => setView('home')}
+              data-sound="click"
+            >
+              ← Voltar
+            </button>
+          )}
+          <button
+            type="button"
+            className="secondary compact"
+            onClick={handleClose}
+            data-sound="close"
+          >
+            Fechar
+          </button>
+        </div>
       </div>
 
       <div className="profile-modal__body">
-        <div className="profile-modal__header">
-          <div className="profile-modal__avatar">
-            <span>{(userName ?? 'JB').slice(0, 2).toUpperCase()}</span>
-            <div className="profile-modal__level-badge">Lv {MOCK_STATS.level}</div>
-          </div>
-          <div className="profile-modal__identity">
-            <strong className="profile-modal__name">{userName ?? 'Beta Tester'}</strong>
-            <span className="profile-modal__email">{userEmail ?? '—'}</span>
-          </div>
-        </div>
+        {view === 'home' && (
+          <ProfileHome
+            userName={userName}
+            userEmail={userEmail}
+            xpPct={xpPct}
+            stats={stats}
+            activeIcon={activeIcon?.preview ?? '🐝'}
+            isAchievementUnlocked={isAchievementUnlocked}
+            onOpenXpInfo={() => setView('xp-info')}
+            onOpenIcons={() => setView('icons')}
+          />
+        )}
 
-        <div className="profile-modal__xp">
-          <div className="profile-modal__xp-info">
-            <span>XP</span>
-            <span>
-              {MOCK_STATS.xp} / {MOCK_STATS.xpNext}
-            </span>
-          </div>
-          <div className="profile-modal__xp-bar">
-            <div className="profile-modal__xp-fill" style={{ width: `${xpPct}%` }} />
-          </div>
-        </div>
+        {view === 'xp-info' && <XpInfoView />}
 
-        <div className="profile-modal__stats">
-          <div className="profile-stat">
-            <span className="profile-stat__icon">🔥</span>
-            <span className="profile-stat__value">{MOCK_STATS.streak}</span>
-            <span className="profile-stat__label">streak</span>
-          </div>
-          <div className="profile-stat">
-            <span className="profile-stat__icon">⚡</span>
-            <span className="profile-stat__value">{MOCK_STATS.totalLancamentos}</span>
-            <span className="profile-stat__label">lançamentos</span>
-          </div>
-          <div className="profile-stat">
-            <span className="profile-stat__icon">🎁</span>
-            <span className="profile-stat__value">{MOCK_STATS.totalKudos}</span>
-            <span className="profile-stat__label">kudos enviados</span>
-          </div>
-          <div className="profile-stat">
-            <span className="profile-stat__icon">💰</span>
-            <span className="profile-stat__value">{MOCK_STATS.coinsGanhos}</span>
-            <span className="profile-stat__label">coins ganhos</span>
-          </div>
-        </div>
+        {view === 'icons' && (
+          <IconsView isIconUnlocked={isIconUnlocked} activeIconId={activeIconId} />
+        )}
+      </div>
+    </ModalShell>
+  );
+}
 
-        <div className="profile-modal__achievements">
-          <h3 className="profile-modal__section-title">🏆 Conquistas</h3>
-          <div className="profile-modal__achievement-grid">
-            {ACHIEVEMENTS.map((a) => (
+interface ProfileHomeProps {
+  userName?: string;
+  userEmail?: string;
+  xpPct: number;
+  stats: ReturnType<typeof useGamification>['stats'];
+  activeIcon: string;
+  isAchievementUnlocked: (id: string) => boolean;
+  onOpenXpInfo: () => void;
+  onOpenIcons: () => void;
+}
+
+function ProfileHome({
+  userName,
+  userEmail,
+  xpPct,
+  stats,
+  activeIcon,
+  isAchievementUnlocked,
+  onOpenXpInfo,
+  onOpenIcons,
+}: ProfileHomeProps) {
+  return (
+    <>
+      <div className="profile-modal__header">
+        <button
+          type="button"
+          className="profile-modal__avatar profile-modal__avatar--button"
+          onClick={onOpenIcons}
+          title="Trocar ícone"
+          aria-label="Trocar variante de ícone"
+        >
+          <span className="profile-modal__avatar-icon">{activeIcon}</span>
+          <div className="profile-modal__level-badge">Lv {stats.level}</div>
+        </button>
+        <div className="profile-modal__identity">
+          <strong className="profile-modal__name">{userName ?? 'Beta Tester'}</strong>
+          <span className="profile-modal__email">{userEmail ?? '—'}</span>
+        </div>
+      </div>
+
+      <div className="profile-modal__xp">
+        <div className="profile-modal__xp-info">
+          <span>XP</span>
+          <button
+            type="button"
+            className="profile-modal__xp-help"
+            onClick={onOpenXpInfo}
+            aria-label="Como funciona o XP"
+            title="Como funciona o XP"
+          >
+            ?
+          </button>
+          <span className="profile-modal__xp-numbers">
+            {stats.xp} / {stats.xpNext}
+          </span>
+        </div>
+        <div className="profile-modal__xp-bar">
+          <div className="profile-modal__xp-fill" style={{ width: `${xpPct}%` }} />
+        </div>
+      </div>
+
+      <div className="profile-modal__stats">
+        <div className="profile-stat">
+          <span className="profile-stat__icon">🔥</span>
+          <span className="profile-stat__value">{stats.moodStreak}</span>
+          <span className="profile-stat__label">streak de mood</span>
+        </div>
+        <div className="profile-stat">
+          <span className="profile-stat__icon">⚡</span>
+          <span className="profile-stat__value">{stats.totalLancamentos}</span>
+          <span className="profile-stat__label">lançamentos</span>
+        </div>
+        <div className="profile-stat">
+          <span className="profile-stat__icon">🎁</span>
+          <span className="profile-stat__value">{stats.totalKudos}</span>
+          <span className="profile-stat__label">kudos enviados</span>
+        </div>
+        <div className="profile-stat">
+          <span className="profile-stat__icon">💰</span>
+          <span className="profile-stat__value">{stats.coinsGanhos}</span>
+          <span className="profile-stat__label">coins ganhos</span>
+        </div>
+      </div>
+
+      <div className="profile-modal__achievements">
+        <h3 className="profile-modal__section-title">🏆 Conquistas</h3>
+        <div className="profile-modal__achievement-grid">
+          {ACHIEVEMENTS.map((a) => {
+            const unlocked = isAchievementUnlocked(a.id);
+            return (
               <div
                 key={a.id}
-                className={`profile-achievement ${a.unlocked ? '' : 'profile-achievement--locked'}`}
-                title={a.label}
+                className={`profile-achievement ${unlocked ? '' : 'profile-achievement--locked'}`}
+                title={a.description}
               >
                 <span className="profile-achievement__icon">{a.icon}</span>
                 <span className="profile-achievement__label">{a.label}</span>
+                {!unlocked && (
+                  <span className="profile-achievement__lock" aria-hidden="true">
+                    🔒
+                  </span>
+                )}
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
-
-        <p className="profile-modal__hint">
-          💡 Sistema de gamificação em desenvolvimento. Dados reais virão em breve!
-        </p>
       </div>
-    </ModalShell>
+
+      <p className="profile-modal__hint">
+        💡 Sistema de gamificação em desenvolvimento. Dados reais (streak, XP, conquistas) virão em
+        breve, conectados ao backend.
+      </p>
+    </>
+  );
+}
+
+function XpInfoView() {
+  const actions = Object.entries(XP_REWARDS) as Array<[XpAction, (typeof XP_REWARDS)[XpAction]]>;
+  return (
+    <div className="xp-info">
+      <p className="xp-info__intro">
+        Cada ação no Beefor te dá <strong>XP</strong>. Ao acumular XP suficiente, você sobe de nível
+        e desbloqueia conquistas, temas e variantes de ícone.
+      </p>
+      <ul className="xp-info__list">
+        {actions.map(([action, info]) => (
+          <li key={action} className="xp-info__row">
+            <span className="xp-info__xp">+{info.xp} XP</span>
+            <span className="xp-info__body">
+              <strong>{info.label}</strong>
+              <small>{info.hint}</small>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="profile-modal__hint">
+        💡 Em desenvolvimento. Os valores podem mudar conforme balanceamento do sistema.
+      </p>
+    </div>
+  );
+}
+
+interface IconsViewProps {
+  isIconUnlocked: (id: string) => boolean;
+  activeIconId: string;
+}
+
+function IconsView({ isIconUnlocked, activeIconId }: IconsViewProps) {
+  return (
+    <div className="icon-variants">
+      <p className="icon-variants__intro">
+        Escolha sua variante de ícone. Algumas só desbloqueiam após conquistas.
+      </p>
+      <div className="icon-variants__grid">
+        {ICON_VARIANTS.map((v) => {
+          const unlocked = isIconUnlocked(v.id);
+          const active = activeIconId === v.id;
+          return (
+            <button
+              key={v.id}
+              type="button"
+              className={`icon-variant ${active ? 'icon-variant--active' : ''} ${unlocked ? '' : 'icon-variant--locked'}`}
+              disabled={!unlocked}
+              title={unlocked ? v.description : `Bloqueado: requer conquista "${v.requires}"`}
+              data-sound="click"
+            >
+              <span className="icon-variant__preview" aria-hidden="true">
+                {v.preview}
+              </span>
+              <strong>{v.name}</strong>
+              <small>{v.description}</small>
+              {!unlocked && (
+                <span className="icon-variant__lock" aria-hidden="true">
+                  🔒
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <p className="profile-modal__hint">
+        💡 Troca de ícone em tempo real está sendo desenvolvida. Por enquanto a seleção é só visual.
+      </p>
+    </div>
   );
 }
