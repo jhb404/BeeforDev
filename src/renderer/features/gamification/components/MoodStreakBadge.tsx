@@ -27,7 +27,7 @@ export function MoodStreakBadge({ variant = 'inline' }: Props) {
         title={`Mood preenchido por ${streak} dias. Clique para ver o ranking.`}
         aria-label={`${streak} dias de streak — abrir ranking`}
         onClick={() => setRankingOpen(true)}
-        data-sound="click"
+        data-sound="streak-open"
       >
         <span className="mood-streak__flame" aria-hidden="true">
           🔥

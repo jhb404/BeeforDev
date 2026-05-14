@@ -4,6 +4,7 @@ import { BeeforLogo } from '../../components/common/BeeforLogo';
 import {
   ACHIEVEMENTS,
   ICON_VARIANTS,
+  UnlockCodeModal,
   XP_REWARDS,
   useGamification,
   type IconVariant,
@@ -248,10 +249,12 @@ interface IconsViewProps {
 }
 
 function IconsView({ isIconUnlocked, activeIconId }: IconsViewProps) {
+  const [codeModalIcon, setCodeModalIcon] = useState<IconVariant | null>(null);
+
   return (
     <div className="icon-variants">
       <p className="icon-variants__intro">
-        Escolha sua variante de ícone. Algumas só desbloqueiam após conquistas.
+        Escolha sua variante de ícone. Bloqueado? <strong>Clique 2x</strong> pra inserir código.
       </p>
       <div className="icon-variants__grid">
         {ICON_VARIANTS.map((v) => {
@@ -262,8 +265,14 @@ function IconsView({ isIconUnlocked, activeIconId }: IconsViewProps) {
               key={v.id}
               type="button"
               className={`icon-variant ${active ? 'icon-variant--active' : ''} ${unlocked ? '' : 'icon-variant--locked'}`}
-              disabled={!unlocked}
-              title={unlocked ? v.description : `Bloqueado: requer conquista "${v.requires}"`}
+              onDoubleClick={() => {
+                if (!unlocked) setCodeModalIcon(v);
+              }}
+              title={
+                unlocked
+                  ? v.description
+                  : `Bloqueado — clique 2x para código (conquista: ${v.requires})`
+              }
               data-sound="click"
             >
               <span
@@ -293,6 +302,15 @@ function IconsView({ isIconUnlocked, activeIconId }: IconsViewProps) {
       <p className="profile-modal__hint">
         💡 Troca de ícone em tempo real está sendo desenvolvida. Por enquanto a seleção é só visual.
       </p>
+
+      <UnlockCodeModal
+        open={!!codeModalIcon}
+        onClose={() => setCodeModalIcon(null)}
+        kind="icon"
+        targetId={codeModalIcon?.id ?? ''}
+        targetName={codeModalIcon?.name ?? ''}
+        requiresAchievement={codeModalIcon?.requires}
+      />
     </div>
   );
 }

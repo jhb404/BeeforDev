@@ -14,9 +14,11 @@ export function useUpdater() {
     const offAvail = systemClient.onUpdateAvailable(({ version }) =>
       setState((prev) => (prev.status === 'idle' ? { status: 'available', version } : prev)),
     );
-    const offReady = systemClient.onUpdateDownloaded(({ version }) =>
-      setState({ status: 'ready', version }),
-    );
+    const offReady = systemClient.onUpdateDownloaded(({ version }) => {
+      setState({ status: 'ready', version });
+      // Sinaliza journal badge — usuário vai querer ler patch notes da nova versão
+      window.dispatchEvent(new CustomEvent('beefor:update-downloaded', { detail: { version } }));
+    });
     return () => {
       offAvail();
       offReady();

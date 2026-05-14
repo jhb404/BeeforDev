@@ -32,8 +32,8 @@ export const ICON_VARIANTS: IconVariant[] = [
   {
     id: 'crowned',
     name: 'Abelha coroada',
-    description: 'Rei dos KudoCards.',
-    requires: 'kudo-master',
+    description: 'Generoso — 10 KudoCards.',
+    requires: 'kudo-10',
     color: '#fbbf24',
     overlay: '👑',
     effectClass: 'logo-fx-crown',
@@ -41,8 +41,8 @@ export const ICON_VARIANTS: IconVariant[] = [
   {
     id: 'trophy',
     name: 'Abelha troféu',
-    description: 'Lenda do KudoCard.',
-    requires: 'kudo-legend',
+    description: 'Pontual mensal — 30 dias.',
+    requires: 'punch-month',
     color: '#f59e0b',
     overlay: '🏆',
     effectClass: 'logo-fx-trophy',
@@ -50,8 +50,8 @@ export const ICON_VARIANTS: IconVariant[] = [
   {
     id: 'galaxy',
     name: 'Abelha estelar',
-    description: 'Nível 10 alcançado.',
-    requires: 'lvl-10',
+    description: 'Mês completo lançado.',
+    requires: 'lancar-month',
     color: '#a855f7',
     overlay: '✨',
     effectClass: 'logo-fx-galaxy',
@@ -59,8 +59,8 @@ export const ICON_VARIANTS: IconVariant[] = [
   {
     id: 'diamond',
     name: 'Abelha diamante',
-    description: 'Nível 25 alcançado.',
-    requires: 'lvl-25',
+    description: 'Rei dos Kudos — 25 enviados.',
+    requires: 'kudo-25',
     color: '#60a5fa',
     overlay: '💎',
     effectClass: 'logo-fx-diamond',

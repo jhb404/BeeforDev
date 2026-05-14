@@ -3,6 +3,7 @@ import { ACHIEVEMENTS } from './achievements';
 import { ICON_VARIANTS } from './iconVariants';
 import { THEME_PRESETS } from './themePresets';
 import { loadStats, saveStats } from './store';
+import { getRedeemedIcons, getRedeemedThemes } from './unlockCodes';
 import type { UserStats } from './types';
 
 export interface GamificationData {
@@ -21,22 +22,43 @@ export interface GamificationData {
 
 export function useGamification(): GamificationData {
   const [stats, setStats] = useState<UserStats>(loadStats);
+  const [redeemedThemes, setRedeemedThemes] = useState<string[]>(getRedeemedThemes);
+  const [redeemedIcons, setRedeemedIcons] = useState<string[]>(getRedeemedIcons);
 
-  const refresh = () => setStats(loadStats());
+  const refresh = () => {
+    setStats(loadStats());
+    setRedeemedThemes(getRedeemedThemes());
+    setRedeemedIcons(getRedeemedIcons());
+  };
 
   useEffect(() => {
     saveStats(stats);
   }, [stats]);
 
+  // Listen for unlock-code redemptions (other components dispatch this event)
+  useEffect(() => {
+    const onCodes = () => {
+      setRedeemedThemes(getRedeemedThemes());
+      setRedeemedIcons(getRedeemedIcons());
+    };
+    window.addEventListener('beefor:codes-changed', onCodes);
+    return () => window.removeEventListener('beefor:codes-changed', onCodes);
+  }, []);
+
   const unlockedIds = new Set(stats.unlockedAchievementIds);
+  const redeemedThemeSet = new Set(redeemedThemes);
+  const redeemedIconSet = new Set(redeemedIcons);
+
   const isAchievementUnlocked = (id: string) => unlockedIds.has(id);
   const isThemePresetUnlocked = (id: string) => {
+    if (redeemedThemeSet.has(id)) return true;
     const p = THEME_PRESETS.find((t) => t.id === id);
     if (!p) return false;
     if (p.requires === null) return true;
     return unlockedIds.has(p.requires);
   };
   const isIconUnlocked = (id: string) => {
+    if (redeemedIconSet.has(id)) return true;
     const v = ICON_VARIANTS.find((i) => i.id === id);
     if (!v) return false;
     if (v.requires === null) return true;

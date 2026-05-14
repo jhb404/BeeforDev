@@ -8,3 +8,5 @@ release
 .vscode
 .idea
 coverage
+codes.private.md
+codes.private.json

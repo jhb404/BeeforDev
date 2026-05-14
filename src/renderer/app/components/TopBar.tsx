@@ -53,6 +53,7 @@ interface TopBarProps {
   lunchTimerActive?: boolean;
   lunchStartedAt?: number | null;
   onCancelLunchTimer?: () => void;
+  journalBadge?: boolean;
 }
 
 export function TopBar({
@@ -75,6 +76,7 @@ export function TopBar({
   lunchTimerActive = false,
   lunchStartedAt = null,
   onCancelLunchTimer,
+  journalBadge = false,
 }: TopBarProps) {
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
@@ -167,12 +169,13 @@ export function TopBar({
         </button>
         <button
           data-sound="journal"
-          className="icon-btn"
-          aria-label="Jornal de patches"
-          title="Jornal de patches"
+          className={`icon-btn journal-btn ${journalBadge ? 'journal-btn--has-news' : ''}`}
+          aria-label={journalBadge ? 'Jornal de patches — novidades!' : 'Jornal de patches'}
+          title={journalBadge ? 'Tem novidades pra você ver!' : 'Jornal de patches'}
           onClick={onOpenPatchJournal}
         >
           <Newspaper size={18} />
+          {journalBadge && <span className="journal-btn__dot" aria-hidden="true" />}
         </button>
         <button
           type="button"
