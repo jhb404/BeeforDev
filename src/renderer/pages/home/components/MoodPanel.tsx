@@ -21,8 +21,10 @@ export function MoodPanel({ loading, currentMood, busy, ready, onSelect }: MoodP
           <>
             <div className="mood-panel__info">
               <span className="label">Mood do dia</span>
-              <strong>{currentMood ?? 'Não identificado'}</strong>
-              <MoodStreakBadge />
+              <div className="mood-panel__row">
+                <strong>{currentMood ?? 'Não identificado'}</strong>
+                <MoodStreakBadge />
+              </div>
             </div>
             <MoodPicker current={currentMood} disabled={busy || !ready} onSelect={onSelect} />
           </>

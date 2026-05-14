@@ -9,7 +9,8 @@ interface AppearanceSectionProps {
   onChangeViewMode: (mode: 'classic' | 'minimal') => void;
 }
 
-const THEME_KEYS = [
+ 
+const _THEME_KEYS = [
   { key: 'accent', label: 'Cor de destaque', placeholder: '#7c5cbf' },
   { key: 'warm', label: 'Cor quente', placeholder: '#e6a817' },
   { key: 'ok', label: 'Cor de sucesso', placeholder: '#27b899' },
@@ -24,12 +25,13 @@ export function AppearanceSection({
   return (
     <section className="settings-section">
       <h3 className="settings-section__title">PERSONALIZAÇÃO / APARÊNCIA</h3>
-      <p className="settings-section__hint">VISUALIZAÇÃO | DENSIDADE | EDITOR DE TEMA | LOGO</p>
+      <p className="settings-section__hint">VISUALIZAÇÃO | DENSIDADE | TEMAS | LOGO</p>
       <div className="settings-grid grid-1">
         <ViewModeCard settings={settings} onUpdate={onUpdate} onChangeViewMode={onChangeViewMode} />
         <DensityCard settings={settings} onUpdate={onUpdate} />
         <ThemePresetsCard settings={settings} onUpdate={onUpdate} />
-        <ThemeEditorCard settings={settings} onUpdate={onUpdate} />
+        {/* ThemeEditorCard oculto — substituido por presets desbloqueáveis. Mantido no código para retomar depois.
+        <ThemeEditorCard settings={settings} onUpdate={onUpdate} /> */}
         <LogoCard settings={settings} onUpdate={onUpdate} />
       </div>
     </section>
@@ -210,7 +212,8 @@ function DensityCard({
   );
 }
 
-function ThemeEditorCard({
+ 
+function _ThemeEditorCard({
   settings,
   onUpdate,
 }: Pick<AppearanceSectionProps, 'settings' | 'onUpdate'>) {
@@ -221,7 +224,7 @@ function ThemeEditorCard({
         Personaliza cores e visual. Deixe vazio para usar o padrão.
       </p>
       <div className="theme-editor-grid">
-        {THEME_KEYS.map(({ key, label, placeholder }) => (
+        {_THEME_KEYS.map(({ key, label, placeholder }) => (
           <div className="theme-editor-field" key={key}>
             <label className="label">{label}</label>
             <div className="theme-color-wrap">
@@ -306,32 +309,152 @@ function ThemeEditorCard({
   );
 }
 
+/** Mystery/locked logo placeholders behind achievements. Real SVG variants land later. */
+interface LogoVariantSpec {
+  id: 'orange' | 'purple' | string;
+  name: string;
+  description: string;
+  color: string;
+  requires: string | null;
+  shape: 'bee' | 'mystery';
+}
+
+const LOGO_VARIANTS: LogoVariantSpec[] = [
+  {
+    id: 'orange',
+    name: 'Abelha Clássica',
+    description: 'Logo padrão laranja, sempre disponível.',
+    color: '#e6a817',
+    requires: null,
+    shape: 'bee',
+  },
+  {
+    id: 'purple',
+    name: 'Abelha Real',
+    description: 'Variante roxa, sempre disponível.',
+    color: '#7c5cbf',
+    requires: null,
+    shape: 'bee',
+  },
+  {
+    id: 'logo-flame',
+    name: 'Abelha em Chamas',
+    description: 'Mantenha streak de 30 dias para revelar.',
+    color: '#dc2626',
+    requires: 'mood-month',
+    shape: 'mystery',
+  },
+  {
+    id: 'logo-crowned',
+    name: 'Rainha Coroada',
+    description: 'Envie 50 KudoCards para desvendar.',
+    color: '#fbbf24',
+    requires: 'kudo-master',
+    shape: 'mystery',
+  },
+  {
+    id: 'logo-galaxy',
+    name: 'Abelha Estelar',
+    description: 'Alcance o nível 10 para descobrir.',
+    color: '#a855f7',
+    requires: 'lvl-10',
+    shape: 'mystery',
+  },
+  {
+    id: 'logo-diamond',
+    name: 'Cristal Beefor',
+    description: 'Conquista de nível 25.',
+    color: '#60a5fa',
+    requires: 'lvl-25',
+    shape: 'mystery',
+  },
+  {
+    id: 'logo-trophy',
+    name: 'Lenda Dourada',
+    description: '100 KudoCards enviados.',
+    color: '#f59e0b',
+    requires: 'kudo-legend',
+    shape: 'mystery',
+  },
+  {
+    id: 'logo-master',
+    name: 'Mestre Supremo',
+    description: 'Complete todas as conquistas.',
+    color: '#000000',
+    requires: 'beefor-master',
+    shape: 'mystery',
+  },
+];
+
 function LogoCard({ settings, onUpdate }: Pick<AppearanceSectionProps, 'settings' | 'onUpdate'>) {
+  const { isAchievementUnlocked } = useGamification();
+
+  const apply = (v: LogoVariantSpec) => {
+    if (v.requires && !isAchievementUnlocked(v.requires)) return;
+    if (v.id === 'orange' || v.id === 'purple') {
+      onUpdate('logoVariant', v.id);
+    }
+    // Outras variantes não persistem ainda — só visual. Implementação real virá com assets.
+  };
+
   return (
     <div className="card">
       <h2>Logo do app</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
-        Escolha a variante de cor da logo. Aplica na titlebar e ícone da bandeja.
+        Variantes desbloqueadas via conquistas. As bloqueadas só revelam quando você completa o
+        requisito.{' '}
+        <em style={{ color: 'var(--warm)' }}>
+          Em desenvolvimento — apenas Laranja/Roxo aplicam por enquanto.
+        </em>
       </p>
-      <div className="logo-variant-row">
-        <button
-          type="button"
-          className={`logo-variant-opt ${(settings.logoVariant ?? 'orange') === 'orange' ? 'active' : ''}`}
-          onClick={() => onUpdate('logoVariant', 'orange')}
-        >
-          <span className="logo-variant-swatch" style={{ background: '#e6a817' }} />
-          <strong>Laranja</strong>
-          <span>Padrão</span>
-        </button>
-        <button
-          type="button"
-          className={`logo-variant-opt ${settings.logoVariant === 'purple' ? 'active' : ''}`}
-          onClick={() => onUpdate('logoVariant', 'purple')}
-        >
-          <span className="logo-variant-swatch" style={{ background: '#7c5cbf' }} />
-          <strong>Roxo</strong>
-          <span>Alternativo</span>
-        </button>
+      <div className="logo-variants-grid">
+        {LOGO_VARIANTS.map((v) => {
+          const unlocked = v.requires === null || isAchievementUnlocked(v.requires);
+          const active = unlocked && (settings.logoVariant ?? 'orange') === v.id;
+          return (
+            <button
+              key={v.id}
+              type="button"
+              className={`logo-variant-card ${active ? 'logo-variant-card--active' : ''} ${unlocked ? '' : 'logo-variant-card--locked'}`}
+              onClick={() => apply(v)}
+              disabled={!unlocked}
+              title={unlocked ? v.description : `Bloqueado — conquista "${v.requires}"`}
+              data-sound="click"
+            >
+              <span className="logo-variant-card__preview" aria-hidden="true">
+                {unlocked ? (
+                  <svg viewBox="0 0 1024 1024" className="logo-variant-card__bee">
+                    <path
+                      d="M46.6971 315.833V484.735L184.341 568.226L321.984 484.735V315.833L184.341 232.34L46.6971 315.833Z"
+                      stroke={v.color}
+                      strokeWidth="50"
+                      fill="none"
+                    />
+                    <path
+                      d="M977.303 315.833V484.735L839.659 568.226L702.016 484.735V315.833L839.659 232.34L977.303 315.833Z"
+                      stroke={v.color}
+                      strokeWidth="50"
+                      fill="none"
+                    />
+                    <path
+                      d="M662.093 750.788H361.907V273.242H662.093V750.788ZM395.573 695.058H627.493V622.994H395.573V695.058ZM395.573 511.535V583.598H627.493V511.535H395.573ZM395.573 472.139H627.493V400.075H395.573V472.139Z"
+                      fill={v.color}
+                    />
+                  </svg>
+                ) : (
+                  <span className="logo-variant-card__mystery">?</span>
+                )}
+              </span>
+              <strong>{unlocked ? v.name : '???'}</strong>
+              <small>{v.description}</small>
+              {!unlocked && (
+                <span className="logo-variant-card__lock" aria-hidden="true">
+                  🔒
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
