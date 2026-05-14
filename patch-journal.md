@@ -1,16 +1,24 @@
-- v0.1.6: GAMIFICAÇÃO + Beefor Master 🐝👑
+-v0.1.7: Fiz uns ajustes bons ai...
 
-🎮 Sistema completo de gamificação:
+Eu tenho q escrever isso aq toda vez? Alguem realmente lê isso aq?
+
+
+
+---
+
+- v0.1.6: GAMIFICAÇÃO 🐝👑
+
+🎮 Sistema completo de gamificação (N tá nos 100%, mas tá ai se quisé vim vê):
 XP, níveis, conquistas, streaks e ranking do time inteiro 🚀
 
 🔥 Clicou no foguinho ali do lado no mood?
-Então… eu sei exatamente o que você fez semana passada 👀😭🏆
+Clica ali...é só clicar po, tu vai ver o ranking pra aprender a colocar o mood certinho!
 
 🌲 +9 temas desbloqueáveis:
-Floresta, Inferno, Realeza, Galáxia… e vários outros absurdos.
+VAI LÁ VER!!! Já falei pra ti que n vou escrever aq
 
 🏆 E claro:
-o tema Mestre — o platinum supremo da Beefor.
+O TEMA MESTRE — Esse tema ficou top tá, particurlamente, só uso ele, mas vc um dia consegue kk😏 confia no teu potencial
 
 https://media1.tenor.com/m/wK6AX19xWlEAAAAd/good-morning-bom-dia.gif
 ...tá frio demais esses dias em Sorocaba, né!? (11-14/05/2026)

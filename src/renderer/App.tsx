@@ -20,6 +20,7 @@ import { ProfileModal } from './app/components/ProfileModal';
 import { useUpdater } from './hooks/useUpdater';
 import { useTeamPrefetch } from './app/hooks/useTeamPrefetch';
 import { useAppIconSync } from './hooks/useAppIconSync';
+import { useJournalBadge } from './hooks/useJournalBadge';
 import { useGamification } from './features/gamification';
 
 type Tab = 'home' | 'settings';
@@ -112,9 +113,12 @@ function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const { showBadge: journalBadge, markAsSeen: markJournalSeen } = useJournalBadge();
+
   const openPatchJournal = async () => {
     setPatchModalOpen(true);
     setLoadingPatchJournal(true);
+    markJournalSeen();
     const res = await settingsClient.get();
     setPatchJournal(res.patchJournal?.trim() || 'Nenhuma atualizacao publicada ainda.');
     setLoadingPatchJournal(false);
@@ -139,6 +143,7 @@ function AppShell() {
           birthday.dismissBadge();
         }}
         onOpenPatchJournal={() => void openPatchJournal()}
+        journalBadge={journalBadge}
         onOpenProfile={() => setProfileModalOpen(true)}
         teamPartyBadge={birthday.partyBadge}
         appSettings={appSettings}

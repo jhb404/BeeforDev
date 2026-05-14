@@ -449,6 +449,53 @@ export async function playUiProfileOpen(): Promise<void> {
   }
 }
 
+// streak-open — fire crackle + bright triumphant chord opening leaderboard
+export async function playUiStreakOpen(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  // Triumphant rising arpeggio (G major, fanfare-like)
+  const notes = [
+    { f: 392, t: 0.0, d: 0.18 }, // G4
+    { f: 587, t: 0.06, d: 0.18 }, // D5
+    { f: 784, t: 0.12, d: 0.22 }, // G5
+    { f: 988, t: 0.18, d: 0.26 }, // B5
+    { f: 1175, t: 0.24, d: 0.4 }, // D6
+  ];
+  for (const n of notes) {
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = n.f;
+    g.gain.setValueAtTime(0.0001, s + n.t);
+    g.gain.exponentialRampToValueAtTime(0.18, s + n.t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + n.t + n.d);
+    osc.connect(g).connect(audio.destination);
+    osc.start(s + n.t);
+    osc.stop(s + n.t + n.d + 0.02);
+  }
+  // Subtle fire crackle (filtered noise burst)
+  const noiseDur = 0.5;
+  const buf = audio.createBuffer(1, audio.sampleRate * noiseDur, audio.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i += 1) {
+    const decay = 1 - i / data.length;
+    data[i] = (Math.random() * 2 - 1) * decay * 0.4;
+  }
+  const noise = audio.createBufferSource();
+  noise.buffer = buf;
+  const filter = audio.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 2200;
+  filter.Q.value = 0.8;
+  const ng = audio.createGain();
+  ng.gain.setValueAtTime(0.06, s);
+  ng.gain.exponentialRampToValueAtTime(0.0001, s + noiseDur);
+  noise.connect(filter).connect(ng).connect(audio.destination);
+  noise.start(s);
+  noise.stop(s + noiseDur);
+}
+
 // coin pickup — Mario "ding" two-note (B5 → E6)
 export async function playUiCoin(): Promise<void> {
   playSequence([
@@ -487,7 +534,8 @@ export type UiSoundKind =
   | 'team-refresh'
   | 'birthday'
   | 'boot'
-  | 'profile-open';
+  | 'profile-open'
+  | 'streak-open';
 
 export function playUiSound(kind: UiSoundKind): void {
   switch (kind) {
@@ -553,6 +601,9 @@ export function playUiSound(kind: UiSoundKind): void {
       return;
     case 'profile-open':
       void playUiProfileOpen();
+      return;
+    case 'streak-open':
+      void playUiStreakOpen();
       return;
   }
 }

@@ -13,6 +13,7 @@
     "dev:tsc": "tsc -p tsconfig.main.json -w --preserveWatchOutput",
     "dev:electron": "wait-on tcp:5177 file:dist/main/index.js && cross-env NODE_ENV=development electron .",
     "kill:port": "node scripts/free-port.mjs 5177",
+    "codes:hash": "node scripts/hash-codes.mjs",
     "build:renderer": "vite build",
     "build:main": "tsc -p tsconfig.main.json",
     "build": "npm run build:renderer && npm run build:main",
