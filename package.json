@@ -1,6 +1,6 @@
 {
   "name": "beefor-dev",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Beefor Dev - desktop automation for Beefor",
   "main": "dist/main/index.js",
   "author": "Joao Batista",
