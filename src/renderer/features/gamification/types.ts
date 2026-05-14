@@ -63,9 +63,16 @@ export interface ThemePreset {
   description: string;
   /** Achievement ID required (or null = always unlocked). */
   requires: string | null;
-  /** CSS vars applied as themeOverrides. */
-  tokens: Record<string, string>;
-  /** Visual swatches for preview. */
+  /**
+   * Per-theme CSS var tokens. Resolved at apply time based on current
+   * `data-theme`. Provider reads `tokens[currentTheme]` and applies as
+   * inline CSS custom properties.
+   */
+  tokens: {
+    dark: Record<string, string>;
+    light: Record<string, string>;
+  };
+  /** Visual swatches for preview (theme-agnostic). */
   swatches: [string, string, string];
 }
 

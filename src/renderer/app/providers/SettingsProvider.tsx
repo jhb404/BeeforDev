@@ -1,6 +1,7 @@
 ﻿import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { AppSettings } from '@shared/types';
 import { settingsClient } from '../../services/ipc';
+import { resolvePresetTokens } from '../../features/gamification';
 
 type SettingsCtx = {
   settings: AppSettings | null;
@@ -63,7 +64,11 @@ const KEY_ALIASES: Record<string, string> = {
   accent2Soft: 'accent-2-soft',
 };
 
-function applyThemeOverrides(overrides: AppSettings['themeOverrides']) {
+function currentThemeMode(): 'dark' | 'light' {
+  return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+}
+
+function applyThemeTokens(presetId: string | undefined, overrides: AppSettings['themeOverrides']) {
   const el = document.documentElement;
 
   // Reset everything first → presets / "Resetar tema" actually take effect.
@@ -72,8 +77,16 @@ function applyThemeOverrides(overrides: AppSettings['themeOverrides']) {
   }
   el.style.removeProperty('font-size');
 
-  if (!overrides) return;
+  // 1. Apply preset (resolved for current theme mode)
+  const presetTokens = resolvePresetTokens(presetId, currentThemeMode());
+  for (const [rawKey, value] of Object.entries(presetTokens)) {
+    if (!value) continue;
+    const cssKey = KEY_ALIASES[rawKey] ?? rawKey;
+    el.style.setProperty(`--${cssKey}`, value);
+  }
 
+  // 2. Apply manual overrides on top
+  if (!overrides) return;
   for (const [rawKey, value] of Object.entries(overrides)) {
     if (!value) continue;
     const cssKey = KEY_ALIASES[rawKey] ?? rawKey;
@@ -92,7 +105,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     void settingsClient.get().then((s) => {
       setSettings(s);
       applyDensity(s.uiDensity);
-      applyThemeOverrides(s.themeOverrides);
+      applyThemeTokens(s.themePresetId, s.themeOverrides);
     });
   };
 
@@ -105,6 +118,18 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     window.addEventListener('beefor:settings-changed', handler);
     return () => window.removeEventListener('beefor:settings-changed', handler);
   }, []);
+
+  // Re-apply preset whenever theme toggle changes data-theme on <html>.
+  // ThemeProvider sets data-theme synchronously, but preset tokens differ between
+  // dark/light → must re-resolve. Watch via MutationObserver.
+  useEffect(() => {
+    const root = document.documentElement;
+    const obs = new MutationObserver(() => {
+      if (settings) applyThemeTokens(settings.themePresetId, settings.themeOverrides);
+    });
+    obs.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => obs.disconnect();
+  }, [settings]);
 
   return <Ctx.Provider value={{ settings, reload: load }}>{children}</Ctx.Provider>;
 }

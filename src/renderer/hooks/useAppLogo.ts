@@ -7,14 +7,9 @@ export function useAppLogo(variant: 'orange' | 'purple', size: 'icon' | 'logo') 
   useEffect(() => {
     let cancelled = false;
 
-    const files =
-      size === 'icon'
-        ? variant === 'orange'
-          ? ['icon-orange.png', 'logo-app-orange.png', 'icon.png', 'icon-128.png']
-          : ['icon-purple.png', 'logo-app-purple.png', 'icon.png', 'icon-128.png']
-        : variant === 'orange'
-          ? ['logo-app-orange.png', 'icon-orange.png', 'icon-512.png', 'icon.png']
-          : ['logo-app-purple.png', 'icon-purple.png', 'icon-512.png', 'icon.png'];
+    // Variant-specific assets removed from build/ — fall back to generic icons.
+    // Order matters: generic first → avoids ENOENT log spam for non-existent files.
+    const files = size === 'icon' ? ['icon-128.png', 'icon.png'] : ['icon-512.png', 'icon.png'];
 
     const load = async () => {
       for (const file of files) {

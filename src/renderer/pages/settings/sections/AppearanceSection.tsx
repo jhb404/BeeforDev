@@ -2,6 +2,7 @@
 import { Switch } from '../Switch';
 import { useGamification } from '../../../features/gamification';
 import type { ThemePreset } from '../../../features/gamification';
+import { BeeforLogo } from '../../../components/common/BeeforLogo';
 
 interface AppearanceSectionProps {
   settings: AppSettings;
@@ -9,7 +10,6 @@ interface AppearanceSectionProps {
   onChangeViewMode: (mode: 'classic' | 'minimal') => void;
 }
 
- 
 const _THEME_KEYS = [
   { key: 'accent', label: 'Cor de destaque', placeholder: '#7c5cbf' },
   { key: 'warm', label: 'Cor quente', placeholder: '#e6a817' },
@@ -46,12 +46,12 @@ function ThemePresetsCard({
 
   const applyPreset = (preset: ThemePreset) => {
     if (!isThemePresetUnlocked(preset.id)) return;
-    onUpdate('themeOverrides', preset.tokens);
+    // Single update — second update would race against settings closure
+    // and erase themePresetId. Overrides cleared by setting empty obj here.
+    onUpdate('themePresetId', preset.id);
   };
 
-  const activePresetId = themePresets.find(
-    (p) => JSON.stringify(p.tokens) === JSON.stringify(settings.themeOverrides ?? {}),
-  )?.id;
+  const activePresetId = settings.themePresetId ?? 'default';
 
   return (
     <div className="card">
@@ -212,7 +212,6 @@ function DensityCard({
   );
 }
 
- 
 function _ThemeEditorCard({
   settings,
   onUpdate,
@@ -315,8 +314,11 @@ interface LogoVariantSpec {
   name: string;
   description: string;
   color: string;
+  /** CSS extra class — applies filter/glow/overlay effects without new asset. */
+  effectClass?: string;
+  /** Optional emoji overlay rendered top-right of the logo. */
+  overlay?: string;
   requires: string | null;
-  shape: 'bee' | 'mystery';
 }
 
 const LOGO_VARIANTS: LogoVariantSpec[] = [
@@ -326,7 +328,6 @@ const LOGO_VARIANTS: LogoVariantSpec[] = [
     description: 'Logo padrão laranja, sempre disponível.',
     color: '#e6a817',
     requires: null,
-    shape: 'bee',
   },
   {
     id: 'purple',
@@ -334,55 +335,60 @@ const LOGO_VARIANTS: LogoVariantSpec[] = [
     description: 'Variante roxa, sempre disponível.',
     color: '#7c5cbf',
     requires: null,
-    shape: 'bee',
   },
   {
     id: 'logo-flame',
     name: 'Abelha em Chamas',
     description: 'Mantenha streak de 30 dias para revelar.',
     color: '#dc2626',
+    effectClass: 'logo-fx-flame',
+    overlay: '🔥',
     requires: 'mood-month',
-    shape: 'mystery',
   },
   {
     id: 'logo-crowned',
     name: 'Rainha Coroada',
     description: 'Envie 50 KudoCards para desvendar.',
     color: '#fbbf24',
+    effectClass: 'logo-fx-crown',
+    overlay: '👑',
     requires: 'kudo-master',
-    shape: 'mystery',
   },
   {
     id: 'logo-galaxy',
     name: 'Abelha Estelar',
     description: 'Alcance o nível 10 para descobrir.',
     color: '#a855f7',
+    effectClass: 'logo-fx-galaxy',
+    overlay: '✨',
     requires: 'lvl-10',
-    shape: 'mystery',
   },
   {
     id: 'logo-diamond',
     name: 'Cristal Beefor',
     description: 'Conquista de nível 25.',
     color: '#60a5fa',
+    effectClass: 'logo-fx-diamond',
+    overlay: '💎',
     requires: 'lvl-25',
-    shape: 'mystery',
   },
   {
     id: 'logo-trophy',
     name: 'Lenda Dourada',
     description: '100 KudoCards enviados.',
     color: '#f59e0b',
+    effectClass: 'logo-fx-trophy',
+    overlay: '🏆',
     requires: 'kudo-legend',
-    shape: 'mystery',
   },
   {
     id: 'logo-master',
     name: 'Mestre Supremo',
     description: 'Complete todas as conquistas.',
-    color: '#000000',
+    color: '#fbbf24',
+    effectClass: 'logo-fx-master',
+    overlay: '🌟',
     requires: 'beefor-master',
-    shape: 'mystery',
   },
 ];
 
@@ -421,28 +427,17 @@ function LogoCard({ settings, onUpdate }: Pick<AppearanceSectionProps, 'settings
               title={unlocked ? v.description : `Bloqueado — conquista "${v.requires}"`}
               data-sound="click"
             >
-              <span className="logo-variant-card__preview" aria-hidden="true">
+              <span
+                className={`logo-variant-card__preview ${unlocked ? (v.effectClass ?? '') : ''}`}
+                aria-hidden="true"
+              >
                 {unlocked ? (
-                  <svg viewBox="0 0 1024 1024" className="logo-variant-card__bee">
-                    <path
-                      d="M46.6971 315.833V484.735L184.341 568.226L321.984 484.735V315.833L184.341 232.34L46.6971 315.833Z"
-                      stroke={v.color}
-                      strokeWidth="50"
-                      fill="none"
-                    />
-                    <path
-                      d="M977.303 315.833V484.735L839.659 568.226L702.016 484.735V315.833L839.659 232.34L977.303 315.833Z"
-                      stroke={v.color}
-                      strokeWidth="50"
-                      fill="none"
-                    />
-                    <path
-                      d="M662.093 750.788H361.907V273.242H662.093V750.788ZM395.573 695.058H627.493V622.994H395.573V695.058ZM395.573 511.535V583.598H627.493V511.535H395.573ZM395.573 472.139H627.493V400.075H395.573V472.139Z"
-                      fill={v.color}
-                    />
-                  </svg>
+                  <>
+                    <BeeforLogo size={40} style={{ color: v.color }} />
+                    {v.overlay && <span className="logo-variant-card__overlay">{v.overlay}</span>}
+                  </>
                 ) : (
-                  <span className="logo-variant-card__mystery">?</span>
+                  <BeeforLogo size={40} className="logo-variant-card__mystery-bee" />
                 )}
               </span>
               <strong>{unlocked ? v.name : '???'}</strong>
