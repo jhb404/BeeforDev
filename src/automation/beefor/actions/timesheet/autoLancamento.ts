@@ -31,11 +31,17 @@ export async function doAutoLancamento(page: Page): Promise<void> {
 
   logger.info('Auto lançamento clicked, waiting for persistence');
 
+  // Wait for the save API response instead of networkidle (Beefor has long-poll/WS
+  // connections that never go idle, so networkidle always falls through to the
+  // 2.5s fixed wait — wasted time).
   try {
-    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForResponse(
+      (resp) => /\/(Save|Auto|Timesheet)/i.test(resp.url()) && resp.status() < 400,
+      { timeout: 6000 },
+    );
   } catch {
-    logger.warn('Auto lançamento: networkidle timeout, falling back to fixed wait');
-    await page.waitForTimeout(2500);
+    logger.warn('Auto lançamento: response wait timeout, falling back to short fixed wait');
+    await page.waitForTimeout(800);
   }
 
   logger.info('Auto lançamento persisted');

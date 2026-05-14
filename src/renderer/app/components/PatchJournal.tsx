@@ -5,67 +5,29 @@ interface RoadmapSection {
   items: string[];
 }
 
-const RELEASED: RoadmapSection[] = [
-  {
-    title: '✨ Novidades recentes',
-    items: [
-      '🚀 Melhorias de perrformance',
-      '💰 Cards de "Valor extras" e "Total estimado" opcionais (Settings → Jornada)',
-      '📐 Layout responsivo dos cards de resumo',
-      '🌗 Hover do mood btn corrigido no light mode',
-    ],
-  },
-  {
-    title: '🏗️ Bastidores (arquitetura)',
-    items: [
-      'Refactor pra feature-sliced (coin2u, kudo, team isolados)',
-      'Dependency Injection nos IPC clients (testável + mobile-ready)',
-      'Typed Result com discriminated union — menos bugs de tipo',
-      '55+ testes automatizados (hooks puros + utils)',
-      'ErrorBoundary por aba — crash em uma área não derruba app',
-      'ESLint + Prettier + Husky — código sempre consistente',
-      'i18n setup (pt-BR + en) — preparado pra internacional',
-    ],
-  },
-];
-
 const UPCOMING: RoadmapSection[] = [
-  {
-    title: '🔮 Próxima release',
-    items: [
-      '🔔 Notificações',
-      '📊 Dashboard mensal com gráficos',
-      '📅 Agendamento de auto-lançamento em horário fixo',
-      '🐛 Logger unificado (menos console.log perdido)',
-      'Tem mais coisas mas to planejando ainda...',
-    ],
-  },
   {
     title: '🛣️ Em breve',
     items: [
+      '🧊 Streak freeze — escudo pra não perder streak por esquecimento',
       '🌐 Migrar Beefor 100% pra API REST (sem Playwright = mais rápido)',
       '📱 Versão mobile (iOS + Android) — code share via Capacitor',
       '🍎 Suporte completo macOS (build + signing + notarization)',
       '🔐 Code signing Windows (sem warning "Unknown publisher")',
-      'Tem mais coisas mas to planejando ainda...',
+      '🗄️ Backend de gamificação — XP/conquistas persistem entre PCs',
+      '🏆 Ranking de streak REAL entre colegas do time',
     ],
   },
   {
     title: '💭 Wishlist',
     items: [
+      '🎲 Loot box semanal (Honeycomb da semana)',
+      '🎄 Eventos sazonais (Natal, Halloween, etc)',
       '🔗 Sincronização cross-device (configs entre PCs)',
       '📆 Integração com Google Calendar / Outlook',
       '🧩 Plugin system pra extensões custom',
       '📈 Telemetria local opt-in (saber padrões pessoais)',
-      'Tem mais coisas mas to planejando ainda...',
     ],
-  },
-];
-
-const HISTORY: RoadmapSection[] = [
-  {
-    title: '📦 v0.1.2 — Discord installer',
-    items: ['One-click installer', 'Auto-update agressivo', 'CI/CD release automatizado no merge'],
   },
 ];
 
@@ -154,19 +116,9 @@ export function PatchJournal({ text }: { text: string }) {
   return (
     <div className="patch-journal-wrap">
       <section className="roadmap">
-        <h3 className="roadmap-title">🆕 v0.1.x — Em produção</h3>
-        {RELEASED.map((s, i) => (
-          <RoadmapBlock key={`r-${i}`} section={s} />
-        ))}
-
         <h3 className="roadmap-title">🔮 O que tá vindo</h3>
         {UPCOMING.map((s, i) => (
           <RoadmapBlock key={`u-${i}`} section={s} />
-        ))}
-
-        <h3 className="roadmap-title">📜 Histórico</h3>
-        {HISTORY.map((s, i) => (
-          <RoadmapBlock key={`h-${i}`} section={s} />
         ))}
       </section>
       <div className="patch-journal-copy">{renderJournal(text)}</div>

@@ -1,5 +1,8 @@
 ﻿import type { AppSettings } from '@shared/types';
 import { Switch } from '../Switch';
+import { useGamification } from '../../../features/gamification';
+import type { ThemePreset } from '../../../features/gamification';
+import { BeeforLogo } from '../../../components/common/BeeforLogo';
 
 interface AppearanceSectionProps {
   settings: AppSettings;
@@ -7,7 +10,7 @@ interface AppearanceSectionProps {
   onChangeViewMode: (mode: 'classic' | 'minimal') => void;
 }
 
-const THEME_KEYS = [
+const _THEME_KEYS = [
   { key: 'accent', label: 'Cor de destaque', placeholder: '#7c5cbf' },
   { key: 'warm', label: 'Cor quente', placeholder: '#e6a817' },
   { key: 'ok', label: 'Cor de sucesso', placeholder: '#27b899' },
@@ -22,28 +25,78 @@ export function AppearanceSection({
   return (
     <section className="settings-section">
       <h3 className="settings-section__title">PERSONALIZAÇÃO / APARÊNCIA</h3>
-      <p className="settings-section__hint">
-        VISUALIZAÇÃO | DENSIDADE | EDITOR DE TEMA | LOGO
-      </p>
+      <p className="settings-section__hint">VISUALIZAÇÃO | DENSIDADE | TEMAS | LOGO</p>
       <div className="settings-grid grid-1">
-        <ViewModeCard
-          settings={settings}
-          onUpdate={onUpdate}
-          onChangeViewMode={onChangeViewMode}
-        />
+        <ViewModeCard settings={settings} onUpdate={onUpdate} onChangeViewMode={onChangeViewMode} />
         <DensityCard settings={settings} onUpdate={onUpdate} />
-        <ThemeEditorCard settings={settings} onUpdate={onUpdate} />
+        <ThemePresetsCard settings={settings} onUpdate={onUpdate} />
+        {/* ThemeEditorCard oculto — substituido por presets desbloqueáveis. Mantido no código para retomar depois.
+        <ThemeEditorCard settings={settings} onUpdate={onUpdate} /> */}
         <LogoCard settings={settings} onUpdate={onUpdate} />
       </div>
     </section>
   );
 }
 
-function ViewModeCard({
+function ThemePresetsCard({
   settings,
   onUpdate,
-  onChangeViewMode,
-}: AppearanceSectionProps) {
+}: Pick<AppearanceSectionProps, 'settings' | 'onUpdate'>) {
+  const { themePresets, isThemePresetUnlocked } = useGamification();
+
+  const applyPreset = (preset: ThemePreset) => {
+    if (!isThemePresetUnlocked(preset.id)) return;
+    // Single update — second update would race against settings closure
+    // and erase themePresetId. Overrides cleared by setting empty obj here.
+    onUpdate('themePresetId', preset.id);
+  };
+
+  const activePresetId = settings.themePresetId ?? 'default';
+
+  return (
+    <div className="card">
+      <h2>Temas</h2>
+      <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
+        Presets prontos. Alguns são desbloqueados ao alcançar conquistas.{' '}
+        <em style={{ color: 'var(--warm)' }}>Em desenvolvimento — persistência virá em breve.</em>
+      </p>
+      <div className="theme-presets-grid">
+        {themePresets.map((preset) => {
+          const unlocked = isThemePresetUnlocked(preset.id);
+          const active = activePresetId === preset.id;
+          return (
+            <button
+              key={preset.id}
+              type="button"
+              className={`theme-preset ${active ? 'theme-preset--active' : ''} ${unlocked ? '' : 'theme-preset--locked'}`}
+              onClick={() => applyPreset(preset)}
+              disabled={!unlocked}
+              title={
+                unlocked ? preset.description : `Bloqueado — requer conquista "${preset.requires}"`
+              }
+              data-sound="click"
+            >
+              <span className="theme-preset__swatches" aria-hidden="true">
+                {preset.swatches.map((c, i) => (
+                  <span key={i} className="theme-preset__swatch" style={{ background: c }} />
+                ))}
+              </span>
+              <strong>{preset.name}</strong>
+              <small>{preset.description}</small>
+              {!unlocked && (
+                <span className="theme-preset__lock" aria-hidden="true">
+                  🔒
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ViewModeCard({ settings, onUpdate, onChangeViewMode }: AppearanceSectionProps) {
   return (
     <div className="card">
       <h2>Visualização</h2>
@@ -159,7 +212,7 @@ function DensityCard({
   );
 }
 
-function ThemeEditorCard({
+function _ThemeEditorCard({
   settings,
   onUpdate,
 }: Pick<AppearanceSectionProps, 'settings' | 'onUpdate'>) {
@@ -170,7 +223,7 @@ function ThemeEditorCard({
         Personaliza cores e visual. Deixe vazio para usar o padrão.
       </p>
       <div className="theme-editor-grid">
-        {THEME_KEYS.map(({ key, label, placeholder }) => (
+        {_THEME_KEYS.map(({ key, label, placeholder }) => (
           <div className="theme-editor-field" key={key}>
             <label className="label">{label}</label>
             <div className="theme-color-wrap">
@@ -255,35 +308,148 @@ function ThemeEditorCard({
   );
 }
 
-function LogoCard({
-  settings,
-  onUpdate,
-}: Pick<AppearanceSectionProps, 'settings' | 'onUpdate'>) {
+/** Mystery/locked logo placeholders behind achievements. Real SVG variants land later. */
+interface LogoVariantSpec {
+  id: 'orange' | 'purple' | string;
+  name: string;
+  description: string;
+  color: string;
+  /** CSS extra class — applies filter/glow/overlay effects without new asset. */
+  effectClass?: string;
+  /** Optional emoji overlay rendered top-right of the logo. */
+  overlay?: string;
+  requires: string | null;
+}
+
+const LOGO_VARIANTS: LogoVariantSpec[] = [
+  {
+    id: 'orange',
+    name: 'Abelha Clássica',
+    description: 'Logo padrão laranja, sempre disponível.',
+    color: '#e6a817',
+    requires: null,
+  },
+  {
+    id: 'purple',
+    name: 'Abelha Real',
+    description: 'Variante roxa, sempre disponível.',
+    color: '#7c5cbf',
+    requires: null,
+  },
+  {
+    id: 'logo-flame',
+    name: 'Abelha em Chamas',
+    description: 'Mantenha streak de 30 dias para revelar.',
+    color: '#dc2626',
+    effectClass: 'logo-fx-flame',
+    overlay: '🔥',
+    requires: 'mood-month',
+  },
+  {
+    id: 'logo-crowned',
+    name: 'Rainha Coroada',
+    description: 'Envie 50 KudoCards para desvendar.',
+    color: '#fbbf24',
+    effectClass: 'logo-fx-crown',
+    overlay: '👑',
+    requires: 'kudo-master',
+  },
+  {
+    id: 'logo-galaxy',
+    name: 'Abelha Estelar',
+    description: 'Alcance o nível 10 para descobrir.',
+    color: '#a855f7',
+    effectClass: 'logo-fx-galaxy',
+    overlay: '✨',
+    requires: 'lvl-10',
+  },
+  {
+    id: 'logo-diamond',
+    name: 'Cristal Beefor',
+    description: 'Conquista de nível 25.',
+    color: '#60a5fa',
+    effectClass: 'logo-fx-diamond',
+    overlay: '💎',
+    requires: 'lvl-25',
+  },
+  {
+    id: 'logo-trophy',
+    name: 'Lenda Dourada',
+    description: '100 KudoCards enviados.',
+    color: '#f59e0b',
+    effectClass: 'logo-fx-trophy',
+    overlay: '🏆',
+    requires: 'kudo-legend',
+  },
+  {
+    id: 'logo-master',
+    name: 'Mestre Supremo',
+    description: 'Complete todas as conquistas.',
+    color: '#fbbf24',
+    effectClass: 'logo-fx-master',
+    overlay: '🌟',
+    requires: 'beefor-master',
+  },
+];
+
+function LogoCard({ settings, onUpdate }: Pick<AppearanceSectionProps, 'settings' | 'onUpdate'>) {
+  const { isAchievementUnlocked } = useGamification();
+
+  const apply = (v: LogoVariantSpec) => {
+    if (v.requires && !isAchievementUnlocked(v.requires)) return;
+    if (v.id === 'orange' || v.id === 'purple') {
+      onUpdate('logoVariant', v.id);
+    }
+    // Outras variantes não persistem ainda — só visual. Implementação real virá com assets.
+  };
+
   return (
     <div className="card">
       <h2>Logo do app</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
-        Escolha a variante de cor da logo. Aplica na titlebar e ícone da bandeja.
+        Variantes desbloqueadas via conquistas. As bloqueadas só revelam quando você completa o
+        requisito.{' '}
+        <em style={{ color: 'var(--warm)' }}>
+          Em desenvolvimento — apenas Laranja/Roxo aplicam por enquanto.
+        </em>
       </p>
-      <div className="logo-variant-row">
-        <button
-          type="button"
-          className={`logo-variant-opt ${(settings.logoVariant ?? 'orange') === 'orange' ? 'active' : ''}`}
-          onClick={() => onUpdate('logoVariant', 'orange')}
-        >
-          <span className="logo-variant-swatch" style={{ background: '#e6a817' }} />
-          <strong>Laranja</strong>
-          <span>Padrão</span>
-        </button>
-        <button
-          type="button"
-          className={`logo-variant-opt ${settings.logoVariant === 'purple' ? 'active' : ''}`}
-          onClick={() => onUpdate('logoVariant', 'purple')}
-        >
-          <span className="logo-variant-swatch" style={{ background: '#7c5cbf' }} />
-          <strong>Roxo</strong>
-          <span>Alternativo</span>
-        </button>
+      <div className="logo-variants-grid">
+        {LOGO_VARIANTS.map((v) => {
+          const unlocked = v.requires === null || isAchievementUnlocked(v.requires);
+          const active = unlocked && (settings.logoVariant ?? 'orange') === v.id;
+          return (
+            <button
+              key={v.id}
+              type="button"
+              className={`logo-variant-card ${active ? 'logo-variant-card--active' : ''} ${unlocked ? '' : 'logo-variant-card--locked'}`}
+              onClick={() => apply(v)}
+              disabled={!unlocked}
+              title={unlocked ? v.description : `Bloqueado — conquista "${v.requires}"`}
+              data-sound="click"
+            >
+              <span
+                className={`logo-variant-card__preview ${unlocked ? (v.effectClass ?? '') : ''}`}
+                aria-hidden="true"
+              >
+                {unlocked ? (
+                  <>
+                    <BeeforLogo size={40} style={{ color: v.color }} />
+                    {v.overlay && <span className="logo-variant-card__overlay">{v.overlay}</span>}
+                  </>
+                ) : (
+                  <BeeforLogo size={40} className="logo-variant-card__mystery-bee" />
+                )}
+              </span>
+              <strong>{unlocked ? v.name : '???'}</strong>
+              <small>{v.description}</small>
+              {!unlocked && (
+                <span className="logo-variant-card__lock" aria-hidden="true">
+                  🔒
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

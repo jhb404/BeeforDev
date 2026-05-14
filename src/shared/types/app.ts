@@ -93,6 +93,9 @@ export interface AppSettings {
   /** Custom theme overrides (CSS variable values) */
   themeOverrides?: Partial<ThemeOverrides>;
 
+  /** Active theme preset id (resolves dark/light tokens at apply time) */
+  themePresetId?: string;
+
   /** UI click/hover sound effects */
   uiSounds?: boolean;
 

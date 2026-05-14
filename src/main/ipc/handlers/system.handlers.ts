@@ -70,9 +70,15 @@ export function registerSystemHandlers(getWindow: () => BrowserWindow | null) {
       const ext = path.extname(safe).slice(1).toLowerCase() || 'png';
       return `data:image/${ext};base64,${buf.toString('base64')}`;
     } catch (err) {
-      logger.warn(
-        `readAsset failed for ${safe}: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      // Missing assets are expected during fallback chains in `useAppLogo`.
+      // Demote ENOENT to debug to avoid console noise; only warn on real I/O errors.
+      const code = (err as NodeJS.ErrnoException)?.code;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (code === 'ENOENT') {
+        logger.debug(`readAsset miss: ${safe}`);
+      } else {
+        logger.warn(`readAsset failed for ${safe}: ${msg}`);
+      }
       return null;
     }
   });

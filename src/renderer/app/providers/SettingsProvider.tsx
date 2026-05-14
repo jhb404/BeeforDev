@@ -1,6 +1,7 @@
 ﻿import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { AppSettings } from '@shared/types';
 import { settingsClient } from '../../services/ipc';
+import { resolvePresetTokens } from '../../features/gamification';
 
 type SettingsCtx = {
   settings: AppSettings | null;
@@ -13,16 +14,93 @@ function applyDensity(density: AppSettings['uiDensity']) {
   document.documentElement.dataset.density = density ?? 'normal';
 }
 
-function applyThemeOverrides(overrides: AppSettings['themeOverrides']) {
+/**
+ * Tokens controllable via theme presets / editor. Listed explicitly so
+ * a reset can call removeProperty on every one — otherwise old values stick.
+ */
+const THEME_TOKEN_KEYS = [
+  'accent',
+  'accent-hover',
+  'accent-soft',
+  'accent-2',
+  'accent-2-soft',
+  'warm',
+  'warm-hover',
+  'ok',
+  'ok-border',
+  'warn',
+  'err',
+  'err-border',
+  'bg-0',
+  'bg-1',
+  'bg-2',
+  'bg-3',
+  'text',
+  'text-muted',
+  'border',
+  'border-strong',
+  'topbar-bg',
+  'panel-bg',
+  'toolbar-bg',
+  'summary-bg',
+  'head-bg',
+  'row-bg',
+  'row-alt',
+  'input-bg',
+  'focus-ring',
+  'tab-active-bg',
+  'tab-active-text',
+  'tab-active-border',
+  'text-on-warm',
+  'text-on-accent',
+  'today-accent',
+  'weekend-bg',
+  'today-bg',
+  'radius',
+] as const;
+
+const KEY_ALIASES: Record<string, string> = {
+  accentHover: 'accent-hover',
+  warmHover: 'warm-hover',
+  borderStrong: 'border-strong',
+  textMuted: 'text-muted',
+  accentSoft: 'accent-soft',
+  accent2: 'accent-2',
+  accent2Soft: 'accent-2-soft',
+};
+
+function currentThemeMode(): 'dark' | 'light' {
+  return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+}
+
+function applyThemeTokens(presetId: string | undefined, overrides: AppSettings['themeOverrides']) {
   const el = document.documentElement;
+
+  // Reset everything first → presets / "Resetar tema" actually take effect.
+  for (const k of THEME_TOKEN_KEYS) {
+    el.style.removeProperty(`--${k}`);
+  }
+  el.style.removeProperty('font-size');
+
+  // 1. Apply preset (resolved for current theme mode)
+  const presetTokens = resolvePresetTokens(presetId, currentThemeMode());
+  for (const [rawKey, value] of Object.entries(presetTokens)) {
+    if (!value) continue;
+    const cssKey = KEY_ALIASES[rawKey] ?? rawKey;
+    el.style.setProperty(`--${cssKey}`, value);
+  }
+
+  // 2. Apply manual overrides on top
   if (!overrides) return;
-  if (overrides.accent) el.style.setProperty('--accent', overrides.accent);
-  if (overrides.accentHover) el.style.setProperty('--accent-hover', overrides.accentHover);
-  if (overrides.warm) el.style.setProperty('--warm', overrides.warm);
-  if (overrides.ok) el.style.setProperty('--ok', overrides.ok);
-  if (overrides.err) el.style.setProperty('--err', overrides.err);
-  if (overrides.radius) el.style.setProperty('--radius', overrides.radius);
-  if (overrides.fontScale) el.style.setProperty('font-size', `${Number(overrides.fontScale) * 14}px`);
+  for (const [rawKey, value] of Object.entries(overrides)) {
+    if (!value) continue;
+    const cssKey = KEY_ALIASES[rawKey] ?? rawKey;
+    if (cssKey === 'fontScale') {
+      el.style.setProperty('font-size', `${Number(value) * 14}px`);
+    } else {
+      el.style.setProperty(`--${cssKey}`, value);
+    }
+  }
 }
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
@@ -32,7 +110,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     void settingsClient.get().then((s) => {
       setSettings(s);
       applyDensity(s.uiDensity);
-      applyThemeOverrides(s.themeOverrides);
+      applyThemeTokens(s.themePresetId, s.themeOverrides);
     });
   };
 
@@ -45,6 +123,18 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     window.addEventListener('beefor:settings-changed', handler);
     return () => window.removeEventListener('beefor:settings-changed', handler);
   }, []);
+
+  // Re-apply preset whenever theme toggle changes data-theme on <html>.
+  // ThemeProvider sets data-theme synchronously, but preset tokens differ between
+  // dark/light → must re-resolve. Watch via MutationObserver.
+  useEffect(() => {
+    const root = document.documentElement;
+    const obs = new MutationObserver(() => {
+      if (settings) applyThemeTokens(settings.themePresetId, settings.themeOverrides);
+    });
+    obs.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => obs.disconnect();
+  }, [settings]);
 
   return <Ctx.Provider value={{ settings, reload: load }}>{children}</Ctx.Provider>;
 }

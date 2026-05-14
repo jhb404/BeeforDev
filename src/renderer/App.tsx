@@ -19,6 +19,8 @@ import { UpdateOverlay } from './app/components/UpdateOverlay';
 import { ProfileModal } from './app/components/ProfileModal';
 import { useUpdater } from './hooks/useUpdater';
 import { useTeamPrefetch } from './app/hooks/useTeamPrefetch';
+import { useAppIconSync } from './hooks/useAppIconSync';
+import { useGamification } from './features/gamification';
 
 type Tab = 'home' | 'settings';
 
@@ -53,6 +55,13 @@ function AppShell() {
   useAlarmRouter();
   useTeamPhotoPreload(startupComplete);
   useTeamPrefetch(startupComplete, homeBootReady);
+
+  // Sync Windows taskbar/titlebar icon with active gamification variant.
+  const { stats } = useGamification();
+  const activeIconId =
+    stats.unlockedIconVariantIds[stats.unlockedIconVariantIds.length - 1] ?? 'orange';
+  useAppIconSync(activeIconId);
+
   const { state: updateState } = useUpdater();
 
   const handleStartupComplete = useCallback(() => setStartupComplete(true), []);
