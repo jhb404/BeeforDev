@@ -5,6 +5,7 @@ import { IPC } from '../../../shared/ipc';
 import { isElevated, relaunchAsAdmin } from '../../adminCheck';
 import { fireTestNotification, getTodayAlerts } from '../../scheduler';
 import { getBuildAssetPath, getBuildAssetsDir } from '../../window';
+import { setLunchTimerActive } from '../../bootstrap/tray';
 import { logger } from '../../logger';
 import { ok, fail } from '../../services/result';
 
@@ -55,6 +56,10 @@ export function registerSystemHandlers(getWindow: () => BrowserWindow | null) {
 
   ipcMain.handle(IPC.APP_GET_ASSET_PATH, () => {
     return getBuildAssetsDir();
+  });
+
+  ipcMain.on(IPC.TRAY_SET_LUNCH_ACTIVE, (_e, active: boolean) => {
+    setLunchTimerActive(active);
   });
 
   ipcMain.handle(IPC.APP_READ_ASSET, async (_e, fileName: string) => {

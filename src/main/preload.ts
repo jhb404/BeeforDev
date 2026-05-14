@@ -98,6 +98,26 @@ const api = {
     return () => ipcRenderer.removeListener(IPC.EVT_NOTIFY, listener);
   },
 
+  setLunchTimerActive: (active: boolean): void =>
+    ipcRenderer.send(IPC.TRAY_SET_LUNCH_ACTIVE, active),
+
+  // Tray → renderer events
+  onTrayLunchTimer: (cb: () => void): (() => void) => {
+    const listener = () => cb();
+    ipcRenderer.on(IPC.EVT_TRAY_LUNCH_TIMER, listener);
+    return () => ipcRenderer.removeListener(IPC.EVT_TRAY_LUNCH_TIMER, listener);
+  },
+  onTrayOpenKudo: (cb: () => void): (() => void) => {
+    const listener = () => cb();
+    ipcRenderer.on(IPC.EVT_TRAY_OPEN_KUDO, listener);
+    return () => ipcRenderer.removeListener(IPC.EVT_TRAY_OPEN_KUDO, listener);
+  },
+  onTrayOpenCoins: (cb: () => void): (() => void) => {
+    const listener = () => cb();
+    ipcRenderer.on(IPC.EVT_TRAY_OPEN_COINS, listener);
+    return () => ipcRenderer.removeListener(IPC.EVT_TRAY_OPEN_COINS, listener);
+  },
+
   // Updater events
   onUpdateAvailable: (cb: (info: { version: string }) => void): (() => void) => {
     const listener = (_e: unknown, info: { version: string }) => cb(info);

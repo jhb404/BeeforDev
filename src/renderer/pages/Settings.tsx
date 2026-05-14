@@ -13,6 +13,7 @@ import { LunchCard } from './settings/sections/LunchCard';
 import { MoodCard } from './settings/sections/MoodCard';
 import { PunchCard } from './settings/sections/PunchCard';
 import { SecurityCard } from './settings/sections/SecurityCard';
+import { TrayMenuCard } from './settings/sections/TrayMenuCard';
 import { getError } from '@shared/result';
 
 interface SettingsProps {
@@ -219,6 +220,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
           />
           <GeneralCard settings={settings} onUpdate={update} />
           <JornadaCard settings={settings} onUpdate={update} />
+          <TrayMenuCard settings={settings} onUpdate={update} />
         </div>
       </section>
 

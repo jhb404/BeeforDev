@@ -1,4 +1,4 @@
-- v0.1.2: Instalado ignorante 🎨
+- v0.1.2: Instalação ignorante 🎨
 
 One-click install, sem perguntar pasta, sem tela chata.
 Auto-update agressivo: baixa silencioso → instala → reinicia sozinho.

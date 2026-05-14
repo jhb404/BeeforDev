@@ -11,9 +11,11 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 interface Props {
   settings?: AppSettings | null;
+  forceOpen?: boolean;
+  onForceOpenConsumed?: () => void;
 }
 
-export function Coin2uBadge({ settings }: Props = {}) {
+export function Coin2uBadge({ settings, forceOpen, onForceOpenConsumed }: Props = {}) {
   const cached = loadCoin2uCache();
   const [data, setData] = useState<Coin2uDashboard | null>(cached.dashboard);
   const [log, setLog] = useState<Coin2uTransaction[]>(cached.log);
@@ -23,6 +25,13 @@ export function Coin2uBadge({ settings }: Props = {}) {
   const [bump, setBump] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [newCount, setNewCount] = useState(0);
+
+  useEffect(() => {
+    if (forceOpen) {
+      setModalOpen(true);
+      onForceOpenConsumed?.();
+    }
+  }, [forceOpen, onForceOpenConsumed]);
 
   const refresh = async (notifyChange = false) => {
     setLoading(true);

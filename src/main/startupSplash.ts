@@ -212,26 +212,73 @@ function splashHtml(): string {
         var Ctx = window.AudioContext || window.webkitAudioContext;
         if (!Ctx) return;
         var a = new Ctx();
-        var s = a.currentTime + 0.04;
-        var notes = [
-          [587.33, 0.00, 0.08, 0.055, 'triangle'],
-          [880.00, 0.06, 0.10, 0.065, 'triangle'],
-          [1174.66, 0.13, 0.18, 0.060, 'sine'],
-          [1760.00, 0.22, 0.10, 0.025, 'sine']
-        ];
-        notes.forEach(function (n) {
+        var s = a.currentTime + 0.06;
+
+        // Master limiter via gain to prevent peaking
+        var master = a.createGain();
+        master.gain.value = 0.85;
+        master.connect(a.destination);
+
+        // Soft reverb-ish using delay + feedback
+        var delay = a.createDelay();
+        delay.delayTime.value = 0.08;
+        var feedback = a.createGain();
+        feedback.gain.value = 0.18;
+        var wet = a.createGain();
+        wet.gain.value = 0.22;
+        delay.connect(feedback);
+        feedback.connect(delay);
+        delay.connect(wet);
+        wet.connect(master);
+
+        function note(freq, t, dur, gain, type, glide) {
           var o = a.createOscillator();
           var g = a.createGain();
-          o.frequency.value = n[0];
-          o.type = n[4];
-          g.gain.setValueAtTime(0.0001, s + n[1]);
-          g.gain.exponentialRampToValueAtTime(n[3], s + n[1] + 0.012);
-          g.gain.exponentialRampToValueAtTime(0.0001, s + n[1] + n[2]);
-          o.connect(g).connect(a.destination);
-          o.start(s + n[1]);
-          o.stop(s + n[1] + n[2] + 0.03);
-        });
-        setTimeout(function () { a.close().catch(function(){}); }, 900);
+          o.type = type || 'sine';
+          o.frequency.setValueAtTime(freq * (glide ? 0.985 : 1), s + t);
+          if (glide) {
+            o.frequency.exponentialRampToValueAtTime(freq, s + t + 0.05);
+          }
+          g.gain.setValueAtTime(0.0001, s + t);
+          g.gain.exponentialRampToValueAtTime(gain, s + t + 0.018);
+          g.gain.exponentialRampToValueAtTime(0.0001, s + t + dur);
+          o.connect(g);
+          g.connect(master);
+          g.connect(delay);
+          o.start(s + t);
+          o.stop(s + t + dur + 0.05);
+        }
+
+        // Cmaj7 arpeggio rising — soft sine plucks with glide
+        // C5 E5 G5 B5 D6 ascending — Mario underwater theme vibe
+        note(523.25, 0.00, 0.18, 0.18, 'sine', true);   // C5
+        note(659.25, 0.09, 0.18, 0.18, 'sine', true);   // E5
+        note(783.99, 0.18, 0.20, 0.20, 'sine', true);   // G5
+        note(987.77, 0.27, 0.22, 0.22, 'sine', true);   // B5
+        note(1174.66, 0.36, 0.55, 0.24, 'sine', true);  // D6 — held
+
+        // Warm pad layer — triangle held chord (C + G)
+        note(261.63, 0.10, 0.80, 0.10, 'triangle', false);  // C4
+        note(392.00, 0.10, 0.80, 0.09, 'triangle', false);  // G4
+
+        // Bell sparkle — high sine ding at peak
+        note(2349.32, 0.40, 0.40, 0.05, 'sine', false);   // D7
+        note(3135.96, 0.46, 0.30, 0.035, 'sine', false);  // G7
+
+        // Sub-bass gentle thud at start
+        var sub = a.createOscillator();
+        var subG = a.createGain();
+        sub.type = 'sine';
+        sub.frequency.value = 65.41; // C2
+        subG.gain.setValueAtTime(0.0001, s);
+        subG.gain.exponentialRampToValueAtTime(0.18, s + 0.04);
+        subG.gain.exponentialRampToValueAtTime(0.0001, s + 0.45);
+        sub.connect(subG);
+        subG.connect(master);
+        sub.start(s);
+        sub.stop(s + 0.5);
+
+        setTimeout(function () { a.close().catch(function(){}); }, 1400);
       } catch (_) {}
     };
   </script>
@@ -268,7 +315,9 @@ export function createStartupSplash(variant: LogoVariant): BrowserWindow {
     splash.center();
     if (!playedBootSound) {
       playedBootSound = true;
-      void splash.webContents.executeJavaScript('window.beeforPlayStartup?.()', true).catch(() => undefined);
+      void splash.webContents
+        .executeJavaScript('window.beeforPlayStartup?.()', true)
+        .catch(() => undefined);
     }
   });
 
@@ -283,7 +332,9 @@ export async function closeStartupSplash(splash: BrowserWindow | null): Promise<
     await new Promise((resolve) => setTimeout(resolve, MIN_SPLASH_MS - elapsed));
   }
   if (splash.isDestroyed()) return;
-  await splash.webContents.executeJavaScript('window.beeforCloseSplash?.()', true).catch(() => undefined);
+  await splash.webContents
+    .executeJavaScript('window.beeforCloseSplash?.()', true)
+    .catch(() => undefined);
   await new Promise((resolve) => setTimeout(resolve, FADE_MS + 40));
   if (!splash.isDestroyed()) splash.destroy();
 }

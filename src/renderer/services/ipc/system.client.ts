@@ -17,6 +17,10 @@ export function createSystemClient(api: BeeforApi) {
       api.onUpdateAvailable(cb),
     onUpdateDownloaded: (cb: (info: { version: string }) => void): (() => void) =>
       api.onUpdateDownloaded(cb),
+    onTrayLunchTimer: (cb: () => void): (() => void) => api.onTrayLunchTimer(cb),
+    onTrayOpenKudo: (cb: () => void): (() => void) => api.onTrayOpenKudo(cb),
+    onTrayOpenCoins: (cb: () => void): (() => void) => api.onTrayOpenCoins(cb),
+    setLunchTimerActive: (active: boolean): void => api.setLunchTimerActive(active),
     quitAndInstallUpdate: (): Promise<void> => api.quitAndInstallUpdate(),
     getAssetPath: (): Promise<string> => api.getAssetPath(),
     readAsset: (fileName: string): Promise<string | null> => api.readAsset(fileName),
