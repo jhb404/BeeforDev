@@ -1,16 +1,21 @@
 ﻿import { BrowserWindow, ipcMain } from 'electron';
 import { IPC } from '../../../shared/ipc';
-import type { Mood } from '../../../shared/types';
 import { doGetCurrentMood, doSelectMood } from '../../../automation/beefor/beeforActions';
 import { logger } from '../../logger';
 import { ok, fail } from '../../services/result';
 import { runBeeforActionWithReconnect } from '../../services/beeforActionRunner';
+import { moodSchema } from '../schemas';
+import { validate } from '../validate';
 
 export function registerMoodHandlers(getWindow: () => BrowserWindow | null) {
-  ipcMain.handle(IPC.ACTION_SELECT_MOOD, async (_e, mood: Mood) => {
+  ipcMain.handle(IPC.ACTION_SELECT_MOOD, async (_e, payload: unknown) => {
+    const parsed = validate(moodSchema, payload);
+    if (!parsed.ok) return parsed.result;
     const win = getWindow();
     try {
-      await runBeeforActionWithReconnect(win, 'Select mood', (page) => doSelectMood(page, mood));
+      await runBeeforActionWithReconnect(win, 'Select mood', (page) =>
+        doSelectMood(page, parsed.data),
+      );
       return ok();
     } catch (err) {
       logger.error('Select mood failed', err);

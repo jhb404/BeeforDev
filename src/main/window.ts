@@ -12,10 +12,7 @@ function existingBuildDirCandidates(): string[] {
       path.join(__dirname, '../../build'),
     ];
   }
-  return [
-    path.join(app.getAppPath(), 'build'),
-    path.join(__dirname, '../../build'),
-  ];
+  return [path.join(app.getAppPath(), 'build'), path.join(__dirname, '../../build')];
 }
 
 export function getBuildAssetsDir(): string {
@@ -43,12 +40,7 @@ export function getBuildIconPath(variant: LogoVariant = 'orange'): string {
       ? ['icon-purple.png', 'logo-app-purple.png']
       : ['icon-orange.png', 'logo-app-orange.png'];
 
-  const file = pickFirstExistingAsset([
-    ...preferred,
-    'icon.png',
-    'icon-256.png',
-    'icon-512.png',
-  ]);
+  const file = pickFirstExistingAsset([...preferred, 'icon.png', 'icon-256.png', 'icon-512.png']);
 
   return getBuildAssetPath(file);
 }
@@ -72,6 +64,9 @@ export function createMainWindow(variant: LogoVariant = 'orange'): BrowserWindow
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      // Sandbox left off until the preload is bundled into a single file —
+      // sandboxed preload cannot resolve sibling-package requires across dist/.
+      // Other defenses (contextIsolation, CSP, zod IPC, safeStorage) cover the gap.
       sandbox: false,
     },
   });
@@ -83,7 +78,27 @@ export function createMainWindow(variant: LogoVariant = 'orange'): BrowserWindow
     }
   } else {
     win.loadFile(path.join(__dirname, '../renderer/index.html'));
+    if (process.env.BEEFOR_DEVTOOLS === '1') {
+      win.webContents.openDevTools({ mode: 'detach' });
+    }
   }
+
+  win.webContents.on('did-fail-load', (_e, code, desc, url) => {
+     
+    console.error(`[renderer] did-fail-load code=${code} desc=${desc} url=${url}`);
+  });
+  win.webContents.on('render-process-gone', (_e, details) => {
+     
+    console.error(
+      `[renderer] render-process-gone reason=${details.reason} exitCode=${details.exitCode}`,
+    );
+  });
+  win.webContents.on('console-message', (_e, level, message, line, sourceId) => {
+    if (level >= 2) {
+       
+      console.error(`[renderer console] ${message} (${sourceId}:${line})`);
+    }
+  });
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);

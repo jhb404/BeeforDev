@@ -17,6 +17,8 @@ import {
   saveCoin2uCredentials,
   transferCoin2uCoins,
 } from '../../coin2uClient';
+import { coin2uBuyItemSchema, coin2uCredentialsSchema, coin2uTransferSchema } from '../schemas';
+import { validate } from '../validate';
 
 export function registerCoin2uHandlers() {
   // Persist Coin2U session data (userId + Info + orgs) into settings on every
@@ -41,27 +43,22 @@ export function registerCoin2uHandlers() {
     }
   });
 
-  ipcMain.handle(
-    IPC.COIN2U_SAVE_CREDS,
-    async (_e, payload: { email: string; password: string; userId?: number }) => {
-      try {
-        await saveCoin2uCredentials({
-          email: payload.email,
-          password: payload.password,
-        });
-        // userId now auto-captured on login; keep optional manual override for back-compat
-        const settings = await loadSettings();
-        const next: AppSettings = {
-          ...settings,
-          coin2uUserId: payload.userId,
-        };
-        await saveSettings(next);
-        return ok();
-      } catch (err) {
-        return fail(err);
-      }
-    },
-  );
+  ipcMain.handle(IPC.COIN2U_SAVE_CREDS, async (_e, payload: unknown) => {
+    const parsed = validate(coin2uCredentialsSchema, payload);
+    if (!parsed.ok) return parsed.result;
+    try {
+      await saveCoin2uCredentials({
+        email: parsed.data.email,
+        password: parsed.data.password,
+      });
+      const settings = await loadSettings();
+      const next: AppSettings = { ...settings, coin2uUserId: undefined };
+      await saveSettings(next);
+      return ok();
+    } catch (err) {
+      return fail(err);
+    }
+  });
 
   ipcMain.handle(IPC.COIN2U_GET_CREDS, async () => {
     const settings = await loadSettings();
@@ -112,31 +109,29 @@ export function registerCoin2uHandlers() {
     }
   });
 
-  ipcMain.handle(
-    IPC.COIN2U_BUY_ITEM,
-    async (_e, payload: { shopItemId: number; price: number }) => {
-      try {
-        const settings = await loadSettings();
-        const data = await buyCoin2uItem(payload, settings.coin2uUserId);
-        return ok(data);
-      } catch (err) {
-        return fail(err);
-      }
-    },
-  );
+  ipcMain.handle(IPC.COIN2U_BUY_ITEM, async (_e, payload: unknown) => {
+    const parsed = validate(coin2uBuyItemSchema, payload);
+    if (!parsed.ok) return parsed.result;
+    try {
+      const settings = await loadSettings();
+      const data = await buyCoin2uItem(parsed.data, settings.coin2uUserId);
+      return ok(data);
+    } catch (err) {
+      return fail(err);
+    }
+  });
 
-  ipcMain.handle(
-    IPC.COIN2U_TRANSFER,
-    async (_e, payload: { To: number; Amount: number; Message: string }) => {
-      try {
-        const settings = await loadSettings();
-        const data = await transferCoin2uCoins(payload, settings.coin2uUserId);
-        return ok(data);
-      } catch (err) {
-        return fail(err);
-      }
-    },
-  );
+  ipcMain.handle(IPC.COIN2U_TRANSFER, async (_e, payload: unknown) => {
+    const parsed = validate(coin2uTransferSchema, payload);
+    if (!parsed.ok) return parsed.result;
+    try {
+      const settings = await loadSettings();
+      const data = await transferCoin2uCoins(parsed.data, settings.coin2uUserId);
+      return ok(data);
+    } catch (err) {
+      return fail(err);
+    }
+  });
 
   ipcMain.handle(IPC.COIN2U_VERIFY, async () => {
     try {

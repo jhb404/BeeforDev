@@ -1,5 +1,6 @@
 ﻿import { app, BrowserWindow } from 'electron';
 import { createMainWindow } from './window';
+import { installCsp } from './csp';
 import { registerIpcHandlers } from './ipcHandlers';
 import { bindLoggerWindow, logger } from './logger';
 import { loadSettings } from './sessionStore';
@@ -53,6 +54,11 @@ async function bootstrap() {
   app.setName('Beefor U');
   if (process.platform === 'win32') {
     app.setAppUserModelId('io.beefor.dev');
+  }
+
+  // CSP only in production, with BEEFOR_CSP=0 as emergency rollback switch.
+  if (process.env.NODE_ENV !== 'development' && process.env.BEEFOR_CSP !== '0') {
+    installCsp(false);
   }
 
   const splash = createStartupSplash('orange');

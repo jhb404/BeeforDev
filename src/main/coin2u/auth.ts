@@ -10,6 +10,7 @@ import {
   KEYTAR_SERVICE,
 } from '../../shared/constants';
 import { logger } from '../logger';
+import { decryptSessionBuffer, encryptSessionString } from '../safeStore';
 import { CookieJar } from './cookieJar';
 
 const SESSION_FILE = 'coin2u-session.json';
@@ -58,7 +59,8 @@ class Coin2uAuthManager {
     if (this.loadedFromDisk) return;
     this.loadedFromDisk = true;
     try {
-      const raw = await fs.readFile(sessionFilePath(), 'utf-8');
+      const buf = await fs.readFile(sessionFilePath());
+      const raw = decryptSessionBuffer(buf);
       const parsed: PersistedSession = JSON.parse(raw);
       this.userId = parsed.userId ?? null;
       this.tokenApi = parsed.tokenApi ?? null;
@@ -86,7 +88,9 @@ class Coin2uAuthManager {
       loggedAt: this.loggedAt,
     };
     try {
-      await fs.writeFile(sessionFilePath(), JSON.stringify(payload, null, 2), 'utf-8');
+      const json = JSON.stringify(payload);
+      const out = encryptSessionString(json);
+      await fs.writeFile(sessionFilePath(), out);
     } catch (err: any) {
       logger.warn(`coin2u: persist session failed: ${err?.message}`);
     }

@@ -1,13 +1,16 @@
 ﻿import { ipcMain } from 'electron';
 import { IPC } from '../../../shared/ipc';
-import type { Credentials } from '../../../shared/types';
 import { clearCredentials, getCredentials, saveCredentials } from '../../secureStorage';
 import { ok, fail } from '../../services/result';
+import { credentialsSchema } from '../schemas';
+import { validate } from '../validate';
 
 export function registerCredentialsHandlers() {
-  ipcMain.handle(IPC.CREDS_SAVE, async (_e, creds: Credentials) => {
+  ipcMain.handle(IPC.CREDS_SAVE, async (_e, payload: unknown) => {
+    const parsed = validate(credentialsSchema, payload);
+    if (!parsed.ok) return parsed.result;
     try {
-      await saveCredentials(creds);
+      await saveCredentials(parsed.data);
       return ok();
     } catch (err) {
       return fail(err);
