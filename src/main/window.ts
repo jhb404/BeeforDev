@@ -1,6 +1,7 @@
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
+import { openExternalSafe } from './openSafe';
 
 type LogoVariant = 'orange' | 'purple';
 
@@ -64,10 +65,12 @@ export function createMainWindow(variant: LogoVariant = 'orange'): BrowserWindow
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      // Sandbox left off until the preload is bundled into a single file —
-      // sandboxed preload cannot resolve sibling-package requires across dist/.
-      // Other defenses (contextIsolation, CSP, zod IPC, safeStorage) cover the gap.
-      sandbox: false,
+      // Preload is bundled by scripts/build-preload.mjs into a single CJS file,
+      // so sandboxed renderers can load it without cross-directory requires.
+      sandbox: true,
+      // Blocks middle-click on links from spawning new windows that bypass our
+      // setWindowOpenHandler — flagged by Electronegativity AUXCLICK_JS_CHECK.
+      disableBlinkFeatures: 'Auxclick',
     },
   });
 
@@ -84,25 +87,33 @@ export function createMainWindow(variant: LogoVariant = 'orange'): BrowserWindow
   }
 
   win.webContents.on('did-fail-load', (_e, code, desc, url) => {
-     
     console.error(`[renderer] did-fail-load code=${code} desc=${desc} url=${url}`);
   });
   win.webContents.on('render-process-gone', (_e, details) => {
-     
     console.error(
       `[renderer] render-process-gone reason=${details.reason} exitCode=${details.exitCode}`,
     );
   });
   win.webContents.on('console-message', (_e, level, message, line, sourceId) => {
     if (level >= 2) {
-       
       console.error(`[renderer console] ${message} (${sourceId}:${line})`);
     }
   });
 
   win.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    void openExternalSafe(url);
     return { action: 'deny' };
+  });
+
+  // Renderer must stay on its own origin. Anything else (e.g. an XSS payload
+  // pushing location.href to an attacker URL) is routed to the OS browser
+  // after passing the openExternalSafe allow-list (https + mailto only).
+  win.webContents.on('will-navigate', (event, url) => {
+    const allowed = url.startsWith('http://localhost:5177') || url.startsWith('file://');
+    if (!allowed) {
+      event.preventDefault();
+      void openExternalSafe(url);
+    }
   });
 
   return win;

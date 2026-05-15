@@ -1,6 +1,7 @@
-﻿import { BrowserWindow, ipcMain, shell } from 'electron';
+﻿import { BrowserWindow, ipcMain } from 'electron';
 import { IPC } from '../../../shared/ipc';
 import { BEEFOR_LOGIN_URL } from '../../../shared/constants';
+import { openExternalSafe } from '../../openSafe';
 import {
   doAutoLancamento,
   doFetchTimesheet,
@@ -33,12 +34,8 @@ export function registerTimesheetHandlers(getWindow: () => BrowserWindow | null)
   });
 
   ipcMain.handle(IPC.ACTION_OPEN_BEEFOR, async () => {
-    try {
-      await shell.openExternal(BEEFOR_LOGIN_URL);
-      return ok();
-    } catch (err) {
-      return fail(err);
-    }
+    const success = await openExternalSafe(BEEFOR_LOGIN_URL);
+    return success ? ok() : fail(new Error('URL rejeitada.'));
   });
 
   ipcMain.handle(IPC.ACTION_LANCAR_HORA, async (_e, payload: unknown) => {

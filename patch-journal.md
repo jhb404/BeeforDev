@@ -1,3 +1,23 @@
+- v0.1.9: Segurança!!!🔒
+
+Gente… tô escrevendo isso aqui tarde da noite pq resolvi fazer uns roles de segurança no app...yeeeeah🎊
+
+Então assim:
+fiz um monte de melhoria pra deixar tudo mais protegido e seguro pra vcs, pq achei justo avisar né… vai q alguém dorme melhor sabendo disso KKK
+
+Token, sessão, validação, bloqueios, sandbox, essas coisas de ai da vida...
+
+Enfim…
+acho q é isso mesmo.
+
+Sexta-feira tbm né gente...n vou escrever um monte de coisa n, tenham santa paciência, eu sinceramente só queria jogar Zeldinha
+
+https://media1.tenor.com/m/1vepGBkOYsYAAAAd/alaynagifs.gif
+
+OBS: Sabia q o “só vou deitar 5 minutinhos” é um dos golpes mais perigosos já criados pela humanidade? 💀
+
+---
+
 - v0.1.8: Atualização Pós-Review 👀✨
 
 Gente, foi call com o Alex e—

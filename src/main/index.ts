@@ -1,4 +1,4 @@
-﻿import { app, BrowserWindow } from 'electron';
+﻿import { app, BrowserWindow, session } from 'electron';
 import { createMainWindow } from './window';
 import { installCsp } from './csp';
 import { registerIpcHandlers } from './ipcHandlers';
@@ -60,6 +60,11 @@ async function bootstrap() {
   if (process.env.NODE_ENV !== 'development' && process.env.BEEFOR_CSP !== '0') {
     installCsp(false);
   }
+
+  // Deny every Web permission request (notifications, geolocation, media, USB, etc).
+  // App talks to the OS only via main-process IPC, so the renderer never needs these.
+  session.defaultSession.setPermissionRequestHandler((_wc, _permission, cb) => cb(false));
+  session.defaultSession.setPermissionCheckHandler(() => false);
 
   const splash = createStartupSplash('orange');
   const settings = await loadSettings();

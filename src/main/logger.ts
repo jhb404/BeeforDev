@@ -10,19 +10,35 @@ export function bindLoggerWindow(_win: BrowserWindow) {
   /* no-op */
 }
 
+/**
+ * Strips PII from log lines before they hit disk or console:
+ *  - emails → <email>
+ *  - password/token-shaped key/value pairs → <redacted>
+ *  - long bearer-style tokens → <token>
+ */
+function redact(input: string): string {
+  return input
+    .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '<email>')
+    .replace(
+      /(["']?(?:password|senha|token|tokenApi|TokenApi|apitoken|authorization|secret)["']?\s*[:=]\s*)["']?[^"',\s}]+["']?/gi,
+      '$1<redacted>',
+    )
+    .replace(/\bBearer\s+[A-Za-z0-9._-]{16,}\b/g, 'Bearer <token>');
+}
+
 export const logger = {
   info(message: string) {
-    log.info(message);
+    log.info(redact(message));
   },
   warn(message: string) {
-    log.warn(message);
+    log.warn(redact(message));
   },
   error(message: string, err?: unknown) {
     const full = err ? `${message} :: ${formatErr(err)}` : message;
-    log.error(full);
+    log.error(redact(full));
   },
   debug(message: string) {
-    log.debug(message);
+    log.debug(redact(message));
   },
 };
 
