@@ -7,7 +7,7 @@ import { AdminBanner } from './settings/sections/AdminBanner';
 import { AppearanceSection } from './settings/sections/AppearanceSection';
 import { CredentialsCard } from './settings/sections/CredentialsCard';
 import { GeneralCard } from './settings/sections/GeneralCard';
-import { JornadaCard } from './settings/sections/JornadaCard';
+// import { JornadaCard } from './settings/sections/JornadaCard';
 import { KudoCardSettings } from './settings/sections/KudoCardSettings';
 import { LunchCard } from './settings/sections/LunchCard';
 import { MoodCard } from './settings/sections/MoodCard';
@@ -240,7 +240,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
         {category === 'geral' && (
           <div className="settings-grid grid-2">
             <GeneralCard settings={settings} onUpdate={update} />
-            <JornadaCard settings={settings} onUpdate={update} />
+            {/* <JornadaCard settings={settings} onUpdate={update} /> */}
             <TrayMenuCard settings={settings} onUpdate={update} />
           </div>
         )}

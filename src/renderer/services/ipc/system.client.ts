@@ -24,6 +24,8 @@ export function createSystemClient(api: BeeforApi) {
     quitAndInstallUpdate: (): Promise<void> => api.quitAndInstallUpdate(),
     getAssetPath: (): Promise<string> => api.getAssetPath(),
     readAsset: (fileName: string): Promise<string | null> => api.readAsset(fileName),
+    notifyWindows: (title: string, body: string, variant?: 'orange' | 'purple') =>
+      api.notifyWindows(title, body, variant),
   };
 }
 

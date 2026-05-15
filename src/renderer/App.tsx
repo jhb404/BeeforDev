@@ -22,6 +22,8 @@ import { useTeamPrefetch } from './app/hooks/useTeamPrefetch';
 import { useAppIconSync } from './hooks/useAppIconSync';
 import { useJournalBadge } from './hooks/useJournalBadge';
 import { useGamification } from './features/gamification';
+import { playAlarmByKind } from './utils/alarm';
+import { useBeefor } from './hooks/useBeefor';
 
 type Tab = 'home' | 'settings';
 
@@ -73,6 +75,8 @@ function AppShell() {
     setLunchTimerActive(true);
     setLunchStartedAt(now);
     systemClient.setLunchTimerActive(true);
+    void playAlarmByKind('lunch');
+    void systemClient.notifyWindows('🍽️ Alerta Almoço', 'Timer de 1h iniciado. Bom apetite!');
     showToast({ kind: 'ok', msg: 'Timer de almoço iniciado — 1 hora.' });
     lunchTimerRef.current = setTimeout(
       () => {
@@ -113,6 +117,7 @@ function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const { status: sessionStatus } = useBeefor();
   const { showBadge: journalBadge, markAsSeen: markJournalSeen } = useJournalBadge();
 
   const openPatchJournal = async () => {
@@ -134,6 +139,7 @@ function AppShell() {
         onTabChange={setTab}
         theme={theme}
         onToggleTheme={toggleTheme}
+        sessionStatus={sessionStatus}
         alerts={alerts.alerts}
         visibleAlerts={alerts.visibleAlerts}
         onAlertDismiss={alerts.dismiss}
@@ -161,6 +167,9 @@ function AppShell() {
               <Home
                 onMoodChanged={(mood) => alerts.setCurrentMoodExternal(mood)}
                 onBootReady={() => setHomeBootReady(true)}
+                onStartLunchTimer={() => {
+                  if (!lunchTimerActive) startLunchTimer();
+                }}
               />
             </Suspense>
           </ErrorBoundary>

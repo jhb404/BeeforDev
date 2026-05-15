@@ -1,4 +1,38 @@
--v0.1.7: Ajustes™, temas™ e sofrimento™
+- v0.1.8: Atualização Pós-Review 👀✨
+
+Gente, foi call com o Alex e—
+
+PASSOU. O APP FOI APROVADO. PODE CHORAR. EU CHOREI kk...mentira, dei meus pulos só
+
+Enfim, entre um espasmo de orgulho e dois cafés, saíram essas novidades:
+
+🗂️ Painel de Atividades completamente novo:
+- Drawer lateral com TUDO do card: tipo, momento, esforço em h/min, p...ve la, mais facil.
+- Abas de Descrição, Comentários, Histórico e Anexos
+- Redimensionamento drag-and-drop entre lista e drawer aaa ficou bao demais, testa pra tu vê
+
+🎨 Visual que respeita o tema que você escolheu:
+- Mood selecionado agora usa as cores DO SEU TEMA. Antes ficava verde lá no meio tocos...
+- Fontes aumentadas porque sim, eu também não enxergo direito!
+
+🌐 Topbar com mais personalidade, aleluia:
+- Ícone de globo pra abrir o Beefor no navegador (alguem vai abrir?)
+- KudoCard virou split-button: clica direto pra enviar, ou abre o histórico no dropdown
+- StatusBadge agora fica na barra de cima do app, visível sempre
+
+...e várias outras coisinhas que eu fiz mas como n sou obrigado a contar, VC Q PROCURE :D
+
+Após semamas de app, bugs, temas, sons e uma quantidade criminosa de console.log...
+
+EU DESCANSAREI EM UM UNIVERSO AGRADECIDOOOO!!!
+https://media.tenor.com/U0_JEH4L-GcAAAAj/thanos-twerk-twerking-gauntlet-clap-cheeks-thanos.gif
+
+OBS: Obrigado Alex. De verdade. 🐝
+OBS 2: Gente, sabia q o USB sempre entra errado nas duas primeiras tentativas mesmo tendo só 2 lados? É real, vi no tiktok kk
+
+---
+
+- v0.1.7: Ajustes™, temas™ e sofrimento™
 
 Eu tenho q escrever isso aq toda vez? Alguem realmente lê!?
 
@@ -36,7 +70,7 @@ VAI LÁ VER!!! Já falei pra ti que n vou escrever aq
 O TEMA MESTRE — Esse tema ficou top tá, particurlamente, só uso ele, mas vc um dia consegue kk😏 confia no teu potencial
 
 https://media1.tenor.com/m/wK6AX19xWlEAAAAd/good-morning-bom-dia.gif
-...tá frio demais esses dias em Sorocaba, né!? (11-14/05/2026)
+OBS: ...tá frio demais esses dias em Sorocaba, né!? (11-14/05/2026)
 
 ---
 

@@ -37,14 +37,26 @@ interface Props {
   onLancar: (idx: number) => void;
 }
 
-function statusOf(r: RowState): 'full' | 'partial' | 'empty' | 'weekend' | 'holiday' {
+type DayStatus = 'full' | 'partial-ok' | 'partial-bad' | 'empty' | 'weekend' | 'holiday';
+
+function statusOf(r: RowState): DayStatus {
   if ((r.status ?? '').toLowerCase().includes('feriado')) return 'holiday';
   if (r.weekday === 0 || r.weekday === 6) return 'weekend';
   const filled = [r.entrada, r.int1, r.ret1, r.int2, r.ret2, r.saida].filter(Boolean).length;
   if (filled >= 4) return 'full';
-  if (filled > 0) return 'partial';
+  // odd count = unbalanced punch (1 or 3 = missing pair) → bad
+  if (filled > 0) return filled % 2 === 0 ? 'partial-ok' : 'partial-bad';
   return 'empty';
 }
+
+const STATUS_LABEL: Record<DayStatus, string> = {
+  full: 'completo',
+  'partial-ok': 'parcial',
+  'partial-bad': 'incompleto',
+  empty: 'vazio',
+  weekend: 'fim de semana',
+  holiday: 'feriado',
+};
 
 export function MinimalView({
   rows,
@@ -59,9 +71,7 @@ export function MinimalView({
 }: Props) {
   const today = todayIso();
   const todayIndex = rows.findIndex((r) => r.date === today);
-  const [selectedIdx, setSelectedIdx] = useState<number>(
-    todayIndex >= 0 ? todayIndex : 0,
-  );
+  const [selectedIdx, setSelectedIdx] = useState<number>(todayIndex >= 0 ? todayIndex : 0);
 
   const firstWeekday = rows.length > 0 ? rows[0].weekday : 0;
 
@@ -97,11 +107,12 @@ export function MinimalView({
             const isSelected = idx === selectedIdx;
             const cellWorked = workedMinutes(cell);
             const cellDiff = cellWorked > 0 ? cellWorked - hoursPerDayMin : null;
-            const diffLabel = cellDiff !== null
-              ? (cellDiff >= 0
+            const diffLabel =
+              cellDiff !== null
+                ? cellDiff >= 0
                   ? `+${cellDiff < 60 ? `${cellDiff}m` : `${Math.floor(cellDiff / 60)}h${cellDiff % 60 > 0 ? `${cellDiff % 60}m` : ''}`}`
-                  : `-${Math.abs(cellDiff) < 60 ? `${Math.abs(cellDiff)}m` : `${Math.floor(Math.abs(cellDiff) / 60)}h${Math.abs(cellDiff) % 60 > 0 ? `${Math.abs(cellDiff) % 60}m` : ''}`}`)
-              : null;
+                  : `-${Math.abs(cellDiff) < 60 ? `${Math.abs(cellDiff)}m` : `${Math.floor(Math.abs(cellDiff) / 60)}h${Math.abs(cellDiff) % 60 > 0 ? `${Math.abs(cellDiff) % 60}m` : ''}`}`
+                : null;
             const diffPositive = cellDiff !== null && cellDiff >= 0;
 
             return (
@@ -113,22 +124,10 @@ export function MinimalView({
                   isSelected ? 'selected' : ''
                 } ${cell.saved ? 'saved' : ''} ${cell.failed ? 'failed' : ''}`}
                 onClick={() => setSelectedIdx(idx)}
-                title={`${cell.date.slice(8, 10)}/${cell.date.slice(5, 7)} — ${
-                  st === 'full'
-                    ? 'completo'
-                    : st === 'partial'
-                    ? 'parcial'
-                    : st === 'holiday'
-                    ? 'feriado'
-                    : st === 'weekend'
-                    ? 'fim de semana'
-                    : 'vazio'
-                }`}
+                title={`${cell.date.slice(8, 10)}/${cell.date.slice(5, 7)} — ${STATUS_LABEL[st]}`}
               >
                 {showDiff && diffLabel && st !== 'weekend' && st !== 'holiday' && (
-                  <span className={`cal-diff ${diffPositive ? 'pos' : 'neg'}`}>
-                    {diffLabel}
-                  </span>
+                  <span className={`cal-diff ${diffPositive ? 'pos' : 'neg'}`}>{diffLabel}</span>
                 )}
                 <span className="cal-num">{cell.date.slice(8, 10)}</span>
                 <span className="cal-dot" />
@@ -137,10 +136,21 @@ export function MinimalView({
           })}
         </div>
         <div className="cal-legend">
-          <span><i className="dot st-full" /> Completo</span>
-          <span><i className="dot st-partial" /> Parcial</span>
-          <span><i className="dot st-empty" /> Vazio</span>
-          <span><i className="dot st-holiday" /> Feriado</span>
+          <span>
+            <i className="dot st-full" /> Completo
+          </span>
+          <span>
+            <i className="dot st-partial-ok" /> Parcial
+          </span>
+          <span>
+            <i className="dot st-partial-bad" /> Incompleto
+          </span>
+          <span>
+            <i className="dot st-empty" /> Vazio
+          </span>
+          <span>
+            <i className="dot st-holiday" /> Feriado
+          </span>
         </div>
       </div>
 
@@ -194,26 +204,18 @@ export function MinimalView({
             type="text"
             placeholder="Observação"
             value={selected.comentario ?? ''}
-            onChange={(e) =>
-              onUpdateRow(selectedIdx, { comentario: e.target.value })
-            }
+            onChange={(e) => onUpdateRow(selectedIdx, { comentario: e.target.value })}
           />
         </label>
 
         <div className="day-actions">
-          {selected.status && (
-            <span className="day-status">{selected.status}</span>
-          )}
+          {selected.status && <span className="day-status">{selected.status}</span>}
           <button
             disabled={busy || !ready || selected.saving}
             onClick={() => onLancar(selectedIdx)}
             title={selected.errMsg ?? ''}
           >
-            {selected.saving
-              ? 'Salvando...'
-              : selected.saved
-              ? 'Salvar de novo'
-              : 'Lançar dia'}
+            {selected.saving ? 'Salvando...' : selected.saved ? 'Salvar de novo' : 'Lançar dia'}
           </button>
         </div>
       </div>

@@ -22,7 +22,9 @@ export function MoodPanel({ loading, currentMood, busy, ready, onSelect }: MoodP
             <div className="mood-panel__info">
               <span className="label">Mood do dia</span>
               <div className="mood-panel__row">
-                <strong>{currentMood ?? 'Não identificado'}</strong>
+                <strong className="mood-panel__mood-text">
+                  {currentMood ?? <span className="mood-panel__unidentified">—</span>}
+                </strong>
                 <MoodStreakBadge />
               </div>
             </div>
