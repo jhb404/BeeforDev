@@ -76,6 +76,12 @@ export const IPC = {
 
   // updater
   UPDATER_QUIT_AND_INSTALL: 'updater:quitAndInstall',
+
+  // atividades
+  ACTION_FETCH_ATIVIDADES: 'action:fetchAtividades',
+
+  // notificação customizada do renderer → main
+  ACTION_NOTIFY: 'action:notify',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];

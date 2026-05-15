@@ -6,3 +6,4 @@ export * from './kudo';
 export * from './team';
 export * from './coin2u';
 export * from './app';
+export * from './atividades';

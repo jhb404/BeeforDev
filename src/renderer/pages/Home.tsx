@@ -19,13 +19,15 @@ import { TimesheetToolbar } from './home/components/TimesheetToolbar';
 import { TimesheetGrid } from './home/components/TimesheetGrid';
 import { BatchConfirmModal } from './home/components/BatchConfirmModal';
 import { HomeTopbar } from './home/components/HomeTopbar';
+import { AtividadesModal } from '../features/atividades/components/AtividadesModal';
 
 interface HomeProps {
   onMoodChanged?: (mood: string | null) => void;
   onBootReady?: () => void;
+  onStartLunchTimer?: () => void;
 }
 
-export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
+export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProps = {}) {
   const { status, busy, wrap } = useBeefor();
   const ready = status === 'connected';
 
@@ -44,6 +46,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [showKudoModal, setShowKudoModal] = useState(false);
   const [showKudoHistory, setShowKudoHistory] = useState(false);
+  const [showAtividades, setShowAtividades] = useState(false);
 
   const fetchInFlight = useRef(false);
   const lastFetchKey = useRef<string>('');
@@ -150,8 +153,19 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 
-  const updateRow = (idx: number, patch: Partial<RowState>) =>
-    setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+  const updateRow = (idx: number, patch: Partial<RowState>) => {
+    setRows((prev) => {
+      const next = prev.map((r, i) => (i === idx ? { ...r, ...patch } : r));
+      // auto-start lunch timer when int1 (2nd punch) is set on today
+      if ('int1' in patch && patch.int1 && !prev[idx]?.int1) {
+        const row = prev[idx];
+        if (row?.date === todayIso()) {
+          onStartLunchTimer?.();
+        }
+      }
+      return next;
+    });
+  };
 
   const lancar = async (idx: number, refreshAfter = false) => {
     const r = rows[idx];
@@ -256,40 +270,24 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
   };
 
   const hoursPerDayMin = (settings?.hoursPerDay ?? 8) * 60;
-  const hourRate = settings?.hourRate ?? 0;
 
   const summary = useMemo(() => {
     let workedTotal = 0;
     let saldoTotal = 0;
-    let overtimeMin = 0;
-    let expectedTotal = 0;
     let workedDays = 0;
+    let bestDayMin = 0;
     for (const r of rows) {
       const w = workedMinutes(r);
       if (w <= 0) continue;
       workedTotal += w;
       workedDays += 1;
-      expectedTotal += hoursPerDayMin;
       const diff = w - hoursPerDayMin;
       saldoTotal += diff;
-      if (diff > 0) overtimeMin += diff;
+      if (w > bestDayMin) bestDayMin = w;
     }
-    // Total estimado = horas normais trabalhadas × rate + valor das extras
-    // = workedTotal × rate (pois workedTotal já inclui extras)
-    // Valor extras baseado no saldo total positivo do mês (não soma dias individualmente)
-    const netOvertimeMin = Math.max(0, saldoTotal);
-    const overtimeValue = (netOvertimeMin / 60) * hourRate;
-    const totalSalary = (workedTotal / 60) * hourRate;
-    return {
-      workedTotal,
-      expectedTotal,
-      saldoTotal,
-      overtimeMin,
-      overtimeValue,
-      totalSalary,
-      workedDays,
-    };
-  }, [rows, hoursPerDayMin, hourRate]);
+    const avgDayMin = workedDays > 0 ? Math.round(workedTotal / workedDays) : 0;
+    return { workedTotal, saldoTotal, workedDays, avgDayMin, bestDayMin };
+  }, [rows, hoursPerDayMin]);
 
   const today = todayIso();
   const yearOptions = [now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1];
@@ -346,6 +344,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
         }}
         onOpenKudo={() => setShowKudoModal(true)}
         onOpenKudoHistory={() => setShowKudoHistory(true)}
+        onOpenAtividades={() => setShowAtividades(true)}
       />
 
       <MoodPanel
@@ -368,12 +367,7 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
           onAutoLancamento={() => void autoLancamento()}
         />
 
-        <SummaryStrip
-          summary={summary}
-          compact={settings?.viewMode === 'minimal'}
-          showOvertimeValue={hourRate > 0 && (settings?.showOvertimeValue ?? true)}
-          showTotalSalary={hourRate > 0 && (settings?.showTotalSalary ?? true)}
-        />
+        <SummaryStrip summary={summary} compact={settings?.viewMode === 'minimal'} />
 
         {showTimesheetLoader ? (
           <FunnyLoader title="Carregando lançamentos" />
@@ -425,6 +419,8 @@ export function Home({ onMoodChanged, onBootReady }: HomeProps = {}) {
       />
 
       <KudoCardHistoryModal open={showKudoHistory} onClose={() => setShowKudoHistory(false)} />
+
+      <AtividadesModal open={showAtividades} onClose={() => setShowAtividades(false)} />
     </div>
   );
 }

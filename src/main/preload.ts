@@ -3,6 +3,7 @@ import { IPC } from '../shared/ipc';
 import type {
   ActionResult,
   AppSettings,
+  BeeforAtividade,
   Coin2uBuyItemRequest,
   Coin2uCredentials,
   Coin2uDashboard,
@@ -141,6 +142,17 @@ const api = {
   getAssetPath: (): Promise<string> => ipcRenderer.invoke(IPC.APP_GET_ASSET_PATH),
   readAsset: (fileName: string): Promise<string | null> =>
     ipcRenderer.invoke(IPC.APP_READ_ASSET, fileName),
+
+  // atividades
+  fetchAtividades: (): Promise<ActionResult<BeeforAtividade[]>> =>
+    ipcRenderer.invoke(IPC.ACTION_FETCH_ATIVIDADES),
+
+  // notificação customizada renderer → main
+  notifyWindows: (
+    title: string,
+    body: string,
+    variant?: 'orange' | 'purple',
+  ): Promise<ActionResult> => ipcRenderer.invoke(IPC.ACTION_NOTIFY, title, body, variant),
 
   // Coin2U
   saveCoin2uCreds: (payload: { email: string; password: string }): Promise<ActionResult> =>

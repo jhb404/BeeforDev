@@ -1,11 +1,12 @@
 ﻿import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Bell, Moon, Newspaper, Sun } from '../../components/common/Icons';
 import { TeamButton } from '../../features/team/components/TeamButton';
-import type { AppSettings, TodayAlert } from '@shared/types';
+import type { AppSettings, SessionStatus, TodayAlert } from '@shared/types';
 import { BellPanel } from './BellPanel';
 import { UpdateBadge } from './UpdateBadge';
 import { LunchTimerWidget } from './LunchTimerWidget';
 import { BeeforLogo } from '../../components/common/BeeforLogo';
+import { StatusBadge } from '../../components/common/StatusBadge';
 
 const Coin2uBadge = lazy(() =>
   import('../../features/coin2u/components/Coin2uBadge').then((m) => ({ default: m.Coin2uBadge })),
@@ -54,6 +55,7 @@ interface TopBarProps {
   lunchStartedAt?: number | null;
   onCancelLunchTimer?: () => void;
   journalBadge?: boolean;
+  sessionStatus?: SessionStatus;
 }
 
 export function TopBar({
@@ -77,6 +79,7 @@ export function TopBar({
   lunchStartedAt = null,
   onCancelLunchTimer,
   journalBadge = false,
+  sessionStatus = 'idle',
 }: TopBarProps) {
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
@@ -115,6 +118,7 @@ export function TopBar({
       </div>
       <div className="topbar-actions">
         <UpdateBadge />
+        <StatusBadge status={sessionStatus} />
         <LunchTimerWidget
           active={lunchTimerActive}
           startedAt={lunchStartedAt}

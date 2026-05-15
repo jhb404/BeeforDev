@@ -449,6 +449,36 @@ export async function playUiProfileOpen(): Promise<void> {
   }
 }
 
+// activity-open — mesmo estilo do streak mas tom diferente:
+// F major ascendente (F4→A4→C5→F5→A5), sine (mais suave que triangle),
+// spacing maior (0.09s vs 0.06s), gain menor, sem crackle
+export async function playUiActivityOpen(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+
+  const notes = [
+    { f: 349, t: 0.0, d: 0.22 }, // F4
+    { f: 440, t: 0.09, d: 0.22 }, // A4
+    { f: 523, t: 0.18, d: 0.24 }, // C5
+    { f: 698, t: 0.27, d: 0.28 }, // F5
+    { f: 880, t: 0.36, d: 0.38 }, // A5 — held
+  ];
+
+  for (const n of notes) {
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = n.f;
+    g.gain.setValueAtTime(0.0001, s + n.t);
+    g.gain.exponentialRampToValueAtTime(0.14, s + n.t + 0.018);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + n.t + n.d);
+    osc.connect(g).connect(audio.destination);
+    osc.start(s + n.t);
+    osc.stop(s + n.t + n.d + 0.02);
+  }
+}
+
 // streak-open — fire crackle + bright triumphant chord opening leaderboard
 export async function playUiStreakOpen(): Promise<void> {
   const audio = getCtx();
@@ -535,7 +565,8 @@ export type UiSoundKind =
   | 'birthday'
   | 'boot'
   | 'profile-open'
-  | 'streak-open';
+  | 'streak-open'
+  | 'activity-open';
 
 export function playUiSound(kind: UiSoundKind): void {
   switch (kind) {
@@ -604,6 +635,9 @@ export function playUiSound(kind: UiSoundKind): void {
       return;
     case 'streak-open':
       void playUiStreakOpen();
+      return;
+    case 'activity-open':
+      void playUiActivityOpen();
       return;
   }
 }

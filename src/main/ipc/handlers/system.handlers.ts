@@ -6,6 +6,7 @@ import { isElevated, relaunchAsAdmin } from '../../adminCheck';
 import { fireTestNotification, getTodayAlerts } from '../../scheduler';
 import { getBuildAssetPath, getBuildAssetsDir } from '../../window';
 import { setLunchTimerActive } from '../../bootstrap/tray';
+import { notifyWindows } from '../../bootstrap/notifications';
 import { logger } from '../../logger';
 import { ok, fail } from '../../services/result';
 
@@ -61,6 +62,14 @@ export function registerSystemHandlers(getWindow: () => BrowserWindow | null) {
   ipcMain.on(IPC.TRAY_SET_LUNCH_ACTIVE, (_e, active: boolean) => {
     setLunchTimerActive(active);
   });
+
+  ipcMain.handle(
+    IPC.ACTION_NOTIFY,
+    (_e, title: string, body: string, variant?: 'orange' | 'purple') => {
+      notifyWindows(title, body, variant);
+      return ok();
+    },
+  );
 
   ipcMain.handle(IPC.APP_READ_ASSET, async (_e, fileName: string) => {
     const safe = path.basename(fileName);
