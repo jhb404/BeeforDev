@@ -47,12 +47,20 @@ jobs:
       - name: Bump patch + tag
         shell: bash
         run: |
-          npm version patch -m "chore: release v%s [skip ci]"
+          git fetch --tags --force origin
+          current=$(node -p "require('./package.json').version")
+          if git rev-parse "v$current" >/dev/null 2>&1; then
+            echo "Tag v$current already exists — bumping patch."
+            npm version patch -m "chore: release v%s [skip ci]"
+          else
+            echo "Tag v$current missing — creating tag without bump."
+            git tag -a "v$current" -m "chore: release v$current [skip ci]"
+          fi
 
       - name: Push commit + tag
         shell: bash
         run: |
-          git push origin main --follow-tags
+          git push origin main --follow-tags || git push origin --tags
 
       - name: Build and publish
         run: npm run package:win
