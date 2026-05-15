@@ -2617,6 +2617,23 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   line-height: 1.35;
 }
 
+.toast__action {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--ok-border);
+  background: rgba(39, 184, 153, 0.12);
+  color: var(--ok);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toast__action:hover {
+  background: rgba(39, 184, 153, 0.22);
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;

@@ -117,7 +117,8 @@
     "publish": {
       "provider": "github",
       "owner": "jhb404",
-      "repo": "BeeforDev"
+      "repo": "BeeforDev",
+      "releaseType": "release"
     }
   }
 }

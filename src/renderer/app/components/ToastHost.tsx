@@ -1,21 +1,29 @@
-import { useToastState } from '../providers/ToastProvider';
+import { useToastDismiss, useToastState } from '../providers/ToastProvider';
 
 export function ToastHost() {
   const toast = useToastState();
+  const dismiss = useToastDismiss();
   if (!toast) return null;
   return (
-    <div
-      className={`toast ${toast.kind}`}
-      role={toast.kind === 'err' ? 'alert' : 'status'}
-    >
+    <div className={`toast ${toast.kind}`} role={toast.kind === 'err' ? 'alert' : 'status'}>
       <span className="toast__icon" aria-hidden="true">
         {toast.kind === 'ok' ? '✓' : '!'}
       </span>
       <span className="toast__body">
-        <strong>
-          {toast.title ?? (toast.kind === 'ok' ? 'Tudo certo' : 'Atenção')}
-        </strong>
+        <strong>{toast.title ?? (toast.kind === 'ok' ? 'Tudo certo' : 'Atenção')}</strong>
         <span>{toast.msg}</span>
+        {toast.action && (
+          <button
+            type="button"
+            className="toast__action"
+            onClick={() => {
+              toast.action!.onClick();
+              dismiss();
+            }}
+          >
+            {toast.action.label}
+          </button>
+        )}
       </span>
     </div>
   );
