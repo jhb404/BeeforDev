@@ -58,3 +58,14 @@ jobs:
         run: npm run package:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish all draft releases
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          drafts=$(gh api repos/${{ github.repository }}/releases --jq '.[] | select(.draft==true) | .id')
+          for id in $drafts; do
+            echo "Publishing draft release $id"
+            gh api -X PATCH repos/${{ github.repository }}/releases/$id -f draft=false
+          done

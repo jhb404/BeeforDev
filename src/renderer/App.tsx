@@ -65,7 +65,22 @@ function AppShell() {
     stats.unlockedIconVariantIds[stats.unlockedIconVariantIds.length - 1] ?? 'orange';
   useAppIconSync(activeIconId);
 
-  const { state: updateState } = useUpdater();
+  const { state: updateState, install: installUpdate } = useUpdater();
+
+  useEffect(() => {
+    if (updateState.status !== 'ready') return;
+    showToast(
+      {
+        kind: 'ok',
+        title: `Atualização v${updateState.version} pronta`,
+        msg: 'Clique em instalar para reiniciar e atualizar.',
+        persistent: true,
+        action: { label: 'Instalar agora', onClick: installUpdate },
+      },
+      0,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateState.status]);
 
   const handleStartupComplete = useCallback(() => setStartupComplete(true), []);
 
