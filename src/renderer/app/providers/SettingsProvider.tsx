@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { AppSettings } from '@shared/types/index';
-import { settingsClient } from '../../services/ipc';
+import { useIpc } from '../../services/ipc';
 import { resolvePresetTokens } from '../../features/gamification';
+import { APP_EVENTS, onAppEvent } from '../events';
 
 type SettingsCtx = {
   settings: AppSettings | null;
@@ -104,25 +105,25 @@ function applyThemeTokens(presetId: string | undefined, overrides: AppSettings['
 }
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
+  const { settings: settingsClient } = useIpc();
   const [settings, setSettings] = useState<AppSettings | null>(null);
 
-  const load = () => {
+  const load = useCallback(() => {
     void settingsClient.get().then((s) => {
       setSettings(s);
       applyDensity(s.uiDensity);
       applyThemeTokens(s.themePresetId, s.themeOverrides);
     });
-  };
+  }, [settingsClient]);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   useEffect(() => {
     const handler = () => load();
-    window.addEventListener('beefor:settings-changed', handler);
-    return () => window.removeEventListener('beefor:settings-changed', handler);
-  }, []);
+    return onAppEvent(APP_EVENTS.SETTINGS_CHANGED, handler);
+  }, [load]);
 
   // Re-apply preset whenever theme toggle changes data-theme on <html>.
   // ThemeProvider sets data-theme synchronously, but preset tokens differ between

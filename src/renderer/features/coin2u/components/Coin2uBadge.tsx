@@ -4,7 +4,7 @@ import { loadCoin2uCache, saveCoin2uCache, transactionSignature } from '../../..
 import { playUiCoin, playUiNotify } from '../../../utils/alarm';
 import { Coin2uModal } from './Coin2uModal';
 import { CoinIcon } from './Coin2uCoinIcon';
-import { coin2uClient } from '../../../services/ipc';
+import { useIpc } from '../../../services/ipc';
 import { getError } from '@shared/result';
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
@@ -16,6 +16,7 @@ interface Props {
 }
 
 export function Coin2uBadge({ settings, forceOpen, onForceOpenConsumed }: Props = {}) {
+  const { coin2u: coin2uClient } = useIpc();
   const cached = loadCoin2uCache();
   const [data, setData] = useState<Coin2uDashboard | null>(cached.dashboard);
   const [log, setLog] = useState<Coin2uTransaction[]>(cached.log);

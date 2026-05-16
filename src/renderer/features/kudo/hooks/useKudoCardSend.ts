@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { KudoCardType, SendKudoCardRequest } from '@shared/types/index';
 import { KUDO_CARD_TYPES } from '@shared/types/index';
-import { kudoClient } from '../../../services/ipc';
+import { useIpc } from '../../../services/ipc';
 import { getError } from '@shared/result';
 
 interface UseKudoCardSendOptions {
@@ -26,6 +26,7 @@ export function useKudoCardSend({
   onError,
   onClose,
 }: UseKudoCardSendOptions): UseKudoCardSendResult {
+  const { kudo: kudoClient } = useIpc();
   const [cardType, setCardType] = useState<KudoCardType>(KUDO_CARD_TYPES[0]);
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { systemClient } from '../services/ipc';
+import { useIpc } from '../services/ipc';
 
 export function useAppLogo(variant: 'orange' | 'purple', size: 'icon' | 'logo') {
+  const { system: systemClient } = useIpc();
   const [src, setSrc] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,7 +28,7 @@ export function useAppLogo(variant: 'orange' | 'purple', size: 'icon' | 'logo') 
     return () => {
       cancelled = true;
     };
-  }, [variant, size]);
+  }, [variant, size, systemClient]);
 
   return src;
 }

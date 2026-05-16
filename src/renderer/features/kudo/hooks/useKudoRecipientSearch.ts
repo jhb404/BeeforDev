@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KudoCardRecipientType, KudoSearchResult } from '@shared/types/index';
-import { kudoClient } from '../../../services/ipc';
+import { useIpc } from '../../../services/ipc';
 import { getError } from '@shared/result';
 
 interface UseKudoRecipientSearchResult {
@@ -20,6 +20,7 @@ export function useKudoRecipientSearch(
   recipientType: KudoCardRecipientType,
   open: boolean,
 ): UseKudoRecipientSearchResult {
+  const { kudo: kudoClient } = useIpc();
   const [recipientName, setRecipientName] = useState('');
   const [suggestions, setSuggestions] = useState<KudoSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -73,7 +74,7 @@ export function useKudoRecipientSearch(
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [recipientName, recipientType, open]);
+  }, [recipientName, recipientType, open, kudoClient]);
 
   useEffect(() => {
     if (!suggestOpen) return;

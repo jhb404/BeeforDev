@@ -1,6 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
-import { settingsClient, IpcProvider } from './services/ipc';
-import { systemClient } from './services/ipc';
+import { IpcProvider, useIpc } from './services/ipc';
 import { TitleBar } from './components/layout/TitleBar';
 import { StartupOverlay } from './components/layout/StartupOverlay';
 import { SettingsProvider, useSettings } from './app/providers/SettingsProvider';
@@ -24,6 +23,7 @@ import { useJournalBadge } from './hooks/useJournalBadge';
 import { useGamification } from './features/gamification';
 import { playAlarmByKind } from './utils/alarm';
 import { useBeefor } from './hooks/useBeefor';
+import { APP_EVENTS, emitAppEvent } from './app/events';
 
 type Tab = 'home' | 'settings';
 
@@ -36,6 +36,7 @@ const TeamModal = lazy(() =>
 function AppShell() {
   const { settings: appSettings } = useSettings();
   const { theme, toggle: toggleTheme } = useTheme();
+  const { settings: settingsClient, system: systemClient } = useIpc();
   const showToast = useToast();
 
   const [tab, setTab] = useState<Tab>('home');
@@ -118,7 +119,7 @@ function AppShell() {
     const offLunch = systemClient.onTrayLunchTimer(startLunchTimer);
     const offKudo = systemClient.onTrayOpenKudo(() => {
       setTab('home');
-      window.dispatchEvent(new CustomEvent('beefor:open-kudo'));
+      emitAppEvent(APP_EVENTS.OPEN_KUDO);
     });
     const offCoins = systemClient.onTrayOpenCoins(() => {
       setCoin2uForceOpen(true);
@@ -194,9 +195,7 @@ function AppShell() {
             <ErrorBoundary label="settings">
               <Suspense fallback={<div className="route-loader">Carregando...</div>}>
                 <SettingsPage
-                  onSettingsChanged={() =>
-                    window.dispatchEvent(new Event('beefor:settings-changed'))
-                  }
+                  onSettingsChanged={() => emitAppEvent(APP_EVENTS.SETTINGS_CHANGED)}
                 />
               </Suspense>
             </ErrorBoundary>

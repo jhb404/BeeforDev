@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BeeforAtividade } from '@shared/types/index';
-import { atividadesClient } from '../../../services/ipc';
+import { useIpc } from '../../../services/ipc';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
 import { playUiSound } from '../../../utils/alarm';
@@ -442,6 +442,7 @@ interface Props {
 }
 
 export function AtividadesModal({ open, onClose }: Props) {
+  const { atividades: atividadesClient } = useIpc();
   const [atividades, setAtividades] = useState<BeeforAtividade[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -450,7 +451,7 @@ export function AtividadesModal({ open, onClose }: Props) {
   const [selected, setSelected] = useState<BeeforAtividade | null>(null);
   const { ratio, bodyRef, onMouseDown } = useResizeSplit(!!selected);
 
-  const doFetch = () => {
+  const doFetch = useCallback(() => {
     setLoading(true);
     setError(null);
     atividadesClient.fetch().then((res) => {
@@ -464,13 +465,13 @@ export function AtividadesModal({ open, onClose }: Props) {
       }
       setLoading(false);
     });
-  };
+  }, [atividadesClient]);
 
   useEffect(() => {
     if (!open) return;
     playUiSound('activity-open');
     doFetch();
-  }, [open]);
+  }, [doFetch, open]);
 
   const tipos = [...new Set(atividades.map((a) => a.tipo))].sort();
 

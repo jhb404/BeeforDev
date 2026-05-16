@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import type { Coin2uDashboard, Coin2uShopItem } from '@shared/types/index';
-import { coin2uClient } from '../../../services/ipc';
+import { useIpc } from '../../../services/ipc';
 import { getError } from '@shared/result';
 
 interface UseCoin2uShopOptions {
@@ -18,6 +18,7 @@ export function useCoin2uShop({
   setDashboard,
   setError,
 }: UseCoin2uShopOptions): UseCoin2uShopResult {
+  const { coin2u: coin2uClient } = useIpc();
   const [shopItems, setShopItems] = useState<Coin2uShopItem[]>([]);
   const [shopLoading, setShopLoading] = useState(false);
 
@@ -37,7 +38,7 @@ export function useCoin2uShop({
         if (showLoading) setShopLoading(false);
       }
     },
-    [setDashboard, setError],
+    [coin2uClient, setDashboard, setError],
   );
 
   return { shopItems, shopLoading, refreshShop };

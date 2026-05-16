@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { TeamMember } from '@shared/types/index';
 import { fetchTeamMembers } from '../services/teamsService';
+import { useIpc } from '../services/ipc';
 import {
   loadBirthdayCache,
   loadMembersCache,
@@ -22,6 +23,7 @@ interface UseTeamMembersResult {
 }
 
 export function useTeamMembers(active: boolean): UseTeamMembersResult {
+  const { team: teamClient } = useIpc();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [birthdays, setBirthdaysState] = useState<TeamBirthdayCache>({});
   const [loading, setLoading] = useState(false);
@@ -44,7 +46,7 @@ export function useTeamMembers(active: boolean): UseTeamMembersResult {
     else setLoading(true);
     setError(null);
     try {
-      const list = await fetchTeamMembers();
+      const list = await fetchTeamMembers(teamClient);
       setMembers(list);
       saveMembersCache(list);
       setLastUpdated(new Date().toISOString());
@@ -56,7 +58,7 @@ export function useTeamMembers(active: boolean): UseTeamMembersResult {
       if (background) setRefreshing(false);
       else setLoading(false);
     }
-  }, []);
+  }, [teamClient]);
 
   useEffect(() => {
     if (!active) return;

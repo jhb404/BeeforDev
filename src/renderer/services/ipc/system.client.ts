@@ -1,6 +1,8 @@
 import type { ActionResult, TodayAlert } from '@shared/types/index';
 import type { BeeforApi } from '../../../main/preload';
 
+type AlarmInfo = { title: string; body: string; kind?: Exclude<TodayAlert['kind'], 'birthday'> };
+
 export function createSystemClient(api: BeeforApi) {
   return {
     getAdminStatus: (): Promise<{ elevated: boolean; platform: string }> => api.getAdminStatus(),
@@ -9,8 +11,7 @@ export function createSystemClient(api: BeeforApi) {
     testNotification: (kind: 'mood' | 'lunch' | 'kudocard' | 'punch'): Promise<ActionResult> =>
       api.testNotification(kind),
     getTodayAlerts: (): Promise<ActionResult<TodayAlert[]>> => api.getTodayAlerts(),
-    onPlayAlarm: (cb: (info: { title: string; body: string }) => void): (() => void) =>
-      api.onPlayAlarm(cb),
+    onPlayAlarm: (cb: (info: AlarmInfo) => void): (() => void) => api.onPlayAlarm(cb),
     onNotify: (cb: (info: { title: string; body: string }) => void): (() => void) =>
       api.onNotify(cb),
     onUpdateAvailable: (cb: (info: { version: string }) => void): (() => void) =>

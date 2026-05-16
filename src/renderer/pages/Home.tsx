@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AppSettings, Mood } from '@shared/types/index';
-import { moodClient, settingsClient, systemClient, timesheetClient } from '../services/ipc';
+import { useIpc } from '../services/ipc';
 import { MOODS } from '@shared/types/index';
 import { useBeefor } from '../hooks/useBeefor';
 import { MinimalView } from './home/components/MinimalView';
@@ -20,6 +20,7 @@ import { TimesheetGrid } from './home/components/TimesheetGrid';
 import { BatchConfirmModal } from './home/components/BatchConfirmModal';
 import { HomeTopbar } from './home/components/HomeTopbar';
 import { AtividadesModal } from '../features/atividades/components/AtividadesModal';
+import { APP_EVENTS, onAppEvent } from '../app/events';
 
 interface HomeProps {
   onMoodChanged?: (mood: string | null) => void;
@@ -28,6 +29,12 @@ interface HomeProps {
 }
 
 export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProps = {}) {
+  const {
+    mood: moodClient,
+    settings: settingsClient,
+    system: systemClient,
+    timesheet: timesheetClient,
+  } = useIpc();
   const { status, busy, wrap } = useBeefor();
   const ready = status === 'connected';
 
@@ -61,7 +68,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
 
   useEffect(() => {
     void settingsClient.get().then(setSettings);
-  }, []);
+  }, [settingsClient]);
 
   useEffect(() => {
     if (!ready) return;
@@ -218,8 +225,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
 
   useEffect(() => {
     const handler = () => setShowKudoModal(true);
-    window.addEventListener('beefor:open-kudo', handler);
-    return () => window.removeEventListener('beefor:open-kudo', handler);
+    return onAppEvent(APP_EVENTS.OPEN_KUDO, handler);
   }, []);
 
   const autoLancamento = async () => {

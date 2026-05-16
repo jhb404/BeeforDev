@@ -1,12 +1,13 @@
 import { useAppLogo } from '../../hooks/useAppLogo';
 import { BrandLogo } from '../common/Icons';
-import { windowClient } from '../../services/ipc';
+import { useIpc } from '../../services/ipc';
 
 interface Props {
   logoVariant?: 'orange' | 'purple';
 }
 
 export function TitleBar({ logoVariant = 'orange' }: Props) {
+  const { window: windowClient } = useIpc();
   const logoSrc = useAppLogo(logoVariant, 'icon');
 
   return (

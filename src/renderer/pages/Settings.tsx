@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '../app/providers/ToastProvider';
-import { coin2uClient, sessionClient, settingsClient, systemClient } from '../services/ipc';
+import { useIpc } from '../services/ipc';
 import type { AppSettings } from '@shared/types/index';
 import { SETTINGS_DEFAULTS } from './settings/defaults';
 import { AdminBanner } from './settings/sections/AdminBanner';
@@ -30,6 +30,12 @@ const CATEGORIES: Array<{ id: SettingsCategory; label: string; icon: string; hin
 ];
 
 export function Settings({ onSettingsChanged }: SettingsProps = {}) {
+  const {
+    coin2u: coin2uClient,
+    session: sessionClient,
+    settings: settingsClient,
+    system: systemClient,
+  } = useIpc();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [savedEmail, setSavedEmail] = useState<string | null>(null);
@@ -42,7 +48,10 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
   const [coin2uConnected, setCoin2uConnected] = useState<boolean>(false);
   const [category, setCategory] = useState<SettingsCategory>('geral');
 
-  const refreshAdmin = () => void systemClient.getAdminStatus().then(setAdmin);
+  const refreshAdmin = useCallback(
+    () => void systemClient.getAdminStatus().then(setAdmin),
+    [systemClient],
+  );
 
   useEffect(() => {
     void sessionClient.getCredentials().then((c) => {
@@ -62,7 +71,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
         setCoin2uConnected(!!c.connected);
       }
     });
-  }, []);
+  }, [coin2uClient, refreshAdmin, sessionClient, settingsClient]);
 
   const update = async <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => {
     const next = { ...settings, [k]: v };
