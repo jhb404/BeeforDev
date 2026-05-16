@@ -1,4 +1,5 @@
 import { IPC } from '../../../shared/ipc/index';
+import type { AppSettings } from '../../../shared/types/index';
 import { loadSettings, saveSettings } from '../../sessionStore';
 import { setAutoStart } from '../../autoStart';
 import { rebuildTrayMenu } from '../../bootstrap/tray';
@@ -18,8 +19,9 @@ export function registerSettingsHandlers() {
     schema: settingsSchema,
     errorMessage: 'Set settings failed',
     run: async ({ data }) => {
-      await saveSettings(data);
-      setAutoStart(data.autoStart);
+      const settings = data as unknown as AppSettings;
+      await saveSettings(settings);
+      setAutoStart(settings.autoStart);
       void rebuildTrayMenu();
       return ok();
     },
