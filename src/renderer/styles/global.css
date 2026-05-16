@@ -3762,6 +3762,23 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   color: var(--text-muted);
   font-size: 12px;
 }
+.kudo-suggest-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kudo-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--text-muted);
+  border-top-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: kudo-spin 0.7s linear infinite;
+}
+@keyframes kudo-spin {
+  to { transform: rotate(360deg); }
+}
 .kudo-suggest-item {
   display: flex;
   flex-direction: column;

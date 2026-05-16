@@ -19,7 +19,15 @@ interface RecipientCacheEntry {
   items: Array<{ id: string; name: string; subtitle?: string }>;
 }
 const recipientCache = new Map<string, RecipientCacheEntry>();
-const RECIPIENT_CACHE_TTL_MS = 5 * 60 * 1000;
+const RECIPIENT_CACHE_TTL_MS = 30 * 60 * 1000;
+
+export async function warmKudoRecipientCache(page: Page): Promise<void> {
+  try {
+    await Promise.all([fetchRecipientList(page, 'person'), fetchRecipientList(page, 'team')]);
+  } catch (err) {
+    logger.warn(`warmKudoRecipientCache failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
 
 async function fetchRecipientList(
   page: Page,

@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
 const timeStr = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'invalid time HH:MM');
+const optionalTimeStr = z.union([
+  z.literal(''),
+  z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'invalid time HH:MM'),
+]);
 
 export const credentialsSchema = z.object({
   email: z.string().email().max(254),
@@ -16,12 +20,12 @@ export const moodSchema = z.enum(['Dia feliz', 'Dia bom', 'Dia não tão bom', '
 
 export const timesheetEntrySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'invalid date'),
-  entrada: timeStr,
-  int1: timeStr,
-  ret1: timeStr,
-  int2: timeStr,
-  ret2: timeStr,
-  saida: timeStr,
+  entrada: optionalTimeStr,
+  int1: optionalTimeStr,
+  ret1: optionalTimeStr,
+  int2: optionalTimeStr,
+  ret2: optionalTimeStr,
+  saida: optionalTimeStr,
   comentario: z.string().max(500).optional(),
 });
 

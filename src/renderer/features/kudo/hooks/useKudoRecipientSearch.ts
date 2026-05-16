@@ -28,9 +28,11 @@ export function useKudoRecipientSearch(
   const [suggestErr, setSuggestErr] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seqRef = useRef(0);
+  const pickedRef = useRef(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const reset = () => {
+    pickedRef.current = false;
     setRecipientName('');
     setSuggestions([]);
     setSuggestOpen(false);
@@ -46,6 +48,10 @@ export function useKudoRecipientSearch(
   useEffect(() => {
     if (!open) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (pickedRef.current) {
+      pickedRef.current = false;
+      return;
+    }
     const q = recipientName.trim();
     if (q.length < 2) {
       setSuggestions([]);
@@ -88,7 +94,13 @@ export function useKudoRecipientSearch(
   }, [suggestOpen]);
 
   const pickSuggestion = (s: KudoSearchResult) => {
+    pickedRef.current = true;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    seqRef.current++;
+    setSearching(false);
     setRecipientName(s.name);
+    setSuggestions([]);
+    setSuggestErr(null);
     setSuggestOpen(false);
   };
 

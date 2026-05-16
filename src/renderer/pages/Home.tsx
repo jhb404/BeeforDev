@@ -113,11 +113,11 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
           ? {
               kind: 'ok',
               title: 'Horas salvas',
-              msg: `${r.date.slice(8, 10)}/${r.date.slice(5, 7)} lanÃ§ado no Beefor.`,
+              msg: `${r.date.slice(8, 10)}/${r.date.slice(5, 7)} lançado no Beefor.`,
             }
           : {
               kind: 'err',
-              title: 'NÃ£o foi possÃ­vel salvar',
+              title: 'Não foi possível salvar',
               msg: `${r.date}: ${res.ok ? '' : res.error}`,
             },
       );
@@ -149,12 +149,12 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
         res.ok
           ? {
               kind: 'ok',
-              title: 'Auto lanÃ§amento iniciado',
-              msg: 'Processando... calendÃ¡rio atualiza quando concluir.',
+              title: 'Auto lançamento iniciado',
+              msg: 'Processando... calendário atualiza quando concluir.',
             }
           : {
               kind: 'err',
-              title: 'Auto lanÃ§amento falhou',
+              title: 'Auto lançamento falhou',
               msg: (res.ok ? '' : res.error) || 'falhou',
             },
       );
@@ -235,7 +235,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
           if (!res.ok) {
             showToast({
               kind: 'err',
-              title: 'NÃ£o abriu o Beefor',
+              title: 'Não abriu o Beefor',
               msg: (res.ok ? '' : res.error) || 'falhou',
             });
           }
@@ -268,11 +268,11 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
         <SummaryStrip summary={summary} compact={settings?.viewMode === 'minimal'} />
 
         {showTimesheetLoader ? (
-          <FunnyLoader title="Carregando lanÃ§amentos" />
+          <FunnyLoader title="Carregando lançamentos" />
         ) : showDisconnectedState ? (
           <div className="ts-empty">
-            <strong>Sem sessÃ£o ativa</strong>
-            <span>Conecte a sessÃ£o para carregar os apontamentos do mÃªs.</span>
+            <strong>Sem sessão ativa</strong>
+            <span>Conecte a sessão para carregar os apontamentos do mês.</span>
           </div>
         ) : settings?.viewMode === 'minimal' ? (
           <MinimalView

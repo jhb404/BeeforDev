@@ -118,9 +118,14 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
             onFocus={() => search.suggestions.length && search.setSuggestOpen(true)}
             autoComplete="off"
           />
-          {search.suggestOpen && (
-            <div className="kudo-suggest" role="listbox">
-              {search.searching && <div className="kudo-suggest-empty">Buscando...</div>}
+          {(search.suggestOpen || search.searching) && (
+            <div className="kudo-suggest" role="listbox" aria-busy={search.searching}>
+              {search.searching && (
+                <div className="kudo-suggest-empty kudo-suggest-loading" role="status">
+                  <span className="kudo-spinner" aria-hidden="true" />
+                  <span>Buscando {search.recipientName ? `"${search.recipientName}"` : ''}...</span>
+                </div>
+              )}
               {!search.searching && search.suggestErr && (
                 <div className="kudo-suggest-empty">{search.suggestErr}</div>
               )}

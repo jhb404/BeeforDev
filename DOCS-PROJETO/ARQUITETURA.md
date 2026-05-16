@@ -1,6 +1,6 @@
 # Arquitetura — Beefor Dev
 
-Versão `0.1.8` · Electron 31 + React 18 + TypeScript 5 + Vite 5 + Playwright 1.47
+Versão `0.1.9` · Electron 31 + React 18 + TypeScript 5 + Vite 5 + Playwright 1.47
 
 ---
 
@@ -73,7 +73,21 @@ src/
 ├── main/                # Processo principal Electron (Node.js)
 │   ├── index.ts         # Bootstrap e ciclo de vida do app
 │   ├── preload.ts       # Bridge IPC (contextBridge, bundlado por esbuild)
-│   ├── window.ts        # Criação do BrowserWindow + CSP
+│   ├── window.ts        # Criação do BrowserWindow principal
+│   ├── csp.ts           # Content Security Policy via response header
+│   ├── openSafe.ts      # Allow-list para openExternal
+│   ├── adminCheck.ts    # Verifica elevação Windows
+│   ├── autoStart.ts     # Registry Windows / Login Items macOS
+│   ├── beeforTokenCache.ts # Cache de token Beefor
+│   ├── logger.ts        # Logger central via electron-log
+│   ├── safeStore.ts     # Criptografia de arquivos de sessão
+│   ├── secureStorage.ts # Wrapper keytar
+│   ├── sessionGuard.ts  # Helpers ensureSessionForAction + forceReconnect
+│   ├── sessionManager.ts # Watchdog 60s de verificação de sessão
+│   ├── sessionStore.ts  # Persistência de settings em userData/
+│   ├── startupSplash.ts # Janela de splash
+│   ├── statusBus.ts     # Singleton com status de sessão atual + envio IPC ao renderer
+│   ├── updater.ts       # electron-updater wrapper
 │   ├── ipc/
 │   │   ├── index.ts     # Registra todos os handlers
 │   │   ├── handlers/    # Um arquivo por domínio IPC
@@ -83,11 +97,6 @@ src/
 │   ├── coin2u/          # Integração Coin2U (auth, HTTP, parsers, endpoints)
 │   ├── scheduler/       # Scheduler de 30s (alarmes, kudos, punch automático)
 │   ├── services/        # beeforActionRunner (auto-reconexão)
-│   ├── sessionManager.ts   # Watchdog 60s de verificação de sessão
-│   ├── sessionStore.ts     # Persistência de settings em userData/
-│   ├── secureStorage.ts    # Wrapper keytar
-│   ├── safeStore.ts        # Criptografia de arquivos de sessão
-│   └── statusBus.ts        # EventEmitter de mudanças de status de sessão
 │
 ├── renderer/            # Processo renderer (React SPA)
 │   ├── App.tsx          # Shell raiz com providers
@@ -120,7 +129,7 @@ src/
 │   │   └── channels.ts  # Constantes de todos os canais IPC (60+)
 │   ├── types/           # Tipos compartilhados (session, timesheet, kudo, etc.)
 │   ├── constants.ts     # URLs, chaves, valores fixos
-│   └── result.ts        # ActionResult + helpers ok() / fail() / withTimeout()
+│   └── result.ts        # ActionResult + helpers ok() / fail() / withTimeout() / getError()
 │
 └── test/                # Utilitários de teste
 
@@ -173,7 +182,7 @@ Renderer (React)
     Main Process
            └─ ipcMain.handle(channel)   [ipc/handlers/session.handlers.ts]
                   └─ validate(args, schema)   [Zod]
-                  └─ beeforActionRunner.run(() => session.login(creds))
+                  └─ runBeeforAction(win, async (page) => session.login(page, creds))
                   └─ return Result<T, E>
 ```
 
@@ -215,10 +224,13 @@ Toda ação Playwright passa pelo `pageLock`. Se duas ações são chamadas simu
 
 ### Auto-reconexão (BeeforActionRunner)
 ```
-beeforActionRunner.run(fn)
-    ├─ tenta fn()
-    ├─ [se sessão expirada] → re-login silencioso
-    └─ tenta fn() novamente
+runBeeforAction(win, action)
+    └─ ensureSessionForAction → withPageLock → action(page)
+
+runBeeforActionWithReconnect(win, label, action)
+    ├─ tenta runBeeforAction
+    ├─ [se erro match /Sess(ão|ao)|expirou|expirada|sess|timeout/i] → forceReconnect
+    └─ tenta de novo (1x)
 ```
 
 ### Persistência de Sessão
@@ -402,6 +414,18 @@ Sessão persistida criptografada. Se expirada, re-login automático com credenci
 
 ---
 
+## Dívidas Técnicas Conhecidas
+
+- **Acoplamento automation → main/logger**: `src/automation/beefor/beeforClient.ts` e `beeforSession.ts` importam `from '../../main/logger'`. Há imports similares em actions Playwright. Mover logger para `shared/` ou injetar via construtor.
+- **ADR duplicados**: existem dois arquivos com numeração `0004-` em `docs/adr/`. Consolidar em um.
+- **Channels IPC flat**: `src/shared/ipc/channels.ts` tem 50+ canais em enum único. Considerar namespace por domínio se passar de 80.
+- **Multi-env ausente**: `src/shared/constants.ts` hardcoda URLs de produção. Sem suporte dev/staging.
+- **Threshold de cobertura não configurado**: `vitest.config.ts` coleta cobertura mas não falha o CI por threshold.
+- **Contract test parcial em `channels.ts`**: `tests/ipcChannels.spec.ts` valida unicidade e canais core, mas quebra acidental do contrato completo de canais ainda não é capturada por snapshot.
+- **ADR 0005 (state management)**: reavaliar gatilhos quando 3+ features começarem a duplicar lógica fetch+cache; introduzir TanStack Query se confirmado.
+
+---
+
 ## Padrões e Convenções
 
 ### ActionResult<T>
@@ -415,6 +439,8 @@ type ActionResult<T = void> =
 ok(data)    // → { ok: true, data }
 fail(error) // → { ok: false, error }
 withTimeout(promise, ms, label)
+getError(res)
+isErr(res) / isOk(res)
 ```
 
 ### Validação IPC
@@ -442,3 +468,16 @@ export const SELECTORS = {
 - `domain:action` para chamadas renderer→main (ex: `creds:save`)
 - `evt:eventName` para eventos main→renderer (ex: `evt:status`)
 - `win:action` para controles de janela (ex: `win:minimize`)
+
+### Testes
+- Vitest + jsdom + @testing-library/react
+- Co-localização: `foo.ts` + `foo.test.ts(x)` lado a lado
+- Setup global: `src/test/setup.ts`
+- Coverage scope (vitest.config.ts → coverage.include):
+  - `src/main/ipc/**`
+  - `src/shared/**`
+  - `src/renderer/app/hooks/**`
+  - `src/renderer/pages/home/hooks/**`
+  - `src/renderer/features/coin2u/**`
+- Threshold de cobertura: a definir (TODO Fase 5)
+- Lacunas conhecidas (sem testes ainda): `src/automation/`, `src/main/sessionManager.ts`, `src/main/scheduler/`, `src/main/coin2u/auth.ts`, handlers IPC concretos
