@@ -1,6 +1,6 @@
-﻿import { useEffect, useState } from 'react';
-import type { TodayAlert } from '@shared/types';
-import { moodClient, systemClient } from '../../services/ipc';
+import { useEffect, useState } from 'react';
+import type { TodayAlert } from '@shared/types/index';
+import { useIpc } from '../../services/ipc';
 
 function nowHHMM(): string {
   const d = new Date();
@@ -24,6 +24,7 @@ interface AlertsApi {
 }
 
 export function useAlerts(): AlertsApi {
+  const { mood: moodClient, system: systemClient } = useIpc();
   const [alerts, setAlerts] = useState<TodayAlert[]>([]);
   const [currentMoodExternal, setCurrentMoodExternal] = useState<string | null>(null);
 
@@ -34,14 +35,14 @@ export function useAlerts(): AlertsApi {
     void moodClient.getCurrent().then((res) => {
       if (res.ok) setCurrentMoodExternal(res.data ?? null);
     });
-  }, []);
+  }, [moodClient, systemClient]);
 
   useEffect(() => {
     const off = systemClient.onNotify((info) => {
       if (info.title === 'sync:autoLancamento' && info.body === 'ok') return;
     });
     return off;
-  }, []);
+  }, [systemClient]);
 
   const dismiss = (i: number) =>
     setAlerts((prev) => prev.filter((_, j) => j !== i));

@@ -1,8 +1,9 @@
-﻿import { useCallback, useEffect, useState } from 'react';
-import type { SessionStatus } from '@shared/types';
-import { sessionClient } from '../services/ipc';
+import { useCallback, useEffect, useState } from 'react';
+import type { SessionStatus } from '@shared/types/index';
+import { useIpc } from '../services/ipc';
 
 export function useBeefor() {
+  const { session: sessionClient } = useIpc();
   const [status, setStatus] = useState<SessionStatus>('idle');
   const [busy, setBusy] = useState(false);
 
@@ -10,7 +11,7 @@ export function useBeefor() {
     void sessionClient.getStatus().then(setStatus);
     const off = sessionClient.onStatus(setStatus);
     return off;
-  }, []);
+  }, [sessionClient]);
 
   const wrap = useCallback(
     async <T>(fn: () => Promise<T>): Promise<T> => {

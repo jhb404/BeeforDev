@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { initialsOf } from '../../../utils/dateUtils';
+import { initialsOf } from '../../../utils/dates';
 
 interface Props {
   name: string;

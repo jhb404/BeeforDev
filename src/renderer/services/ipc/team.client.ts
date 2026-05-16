@@ -1,4 +1,4 @@
-import type { ActionResult, TeamMember } from '@shared/types';
+import type { ActionResult, TeamMember } from '@shared/types/index';
 import type { BeeforApi } from '../../../main/preload';
 
 export function createTeamClient(api: BeeforApi) {

@@ -1,5 +1,5 @@
-﻿import { loadSettings } from '../sessionStore';
-import type { TodayAlert } from '../../shared/types';
+import { loadSettings } from '../sessionStore';
+import type { TodayAlert } from '../../shared/types/index';
 import { isWeekend } from './time';
 import { applyDailyDrift } from './drift';
 import { ensureKudocardSchedule } from './schedulePersist';

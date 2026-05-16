@@ -1,23 +1,30 @@
-﻿import { BrowserWindow, ipcMain } from 'electron';
-import { IPC } from '../../../shared/ipc';
+import type { BrowserWindow } from 'electron';
+import { IPC } from '../../../shared/ipc/index';
 import { BeeforClient } from '../../../automation/beefor/beeforClient';
-import { doLogout, doVerifySession, performLogin } from '../../../automation/beefor/beeforActions';
+import { doLogout, doVerifySession, performLogin } from '../../../automation/beefor/actions';
 import { withPageLock } from '../../../automation/beefor/pageLock';
 import { emitStatus, getCurrentStatus } from '../../statusBus';
 import { getCredentials } from '../../secureStorage';
 import { clearSession, sessionPath } from '../../sessionStore';
-import { logger } from '../../logger';
-import { ok, fail } from '../../services/result';
+import { ok } from '../../../shared/result';
+import { defineHandler } from '../defineHandler';
 
 export function registerSessionHandlers(getWindow: () => BrowserWindow | null) {
   const client = BeeforClient.instance();
 
-  ipcMain.handle(IPC.SESSION_STATUS, async () => getCurrentStatus());
+  defineHandler({
+    channel: IPC.SESSION_STATUS,
+    errorMessage: 'Session status failed',
+    run: () => getCurrentStatus(),
+  });
 
-  ipcMain.handle(IPC.SESSION_LOGIN, async () => {
-    const win = getWindow();
-    emitStatus(win, 'loading');
-    try {
+  defineHandler({
+    channel: IPC.SESSION_LOGIN,
+    errorMessage: 'Login failed',
+    onError: () => emitStatus(getWindow(), 'error'),
+    run: async () => {
+      const win = getWindow();
+      emitStatus(win, 'loading');
       await withPageLock(async () => {
         const creds = await getCredentials();
         if (!creds) throw new Error('Credenciais não configuradas. Abra Configurações.');
@@ -27,16 +34,14 @@ export function registerSessionHandlers(getWindow: () => BrowserWindow | null) {
       });
       emitStatus(win, 'connected');
       return ok();
-    } catch (err) {
-      logger.error('Login failed', err);
-      emitStatus(win, 'error');
-      return fail(err);
-    }
+    },
   });
 
-  ipcMain.handle(IPC.SESSION_LOGOUT, async () => {
-    const win = getWindow();
-    try {
+  defineHandler({
+    channel: IPC.SESSION_LOGOUT,
+    errorMessage: 'Logout failed',
+    run: async () => {
+      const win = getWindow();
       await withPageLock(async () => {
         const page = await client.getPage().catch(() => null);
         if (page) await doLogout(page);
@@ -45,16 +50,16 @@ export function registerSessionHandlers(getWindow: () => BrowserWindow | null) {
       });
       emitStatus(win, 'disconnected');
       return ok();
-    } catch (err) {
-      logger.error('Logout failed', err);
-      return fail(err);
-    }
+    },
   });
 
-  ipcMain.handle(IPC.SESSION_VERIFY, async () => {
-    const win = getWindow();
-    emitStatus(win, 'loading');
-    try {
+  defineHandler({
+    channel: IPC.SESSION_VERIFY,
+    errorMessage: 'Verify session failed',
+    onError: () => emitStatus(getWindow(), 'error'),
+    run: async () => {
+      const win = getWindow();
+      emitStatus(win, 'loading');
       const isLogged = await withPageLock(async () => {
         const page = await client.getPage();
         return doVerifySession(page);
@@ -62,10 +67,6 @@ export function registerSessionHandlers(getWindow: () => BrowserWindow | null) {
       const next = isLogged ? 'connected' : 'expired';
       emitStatus(win, next);
       return ok(next);
-    } catch (err) {
-      logger.error('Verify session failed', err);
-      emitStatus(win, 'error');
-      return fail(err);
-    }
+    },
   });
 }

@@ -1,5 +1,5 @@
-﻿import type { Page } from 'playwright';
-import type { TimesheetEntry } from '../../../../shared/types';
+import type { Page } from 'playwright';
+import type { TimesheetEntry } from '../../../../shared/types/index';
 import { BEEFOR_TIMESHEET_API } from '../../../../shared/constants';
 import { ensureBeeforOrigin } from '../../internals/beeforApi';
 import {

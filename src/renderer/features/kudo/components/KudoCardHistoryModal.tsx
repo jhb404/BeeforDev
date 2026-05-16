@@ -4,7 +4,7 @@ import {
   KUDO_CARD_EMOJI,
   KUDO_CARD_LABELS,
   KUDO_CARD_TYPE_BY_TIPO,
-} from '@shared/types';
+} from '@shared/types/index';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
 import { useSlowHint } from '../../../hooks/useSlowHint';
 import { useKudoHistory } from '../hooks/useKudoHistory';

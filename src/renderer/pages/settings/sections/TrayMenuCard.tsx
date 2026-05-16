@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { AppSettings, TrayMenuItem, TrayMenuItemType } from '@shared/types';
-import { DEFAULT_TRAY_MENU } from '@shared/types';
+import type { AppSettings, TrayMenuItem, TrayMenuItemType } from '@shared/types/index';
+import { DEFAULT_TRAY_MENU } from '@shared/types/index';
 
 interface TrayMenuCardProps {
   settings: AppSettings;

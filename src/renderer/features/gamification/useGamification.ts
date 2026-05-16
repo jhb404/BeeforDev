@@ -5,6 +5,7 @@ import { THEME_PRESETS } from './themePresets';
 import { loadStats, saveStats } from './store';
 import { getRedeemedIcons, getRedeemedThemes } from './unlockCodes';
 import type { UserStats } from './types';
+import { APP_EVENTS, onAppEvent } from '../../app/events';
 
 export interface GamificationData {
   stats: UserStats;
@@ -41,8 +42,7 @@ export function useGamification(): GamificationData {
       setRedeemedThemes(getRedeemedThemes());
       setRedeemedIcons(getRedeemedIcons());
     };
-    window.addEventListener('beefor:codes-changed', onCodes);
-    return () => window.removeEventListener('beefor:codes-changed', onCodes);
+    return onAppEvent(APP_EVENTS.CODES_CHANGED, onCodes);
   }, []);
 
   const unlockedIds = new Set(stats.unlockedAchievementIds);

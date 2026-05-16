@@ -1,6 +1,6 @@
-﻿import { useEffect, useRef, useState } from 'react';
-import type { KudoCardRecipientType, KudoSearchResult } from '@shared/types';
-import { kudoClient } from '../../../services/ipc';
+import { useEffect, useRef, useState } from 'react';
+import type { KudoCardRecipientType, KudoSearchResult } from '@shared/types/index';
+import { useIpc } from '../../../services/ipc';
 import { getError } from '@shared/result';
 
 interface UseKudoRecipientSearchResult {
@@ -20,6 +20,7 @@ export function useKudoRecipientSearch(
   recipientType: KudoCardRecipientType,
   open: boolean,
 ): UseKudoRecipientSearchResult {
+  const { kudo: kudoClient } = useIpc();
   const [recipientName, setRecipientName] = useState('');
   const [suggestions, setSuggestions] = useState<KudoSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -27,9 +28,11 @@ export function useKudoRecipientSearch(
   const [suggestErr, setSuggestErr] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seqRef = useRef(0);
+  const pickedRef = useRef(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const reset = () => {
+    pickedRef.current = false;
     setRecipientName('');
     setSuggestions([]);
     setSuggestOpen(false);
@@ -45,6 +48,10 @@ export function useKudoRecipientSearch(
   useEffect(() => {
     if (!open) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (pickedRef.current) {
+      pickedRef.current = false;
+      return;
+    }
     const q = recipientName.trim();
     if (q.length < 2) {
       setSuggestions([]);
@@ -73,7 +80,7 @@ export function useKudoRecipientSearch(
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [recipientName, recipientType, open]);
+  }, [recipientName, recipientType, open, kudoClient]);
 
   useEffect(() => {
     if (!suggestOpen) return;
@@ -87,7 +94,13 @@ export function useKudoRecipientSearch(
   }, [suggestOpen]);
 
   const pickSuggestion = (s: KudoSearchResult) => {
+    pickedRef.current = true;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    seqRef.current++;
+    setSearching(false);
     setRecipientName(s.name);
+    setSuggestions([]);
+    setSuggestErr(null);
     setSuggestOpen(false);
   };
 

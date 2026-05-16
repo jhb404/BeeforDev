@@ -1,7 +1,7 @@
-﻿import { BrowserWindow } from 'electron';
+import { BrowserWindow } from 'electron';
 import { logger } from '../logger';
 import { loadSettings } from '../sessionStore';
-import type { AppSettings } from '../../shared/types';
+import type { AppSettings } from '../../shared/types/index';
 import { nowHHMM, isWeekend } from './time';
 import { alreadyFired, markFired } from './firedState';
 import { notify } from './notify';
@@ -36,7 +36,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
     !alreadyFired('mood')
   ) {
     if (!weekend) {
-      notify(win, '😊 Mood do dia', 'Não esquece de marcar seu mood no Beefor!', s.moodAlarm);
+      notify(win, '😊 Mood do dia', 'Não esquece de marcar seu mood no Beefor!', s.moodAlarm, 'mood');
       markFired('mood');
     }
   }
@@ -44,7 +44,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
   // Lunch
   if (s.lunchAlarm && s.lunchAlarmTime === hhmm && !alreadyFired('lunch')) {
     if (!weekend) {
-      notify(win, '🍽️ Hora do almoço', 'Bom apetite! Lembra de bater o ponto.', true);
+      notify(win, '🍽️ Hora do almoço', 'Bom apetite! Lembra de bater o ponto.', true, 'lunch');
       markFired('lunch');
     }
   }
@@ -54,7 +54,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
     const slots = await ensureKudocardSchedule(s);
     const todaySlot = slots.find((slot) => slot.day === todayDay && slot.time === hhmm);
     if (todaySlot && !alreadyFired('kudocard')) {
-      notify(win, '🏆 Kudocard', 'Hoje é dia de reconhecer alguém — manda um kudocard!', true);
+      notify(win, '🏆 Kudocard', 'Hoje é dia de reconhecer alguém — manda um kudocard!', true, 'kudocard');
       markFired('kudocard');
     }
   }
@@ -73,6 +73,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
           `${icons[idx]} Ponto — ${labels[idx]}`,
           `Hora de bater o ponto (${target})`,
           true,
+          'punch',
         );
         markFired(driftedKey);
       }
@@ -119,5 +120,5 @@ export function fireTestNotification(
     punch: { title: '🟢 Ponto — Entrada', body: 'Hora de bater o ponto.', alarm: true },
   };
   const cfg = map[kind];
-  notify(win, cfg.title, cfg.body, cfg.alarm);
+  notify(win, cfg.title, cfg.body, cfg.alarm, kind);
 }

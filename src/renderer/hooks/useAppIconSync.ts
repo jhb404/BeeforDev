@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { windowClient } from '../services/ipc';
+import { useIpc } from '../services/ipc';
 import { ICON_VARIANTS } from '../features/gamification';
 
 const SIZE = 256;
@@ -14,6 +14,7 @@ const SIZE = 256;
  * would mean N files per variant (16/32/64/128/256) × N variants = bloat.
  */
 export function useAppIconSync(activeIconId: string | undefined): void {
+  const { window: windowClient } = useIpc();
   useEffect(() => {
     if (!activeIconId) return;
     const variant = ICON_VARIANTS.find((v) => v.id === activeIconId);
@@ -66,5 +67,5 @@ export function useAppIconSync(activeIconId: string | undefined): void {
     };
     img.onerror = () => URL.revokeObjectURL(url);
     img.src = url;
-  }, [activeIconId]);
+  }, [activeIconId, windowClient]);
 }

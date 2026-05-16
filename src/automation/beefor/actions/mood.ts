@@ -1,11 +1,11 @@
-﻿import type { Locator, Page } from 'playwright';
+import type { Locator, Page } from 'playwright';
 import {
   BEEFOR_URL,
   BEEFOR_HOME_API,
   DEFAULT_TIMEOUT_MS,
   NAV_TIMEOUT_MS,
 } from '../../../shared/constants';
-import type { Mood } from '../../../shared/types';
+import type { Mood } from '../../../shared/types/index';
 import { logger } from '../../../main/logger';
 import { Selectors } from '../beeforSelectors';
 import { beeforApiGet, getIdPessoa } from '../internals/beeforApi';

@@ -1,6 +1,6 @@
-﻿import type { Page } from 'playwright';
+import type { Page } from 'playwright';
 import { DEFAULT_TIMEOUT_MS } from '../../../../shared/constants';
-import type { TimesheetEntry } from '../../../../shared/types';
+import type { TimesheetEntry } from '../../../../shared/types/index';
 import { logger } from '../../../../main/logger';
 import { Selectors } from '../../beeforSelectors';
 import { isLoggedIn } from '../session';

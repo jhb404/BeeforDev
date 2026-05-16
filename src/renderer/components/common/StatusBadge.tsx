@@ -1,4 +1,4 @@
-﻿import type { SessionStatus } from '@shared/types';
+import type { SessionStatus } from '@shared/types/index';
 
 const labels: Record<SessionStatus, string> = {
   idle: 'Inicializando',

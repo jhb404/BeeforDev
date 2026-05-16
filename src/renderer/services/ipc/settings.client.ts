@@ -1,4 +1,4 @@
-import type { ActionResult, AppSettings } from '@shared/types';
+import type { ActionResult, AppSettings } from '@shared/types/index';
 import type { BeeforApi } from '../../../main/preload';
 
 export function createSettingsClient(api: BeeforApi) {

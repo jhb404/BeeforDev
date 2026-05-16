@@ -1,6 +1,6 @@
-﻿import type { BrowserWindow } from 'electron';
-import { IPC } from '../shared/ipc';
-import type { SessionStatus } from '../shared/types';
+import type { BrowserWindow } from 'electron';
+import { IPC } from '../shared/ipc/index';
+import type { SessionStatus } from '../shared/types/index';
 
 let currentStatus: SessionStatus = 'idle';
 

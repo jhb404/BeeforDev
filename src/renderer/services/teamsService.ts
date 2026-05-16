@@ -1,5 +1,5 @@
-﻿import type { TeamMember } from '@shared/types';
-import { teamClient } from './ipc';
+import type { TeamMember } from '@shared/types/index';
+import type { TeamClient } from './ipc/team.client';
 import { getError } from '@shared/result';
 
 function asString(v: unknown): string {
@@ -51,7 +51,7 @@ function normalizeMember(raw: unknown): TeamMember | null {
   };
 }
 
-export async function fetchTeamMembers(): Promise<TeamMember[]> {
+export async function fetchTeamMembers(teamClient: TeamClient): Promise<TeamMember[]> {
   const res = await teamClient.fetchMembers();
   if (!res.ok) throw new Error(getError(res) || 'Falha ao buscar time.');
   const list = Array.isArray(res.data) ? res.data : [];

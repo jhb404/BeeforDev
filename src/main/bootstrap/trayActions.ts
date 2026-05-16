@@ -1,11 +1,11 @@
-﻿import type { BrowserWindow } from 'electron';
+import type { BrowserWindow } from 'electron';
 import {
   doAutoLancamento,
   doGetCurrentMood,
   doSelectMood,
-} from '../../automation/beefor/beeforActions';
-import type { Mood } from '../../shared/types';
-import { IPC } from '../../shared/ipc';
+} from '../../automation/beefor/actions';
+import type { Mood } from '../../shared/types/index';
+import { IPC } from '../../shared/ipc/index';
 import { logger } from '../logger';
 import { runBeeforActionWithReconnect } from '../services/beeforActionRunner';
 import { notifyWindows } from './notifications';

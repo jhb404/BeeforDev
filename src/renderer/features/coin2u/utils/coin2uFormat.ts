@@ -1,4 +1,4 @@
-import type { Coin2uMember, Coin2uShopItem } from '@shared/types';
+import type { Coin2uMember, Coin2uShopItem } from '@shared/types/index';
 
 export function formatDate(value: string): string {
   const d = new Date(value);

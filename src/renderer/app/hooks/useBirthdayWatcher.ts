@@ -4,7 +4,7 @@ import {
   loadBirthdayCache,
   loadMembersCache,
 } from '../../utils/teamCache';
-import { isBirthdayToday } from '../../utils/dateUtils';
+import { isBirthdayToday } from '../../utils/dates';
 import { playUiBirthdayAlert } from '../../utils/alarm';
 
 interface BirthdayState {

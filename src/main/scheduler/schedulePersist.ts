@@ -1,6 +1,6 @@
-﻿import { logger } from '../logger';
+import { logger } from '../logger';
 import { saveSettings } from '../sessionStore';
-import type { AppSettings } from '../../shared/types';
+import type { AppSettings } from '../../shared/types/index';
 import { isWeekday } from './time';
 
 function randomWeekdaysInMonth(count: number, year: number, month: number): number[] {

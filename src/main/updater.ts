@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import { IPC } from '../shared/ipc';
+import { IPC } from '../shared/ipc/index';
 import { logger } from './logger';
 
 let registered = false;

@@ -1,12 +1,12 @@
-﻿import { BrowserWindow } from 'electron';
+import { BrowserWindow } from 'electron';
 import { BeeforClient } from '../automation/beefor/beeforClient';
-import { performLogin, doVerifySession } from '../automation/beefor/beeforActions';
+import { performLogin, doVerifySession, warmKudoRecipientCache } from '../automation/beefor/actions';
 import { withPageLock } from '../automation/beefor/pageLock';
 import { logger } from './logger';
 import { sessionExists, sessionPath } from './sessionStore';
 import { getCredentials } from './secureStorage';
 import { emitStatus, getCurrentStatus } from './statusBus';
-import type { SessionStatus } from '../shared/types';
+import type { SessionStatus } from '../shared/types/index';
 
 const VERIFY_INTERVAL_MS = 60_000; // 1 min watchdog
 
@@ -51,6 +51,7 @@ async function run(
         const page = await client.getPage(sessionPath());
         if (await doVerifySession(page)) {
           emitStatus(win, 'connected');
+          void warmKudoRecipientCache(page);
           return 'connected';
         }
         logger.warn('Saved session invalid — silent re-login');
@@ -69,6 +70,7 @@ async function run(
       await performLogin(page, creds);
       await client.persistSession(sessionPath());
       emitStatus(win, 'connected');
+      void warmKudoRecipientCache(page);
       return 'connected';
     });
   } catch (err) {

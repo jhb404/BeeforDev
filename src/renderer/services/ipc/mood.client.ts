@@ -1,4 +1,4 @@
-import type { ActionResult, Mood } from '@shared/types';
+import type { ActionResult, Mood } from '@shared/types/index';
 import type { BeeforApi } from '../../../main/preload';
 
 export function createMoodClient(api: BeeforApi) {

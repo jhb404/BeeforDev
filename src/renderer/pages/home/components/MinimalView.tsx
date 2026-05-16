@@ -1,29 +1,7 @@
 ﻿import { useMemo, useState } from 'react';
-import type { TimesheetEntry } from '@shared/types';
 import { MONTHS_PT, WEEKDAY_SHORT_PT, todayIso } from '../../../utils/dates';
 import { formatMinutes, workedMinutes } from '../../../utils/timeMath';
-
-const FIELDS: Array<{
-  key: keyof Omit<TimesheetEntry, 'date' | 'comentario'>;
-  label: string;
-}> = [
-  { key: 'entrada', label: 'Entrada' },
-  { key: 'int1', label: 'Int. 1' },
-  { key: 'ret1', label: 'Ret. 1' },
-  { key: 'int2', label: 'Int. 2' },
-  { key: 'ret2', label: 'Ret. 2' },
-  { key: 'saida', label: 'Saída' },
-];
-
-interface RowState extends TimesheetEntry {
-  weekday: number;
-  status?: string;
-  editable: boolean;
-  saving?: boolean;
-  saved?: boolean;
-  failed?: boolean;
-  errMsg?: string;
-}
+import { FIELDS, type RowState } from '../utils/rowState';
 
 interface Props {
   rows: RowState[];

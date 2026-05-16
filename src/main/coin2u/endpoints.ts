@@ -1,11 +1,11 @@
-﻿import { COIN2U_DASHBOARD_URL } from '../../shared/constants';
+import { COIN2U_DASHBOARD_URL } from '../../shared/constants';
 import type {
   Coin2uBuyItemRequest,
   Coin2uDashboard,
   Coin2uLog,
   Coin2uShop,
   Coin2uTransferRequest,
-} from '../../shared/types';
+} from '../../shared/types/index';
 import { logger } from '../logger';
 import { coin2uAuth } from './auth';
 import { coin2uAuthedGet, coin2uAuthedPost } from './http';

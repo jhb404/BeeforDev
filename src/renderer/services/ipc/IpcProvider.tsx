@@ -6,6 +6,7 @@ import { moodClient, type MoodClient } from './mood.client';
 import { kudoClient, type KudoClient } from './kudo.client';
 import { teamClient, type TeamClient } from './team.client';
 import { coin2uClient, type Coin2uClient } from './coin2u.client';
+import { atividadesClient, type AtividadesClient } from './atividades.client';
 import { systemClient, windowClient, type SystemClient, type WindowClient } from './system.client';
 
 export interface IpcClients {
@@ -16,6 +17,7 @@ export interface IpcClients {
   kudo: KudoClient;
   team: TeamClient;
   coin2u: Coin2uClient;
+  atividades: AtividadesClient;
   system: SystemClient;
   window: WindowClient;
 }
@@ -28,6 +30,7 @@ const defaultClients: IpcClients = {
   kudo: kudoClient,
   team: teamClient,
   coin2u: coin2uClient,
+  atividades: atividadesClient,
   system: systemClient,
   window: windowClient,
 };

@@ -1,4 +1,4 @@
-import type { ActionResult, Credentials, SessionStatus } from '@shared/types';
+import type { ActionResult, Credentials, SessionStatus } from '@shared/types/index';
 import type { BeeforApi } from '../../../main/preload';
 
 export function createSessionClient(api: BeeforApi) {

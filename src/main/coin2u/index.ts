@@ -1,6 +1,6 @@
-﻿import keytar from 'keytar';
+import keytar from 'keytar';
 import { KEYTAR_ACCOUNT_COIN2U_EMAIL, KEYTAR_SERVICE } from '../../shared/constants';
-import type { Coin2uCredentials } from '../../shared/types';
+import type { Coin2uCredentials } from '../../shared/types/index';
 import { coin2uAuth } from './auth';
 
 export { coin2uAuth } from './auth';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { systemClient } from '../services/ipc';
+import { useIpc } from '../services/ipc';
 
 export type UpdateState =
   | { status: 'idle' }
@@ -8,6 +8,7 @@ export type UpdateState =
   | { status: 'installing'; version: string };
 
 export function useUpdater() {
+  const { system: systemClient } = useIpc();
   const [state, setState] = useState<UpdateState>({ status: 'idle' });
 
   useEffect(() => {
@@ -23,7 +24,7 @@ export function useUpdater() {
       offAvail();
       offReady();
     };
-  }, []);
+  }, [systemClient]);
 
   const install = () => {
     setState((prev) => {

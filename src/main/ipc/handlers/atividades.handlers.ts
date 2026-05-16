@@ -1,12 +1,11 @@
-import { ipcMain } from 'electron';
 import type { BrowserWindow } from 'electron';
-import { IPC } from '../../../shared/ipc';
-import { ok, fail } from '../../services/result';
-import { logger } from '../../logger';
+import { IPC } from '../../../shared/ipc/index';
+import { ok, fail } from '../../../shared/result';
 import { getBeeforTokenCache, refreshBeeforTokenCache } from '../../beeforTokenCache';
 import { BeeforClient } from '../../../automation/beefor/beeforClient';
 import { withPageLock } from '../../../automation/beefor/pageLock';
 import { ensureSessionForAction } from '../../sessionGuard';
+import { defineHandler } from '../defineHandler';
 
 const BEEFOR_API_BASE = 'https://apiteams.goobee.com.br/api';
 
@@ -24,9 +23,11 @@ async function getTokenEntry(win: BrowserWindow | null) {
 }
 
 export function registerAtividadesHandlers(getWindow: () => BrowserWindow | null) {
-  ipcMain.handle(IPC.ACTION_FETCH_ATIVIDADES, async () => {
-    const win = getWindow();
-    try {
+  defineHandler({
+    channel: IPC.ACTION_FETCH_ATIVIDADES,
+    errorMessage: 'Fetch atividades failed',
+    run: async () => {
+      const win = getWindow();
       const entry = await getTokenEntry(win);
       if (!entry) return fail(new Error('Token Beefor não disponível. Conecte a sessão primeiro.'));
 
@@ -46,9 +47,6 @@ export function registerAtividadesHandlers(getWindow: () => BrowserWindow | null
 
       const data = await res.json();
       return ok(data);
-    } catch (err) {
-      logger.error('Fetch atividades failed', err);
-      return fail(err);
-    }
+    },
   });
 }

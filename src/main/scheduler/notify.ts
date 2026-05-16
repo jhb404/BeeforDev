@@ -1,7 +1,10 @@
-﻿import { BrowserWindow, Notification } from 'electron';
+import { BrowserWindow, Notification } from 'electron';
 import { logger } from '../logger';
-import { IPC } from '../../shared/ipc';
+import { IPC } from '../../shared/ipc/index';
 import { getBuildAssetPath } from '../window';
+import type { TodayAlert } from '../../shared/types/index';
+
+type AlarmKind = Exclude<TodayAlert['kind'], 'birthday'>;
 
 function appIconPath(): string {
   return getBuildAssetPath('icon.png');
@@ -12,6 +15,7 @@ export function notify(
   title: string,
   body: string,
   withAlarm: boolean,
+  kind?: AlarmKind,
 ): void {
   try {
     if (Notification.isSupported()) {
@@ -30,7 +34,7 @@ export function notify(
     logger.error('Notification failed', err);
   }
   if (withAlarm && win && !win.isDestroyed()) {
-    win.webContents.send(IPC.EVT_PLAY_ALARM, { title, body });
+    win.webContents.send(IPC.EVT_PLAY_ALARM, { title, body, kind });
   }
   if (win && !win.isDestroyed()) {
     win.webContents.send(IPC.EVT_NOTIFY, { title, body });

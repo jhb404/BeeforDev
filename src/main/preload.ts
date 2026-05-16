@@ -1,5 +1,5 @@
-﻿import { contextBridge, ipcRenderer } from 'electron';
-import { IPC } from '../shared/ipc';
+import { contextBridge, ipcRenderer } from 'electron';
+import { IPC } from '../shared/ipc/index';
 import type {
   ActionResult,
   AppSettings,
@@ -24,7 +24,9 @@ import type {
   TeamMember,
   TimesheetEntry,
   TodayAlert,
-} from '../shared/types';
+} from '../shared/types/index';
+
+type AlarmInfo = { title: string; body: string; kind?: Exclude<TodayAlert['kind'], 'birthday'> };
 
 const api = {
   saveCredentials: (creds: Credentials): Promise<ActionResult> =>
@@ -88,8 +90,8 @@ const api = {
   getTodayAlerts: (): Promise<ActionResult<TodayAlert[]>> =>
     ipcRenderer.invoke(IPC.ACTION_GET_TODAY_ALERTS),
 
-  onPlayAlarm: (cb: (info: { title: string; body: string }) => void): (() => void) => {
-    const listener = (_e: unknown, info: { title: string; body: string }) => cb(info);
+  onPlayAlarm: (cb: (info: AlarmInfo) => void): (() => void) => {
+    const listener = (_e: unknown, info: AlarmInfo) => cb(info);
     ipcRenderer.on(IPC.EVT_PLAY_ALARM, listener);
     return () => ipcRenderer.removeListener(IPC.EVT_PLAY_ALARM, listener);
   },

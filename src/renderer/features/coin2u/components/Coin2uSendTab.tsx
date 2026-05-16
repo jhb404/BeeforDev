@@ -1,8 +1,8 @@
-﻿import { useEffect, useMemo, useState } from 'react';
-import type { AppSettings, Coin2uDashboard, Coin2uMember } from '@shared/types';
+import { useEffect, useMemo, useState } from 'react';
+import type { AppSettings, Coin2uDashboard, Coin2uMember } from '@shared/types/index';
 import { Check, Search, Users } from '../../../components/common/Icons';
 import { playUiSound } from '../../../utils/alarm';
-import { coin2uClient } from '../../../services/ipc';
+import { useIpc } from '../../../services/ipc';
 import { matchesMember } from '../utils/coin2uFormat';
 import { getError } from '@shared/result';
 
@@ -17,6 +17,7 @@ interface Props {
 }
 
 export function Coin2uSendTab({ dashboard, loading, settings, onAfterTransfer, onToast }: Props) {
+  const { coin2u: coin2uClient } = useIpc();
   const [query, setQuery] = useState('');
   const [memberPage, setMemberPage] = useState(1);
   const [selected, setSelected] = useState<Coin2uMember | null>(null);

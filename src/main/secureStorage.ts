@@ -1,6 +1,6 @@
-﻿import keytar from 'keytar';
+import keytar from 'keytar';
 import { KEYTAR_ACCOUNT_EMAIL, KEYTAR_ACCOUNT_PASSWORD, KEYTAR_SERVICE } from '../shared/constants';
-import type { Credentials } from '../shared/types';
+import type { Credentials } from '../shared/types/index';
 import { logger } from './logger';
 
 export async function saveCredentials(creds: Credentials): Promise<void> {

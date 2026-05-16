@@ -1,14 +1,14 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import type {
   AppSettings,
   Coin2uDashboard,
   Coin2uShopItem,
   Coin2uTransaction,
-} from '@shared/types';
+} from '@shared/types/index';
 import { playUiSound } from '../../../utils/alarm';
 import { useEscapeToClose } from '../../../hooks/useEscapeToClose';
-import { coin2uClient } from '../../../services/ipc';
+import { useIpc } from '../../../services/ipc';
 import { useCoin2uData } from '../hooks/useCoin2uData';
 import { useCoin2uShop } from '../hooks/useCoin2uShop';
 import { useCoin2uToast } from '../hooks/useCoin2uToast';
@@ -29,6 +29,7 @@ interface Props {
 }
 
 export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
+  const { coin2u: coin2uClient } = useIpc();
   const data = useCoin2uData({ onDataChanged });
   const shop = useCoin2uShop({ setDashboard: data.setDashboard, setError: data.setError });
   const toastApi = useCoin2uToast(open);

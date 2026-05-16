@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Coin2uTransaction } from '@shared/types';
+import type { Coin2uTransaction } from '@shared/types/index';
 import { formatDate } from '../utils/coin2uFormat';
 
 interface Props {

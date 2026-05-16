@@ -1,11 +1,11 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type {
   KudoCardCounts,
   KudoCardDetail,
   KudoCardListItem,
   KudoCardLists,
-} from '@shared/types';
-import { kudoClient } from '../../../services/ipc';
+} from '@shared/types/index';
+import { useIpc } from '../../../services/ipc';
 import { getError } from '@shared/result';
 
 interface UseKudoHistoryResult {
@@ -20,6 +20,7 @@ interface UseKudoHistoryResult {
 }
 
 export function useKudoHistory(open: boolean): UseKudoHistoryResult {
+  const { kudo: kudoClient } = useIpc();
   const [counts, setCounts] = useState<KudoCardCounts | null>(null);
   const [lists, setLists] = useState<KudoCardLists | null>(null);
   const [loading, setLoading] = useState(false);
@@ -51,7 +52,7 @@ export function useKudoHistory(open: boolean): UseKudoHistoryResult {
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, [open, kudoClient]);
 
   useEffect(() => {
     if (!selected) {
@@ -70,7 +71,7 @@ export function useKudoHistory(open: boolean): UseKudoHistoryResult {
     return () => {
       cancelled = true;
     };
-  }, [selected]);
+  }, [selected, kudoClient]);
 
   return {
     counts,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { BirthdayEntry } from '../../../utils/teamCache';
 import { Cake, Check, Edit3, X } from '../../../components/common/Icons';
-import { formatBirthdayPretty } from '../../../utils/dateUtils';
+import { formatBirthdayPretty } from '../../../utils/dates';
 
 interface Props {
   value?: BirthdayEntry;

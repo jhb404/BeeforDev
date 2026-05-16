@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Coin2uTransaction } from '@shared/types';
+import type { Coin2uTransaction } from '@shared/types/index';
 import { formatDate } from '../utils/coin2uFormat';
 
 type HistoryFilter = 'all' | 'sent' | 'received';

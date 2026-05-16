@@ -1,7 +1,7 @@
 import { Menu, Tray, app } from 'electron';
 import type { BrowserWindow, MenuItemConstructorOptions } from 'electron';
-import { DEFAULT_TRAY_MENU, MOODS, type TrayMenuItem } from '../../shared/types';
-import { IPC } from '../../shared/ipc';
+import { DEFAULT_TRAY_MENU, MOODS, type TrayMenuItem } from '../../shared/types/index';
+import { IPC } from '../../shared/ipc/index';
 import { getBuildIconPath } from '../window';
 import { loadSettings } from '../sessionStore';
 import { runAutoLancamentoFromTray, runMoodFromTray } from './trayActions';

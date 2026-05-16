@@ -1,4 +1,4 @@
-import type { Coin2uDashboard } from '@shared/types';
+import type { Coin2uDashboard } from '@shared/types/index';
 import { Clock, Refresh } from '../../../components/common/Icons';
 import { CoinIcon } from './Coin2uCoinIcon';
 

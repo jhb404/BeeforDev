@@ -12,6 +12,7 @@
  */
 
 import type { ThemePreset, IconVariant } from './types';
+import { APP_EVENTS, emitAppEvent } from '../../app/events';
 
 /** SHA-256 hex do código secreto. Gerado pelo script `scripts/hash-codes.mjs`. */
 type CodeHash = string;
@@ -122,7 +123,7 @@ export function redeemTheme(themeId: string): void {
   if (!data.themes.includes(themeId)) {
     data.themes.push(themeId);
     save(data);
-    window.dispatchEvent(new CustomEvent('beefor:codes-changed'));
+    emitAppEvent(APP_EVENTS.CODES_CHANGED);
   }
 }
 
@@ -131,6 +132,6 @@ export function redeemIcon(iconId: string): void {
   if (!data.icons.includes(iconId)) {
     data.icons.push(iconId);
     save(data);
-    window.dispatchEvent(new CustomEvent('beefor:codes-changed'));
+    emitAppEvent(APP_EVENTS.CODES_CHANGED);
   }
 }

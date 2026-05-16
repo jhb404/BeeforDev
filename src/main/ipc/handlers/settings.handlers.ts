@@ -1,22 +1,29 @@
-﻿import { ipcMain } from 'electron';
-import { IPC } from '../../../shared/ipc';
-import type { AppSettings } from '../../../shared/types';
+import { IPC } from '../../../shared/ipc/index';
+import type { AppSettings } from '../../../shared/types/index';
 import { loadSettings, saveSettings } from '../../sessionStore';
 import { setAutoStart } from '../../autoStart';
 import { rebuildTrayMenu } from '../../bootstrap/tray';
-import { ok, fail } from '../../services/result';
+import { ok } from '../../../shared/result';
+import { settingsSchema } from '../schemas';
+import { defineHandler } from '../defineHandler';
 
 export function registerSettingsHandlers() {
-  ipcMain.handle(IPC.SETTINGS_GET, async () => loadSettings());
+  defineHandler({
+    channel: IPC.SETTINGS_GET,
+    errorMessage: 'Get settings failed',
+    run: () => loadSettings(),
+  });
 
-  ipcMain.handle(IPC.SETTINGS_SET, async (_e, s: AppSettings) => {
-    try {
-      await saveSettings(s);
-      setAutoStart(s.autoStart);
+  defineHandler({
+    channel: IPC.SETTINGS_SET,
+    schema: settingsSchema,
+    errorMessage: 'Set settings failed',
+    run: async ({ data }) => {
+      const settings = data as unknown as AppSettings;
+      await saveSettings(settings);
+      setAutoStart(settings.autoStart);
       void rebuildTrayMenu();
       return ok();
-    } catch (err) {
-      return fail(err);
-    }
+    },
   });
 }

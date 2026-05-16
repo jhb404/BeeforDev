@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Coin2uDashboard, Coin2uShopItem } from '@shared/types';
+import type { Coin2uDashboard, Coin2uShopItem } from '@shared/types/index';
 import { Package, Search, ShoppingBag } from '../../../components/common/Icons';
 import { CoinIcon } from './Coin2uCoinIcon';
 import { formatReal, itemCategory, matchesShopItem } from '../utils/coin2uFormat';

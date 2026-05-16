@@ -1,4 +1,4 @@
-﻿import type { Mood } from '@shared/types';
+import type { Mood } from '@shared/types/index';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
 import { MoodPicker } from './MoodPicker';
 import { MoodStreakBadge } from '../../../features/gamification/components/MoodStreakBadge';
