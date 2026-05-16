@@ -1,5 +1,5 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
-import { IpcProvider, useIpc } from './services/ipc';
+﻿import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { IpcProvider } from './services/ipc';
 import { TitleBar } from './components/layout/TitleBar';
 import { StartupOverlay } from './components/layout/StartupOverlay';
 import { SettingsProvider, useSettings } from './app/providers/SettingsProvider';
@@ -19,11 +19,12 @@ import { ProfileModal } from './app/components/ProfileModal';
 import { useUpdater } from './hooks/useUpdater';
 import { useTeamPrefetch } from './app/hooks/useTeamPrefetch';
 import { useAppIconSync } from './hooks/useAppIconSync';
-import { useJournalBadge } from './hooks/useJournalBadge';
 import { useGamification } from './features/gamification';
-import { playAlarmByKind } from './utils/alarm';
 import { useBeefor } from './hooks/useBeefor';
 import { APP_EVENTS, emitAppEvent } from './app/events';
+import { useLunchTimer } from './app/hooks/useLunchTimer';
+import { usePatchJournal } from './app/hooks/usePatchJournal';
+import { useTrayListeners } from './app/hooks/useTrayListeners';
 
 type Tab = 'home' | 'settings';
 
@@ -36,21 +37,24 @@ const TeamModal = lazy(() =>
 function AppShell() {
   const { settings: appSettings } = useSettings();
   const { theme, toggle: toggleTheme } = useTheme();
-  const { settings: settingsClient, system: systemClient } = useIpc();
   const showToast = useToast();
 
   const [tab, setTab] = useState<Tab>('home');
   const [teamModalOpen, setTeamModalOpen] = useState(false);
   const [homeBootReady, setHomeBootReady] = useState(false);
   const [startupComplete, setStartupComplete] = useState(false);
-  const [patchModalOpen, setPatchModalOpen] = useState(false);
-  const [patchJournal, setPatchJournal] = useState('');
-  const [loadingPatchJournal, setLoadingPatchJournal] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [coin2uForceOpen, setCoin2uForceOpen] = useState(false);
-  const [lunchTimerActive, setLunchTimerActive] = useState(false);
-  const [lunchStartedAt, setLunchStartedAt] = useState<number | null>(null);
-  const lunchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { lunchTimerActive, lunchStartedAt, startLunchTimer, cancelLunchTimer } =
+    useLunchTimer(showToast);
+  const {
+    journalBadge,
+    patchModalOpen,
+    patchJournal,
+    loadingPatchJournal,
+    openPatchJournal,
+    closePatchJournal,
+  } = usePatchJournal();
 
   const alerts = useAlerts();
   const birthday = useBirthdayWatcher(startupComplete, !!appSettings?.uiSounds, teamModalOpen);
@@ -85,65 +89,22 @@ function AppShell() {
 
   const handleStartupComplete = useCallback(() => setStartupComplete(true), []);
 
-  const startLunchTimer = () => {
-    if (lunchTimerRef.current) clearTimeout(lunchTimerRef.current);
-    const now = Date.now();
-    setLunchTimerActive(true);
-    setLunchStartedAt(now);
-    systemClient.setLunchTimerActive(true);
-    void playAlarmByKind('lunch');
-    void systemClient.notifyWindows('🍽️ Alerta Almoço', 'Timer de 1h iniciado. Bom apetite!');
-    showToast({ kind: 'ok', msg: 'Timer de almoço iniciado — 1 hora.' });
-    lunchTimerRef.current = setTimeout(
-      () => {
-        setLunchTimerActive(false);
-        setLunchStartedAt(null);
-        systemClient.setLunchTimerActive(false);
-        showToast({ kind: 'ok', title: 'Almoço encerrado!', msg: 'Já passou 1 hora de almoço.' });
-        lunchTimerRef.current = null;
-      },
-      60 * 60 * 1000,
-    );
-  };
-
-  const cancelLunchTimer = () => {
-    if (lunchTimerRef.current) clearTimeout(lunchTimerRef.current);
-    lunchTimerRef.current = null;
-    setLunchTimerActive(false);
-    setLunchStartedAt(null);
-    systemClient.setLunchTimerActive(false);
-    showToast({ kind: 'ok', msg: 'Timer de almoço cancelado.' });
-  };
-
-  useEffect(() => {
-    const offLunch = systemClient.onTrayLunchTimer(startLunchTimer);
-    const offKudo = systemClient.onTrayOpenKudo(() => {
-      setTab('home');
-      emitAppEvent(APP_EVENTS.OPEN_KUDO);
-    });
-    const offCoins = systemClient.onTrayOpenCoins(() => {
-      setCoin2uForceOpen(true);
-    });
-    return () => {
-      offLunch();
-      offKudo();
-      offCoins();
-      if (lunchTimerRef.current) clearTimeout(lunchTimerRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const openKudoFromTray = useCallback(() => {
+    setTab('home');
+    emitAppEvent(APP_EVENTS.OPEN_KUDO);
   }, []);
 
-  const { status: sessionStatus } = useBeefor();
-  const { showBadge: journalBadge, markAsSeen: markJournalSeen } = useJournalBadge();
+  const openCoinsFromTray = useCallback(() => {
+    setCoin2uForceOpen(true);
+  }, []);
 
-  const openPatchJournal = async () => {
-    setPatchModalOpen(true);
-    setLoadingPatchJournal(true);
-    markJournalSeen();
-    const res = await settingsClient.get();
-    setPatchJournal(res.patchJournal?.trim() || 'Nenhuma atualizacao publicada ainda.');
-    setLoadingPatchJournal(false);
-  };
+  useTrayListeners({
+    onLunchTimer: startLunchTimer,
+    onOpenKudo: openKudoFromTray,
+    onOpenCoins: openCoinsFromTray,
+  });
+
+  const { status: sessionStatus } = useBeefor();
 
   const logoVariant = appSettings?.logoVariant ?? 'orange';
 
@@ -215,7 +176,7 @@ function AppShell() {
         open={patchModalOpen}
         loading={loadingPatchJournal}
         text={patchJournal}
-        onClose={() => setPatchModalOpen(false)}
+        onClose={closePatchJournal}
       />
 
       <ProfileModal open={profileModalOpen} onClose={() => setProfileModalOpen(false)} />

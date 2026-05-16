@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { AppSettings, Mood } from '@shared/types/index';
+﻿import { useEffect, useMemo, useState } from 'react';
+import type { AppSettings } from '@shared/types/index';
 import { useIpc } from '../services/ipc';
-import { MOODS } from '@shared/types/index';
 import { useBeefor } from '../hooks/useBeefor';
 import { MinimalView } from './home/components/MinimalView';
 import { KudoCardModal } from '../features/kudo/components/KudoCardModal';
@@ -11,7 +10,7 @@ import { todayIso } from '../utils/dates';
 import { workedMinutes } from '../utils/timeMath';
 import { playUiSound } from '../utils/alarm';
 import { useEscapeToClose } from '../hooks/useEscapeToClose';
-import { buildEmpty, mergeFetched, type RowState } from './home/utils/rowState';
+import type { RowState } from './home/utils/rowState';
 import { useToast } from '../app/providers/ToastProvider';
 import { MoodPanel } from './home/components/MoodPanel';
 import { SummaryStrip } from './home/components/SummaryStrip';
@@ -21,6 +20,8 @@ import { BatchConfirmModal } from './home/components/BatchConfirmModal';
 import { HomeTopbar } from './home/components/HomeTopbar';
 import { AtividadesModal } from '../features/atividades/components/AtividadesModal';
 import { APP_EVENTS, onAppEvent } from '../app/events';
+import { useMoodFlow } from './home/hooks/useMoodFlow';
+import { useTimesheetData } from './home/hooks/useTimesheetData';
 
 interface HomeProps {
   onMoodChanged?: (mood: string | null) => void;
@@ -41,124 +42,36 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
-  const [rows, setRows] = useState<RowState[]>(() => buildEmpty(year, month));
-
-  const [currentMood, setCurrentMood] = useState<Mood | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
-  const [loadingTs, setLoadingTs] = useState(false);
-  const [timesheetLoaded, setTimesheetLoaded] = useState(false);
-  const [loadingMood, setLoadingMood] = useState(false);
-  const [moodLoaded, setMoodLoaded] = useState(false);
   const showToast = useToast();
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [showKudoModal, setShowKudoModal] = useState(false);
   const [showKudoHistory, setShowKudoHistory] = useState(false);
   const [showAtividades, setShowAtividades] = useState(false);
 
-  const fetchInFlight = useRef(false);
-  const lastFetchKey = useRef<string>('');
-  const yearRef = useRef(year);
-  const monthRef = useRef(month);
-  useEffect(() => {
-    yearRef.current = year;
-  }, [year]);
-  useEffect(() => {
-    monthRef.current = month;
-  }, [month]);
-
   useEffect(() => {
     void settingsClient.get().then(setSettings);
   }, [settingsClient]);
 
-  useEffect(() => {
-    if (!ready) return;
-    const key = `${year}-${month}`;
-    if (lastFetchKey.current === key) return;
-    lastFetchKey.current = key;
-    setTimesheetLoaded(false);
-    void (moodLoaded ? refreshTimesheet() : refreshAll());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, year, month, moodLoaded]);
+  const { currentMood, loadingMood, moodLoaded, refreshMood, selectMood } = useMoodFlow({
+    ready,
+    moodClient,
+    wrap,
+    showToast,
+    onMoodChanged,
+  });
 
-  const refreshTimesheet = async () => {
-    if (fetchInFlight.current) return;
-    fetchInFlight.current = true;
-    setLoadingTs(true);
-    try {
-      const res = await timesheetClient.fetch(year, month);
-      if (res.ok && res.data) {
-        setRows(mergeFetched(year, month, res.data));
-      } else if (!res.ok) {
-        showToast({
-          kind: 'err',
-          title: 'Erro ao carregar',
-          msg: `Apontamentos: ${res.ok ? '' : res.error}`,
-        });
-      }
-    } finally {
-      setLoadingTs(false);
-      setTimesheetLoaded(true);
-      fetchInFlight.current = false;
-    }
-  };
-
-  const notifyMoodChanged = (mood: string | null) => onMoodChanged?.(mood);
-
-  const refreshMood = async () => {
-    setLoadingMood(true);
-    try {
-      const res = await moodClient.getCurrent();
-      if (res.ok) {
-        const m = res.data ?? null;
-        const matched = (MOODS as readonly string[]).includes(m ?? '') ? (m as Mood) : null;
-        setCurrentMood(matched);
-        notifyMoodChanged(matched);
-      }
-    } finally {
-      setLoadingMood(false);
-      setMoodLoaded(true);
-    }
-  };
-
-  const refreshAll = async () => {
-    await Promise.all([refreshTimesheet(), refreshMood()]);
-  };
-
-  useEffect(() => {
-    if (!ready) return;
-    const handleFocus = () => void refreshMood();
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') void refreshMood();
-    };
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, month, year]);
-
-  useEffect(() => {
-    const off = systemClient.onNotify((info) => {
-      if (info.title === 'sync:autoLancamento' && info.body === 'ok') {
-        const y = yearRef.current;
-        const m = monthRef.current;
-        lastFetchKey.current = '';
-        void timesheetClient.fetch(y, m).then((res) => {
-          if (res.ok && res.data) {
-            setRows(mergeFetched(y, m, res.data));
-            setTimesheetLoaded(true);
-          }
-        });
-      }
-      if (info.title === 'sync:autoLancamento' && info.body === 'failed') {
-        void refreshMood();
-      }
+  const { rows, setRows, loadingTs, timesheetLoaded, refreshTimesheet, refreshAll } =
+    useTimesheetData({
+      ready,
+      year,
+      month,
+      moodLoaded,
+      timesheetClient,
+      systemClient,
+      refreshMood,
+      showToast,
     });
-    return off;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready]);
 
   const updateRow = (idx: number, patch: Partial<RowState>) => {
     setRows((prev) => {
@@ -200,11 +113,11 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
           ? {
               kind: 'ok',
               title: 'Horas salvas',
-              msg: `${r.date.slice(8, 10)}/${r.date.slice(5, 7)} lançado no Beefor.`,
+              msg: `${r.date.slice(8, 10)}/${r.date.slice(5, 7)} lanÃ§ado no Beefor.`,
             }
           : {
               kind: 'err',
-              title: 'Não foi possível salvar',
+              title: 'NÃ£o foi possÃ­vel salvar',
               msg: `${r.date}: ${res.ok ? '' : res.error}`,
             },
       );
@@ -236,12 +149,12 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
         res.ok
           ? {
               kind: 'ok',
-              title: 'Auto lançamento iniciado',
-              msg: 'Processando... calendário atualiza quando concluir.',
+              title: 'Auto lanÃ§amento iniciado',
+              msg: 'Processando... calendÃ¡rio atualiza quando concluir.',
             }
           : {
               kind: 'err',
-              title: 'Auto lançamento falhou',
+              title: 'Auto lanÃ§amento falhou',
               msg: (res.ok ? '' : res.error) || 'falhou',
             },
       );
@@ -253,27 +166,6 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
     });
   };
 
-  const selectMood = async (m: Mood) => {
-    if (currentMood === m) return;
-    const previous = currentMood;
-    setCurrentMood(m);
-    await wrap(async () => {
-      const res = await moodClient.select(m);
-      if (!res.ok) {
-        setCurrentMood(previous);
-        notifyMoodChanged(previous);
-        showToast({
-          kind: 'err',
-          title: 'Mood não salvo',
-          msg: (res.ok ? '' : res.error) || 'falhou',
-        });
-      } else {
-        showToast({ kind: 'ok', title: 'Mood salvo', msg: m });
-        notifyMoodChanged(m);
-        void refreshMood();
-      }
-    });
-  };
 
   const hoursPerDayMin = (settings?.hoursPerDay ?? 8) * 60;
 
@@ -343,7 +235,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
           if (!res.ok) {
             showToast({
               kind: 'err',
-              title: 'Não abriu o Beefor',
+              title: 'NÃ£o abriu o Beefor',
               msg: (res.ok ? '' : res.error) || 'falhou',
             });
           }
@@ -376,11 +268,11 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
         <SummaryStrip summary={summary} compact={settings?.viewMode === 'minimal'} />
 
         {showTimesheetLoader ? (
-          <FunnyLoader title="Carregando lançamentos" />
+          <FunnyLoader title="Carregando lanÃ§amentos" />
         ) : showDisconnectedState ? (
           <div className="ts-empty">
-            <strong>Sem sessão ativa</strong>
-            <span>Conecte a sessão para carregar os apontamentos do mês.</span>
+            <strong>Sem sessÃ£o ativa</strong>
+            <span>Conecte a sessÃ£o para carregar os apontamentos do mÃªs.</span>
           </div>
         ) : settings?.viewMode === 'minimal' ? (
           <MinimalView
