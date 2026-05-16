@@ -16,6 +16,7 @@ O renderer nao acessa Node. `main.tsx` monta `App`; `App` encadeia providers, to
 | `SettingsProvider/useSettings` | provider/hook | settings app | Carrega settings e aplica tokens. |
 | `ThemeProvider/useTheme` | provider/hook | dark/light | Gerencia `data-theme` e localStorage. |
 | `ToastProvider/useToast` | provider/hook | toasts | Fila simples de toast atual. |
+| `ui-guide.md` | doc | guia de UI | Guia historico de tokens, modais e padroes visuais. |
 
 ## Fluxo Interno
 ```ascii
@@ -40,7 +41,7 @@ main.tsx -> App
 DOM, localStorage, IPC via preload, audio WebAudio, canvas para icone, timers de hooks.
 
 ## Dependencias
-React, i18next, clients IPC, features e utils.
+React, i18next, clients IPC, features, utils e [ui-guide.md](./ui-guide.md).
 
 ## Consumidores
 Usuario final via renderer Electron.

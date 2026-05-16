@@ -21,6 +21,7 @@ Registrar itens acionaveis para issues tecnicas, sem misturar com documentacao d
 | Logger acoplado a automation | imports `../../main/logger` em automation | Dificulta reutilizacao/testes da automation. |
 | `JornadaCard` existente mas nao renderizado | Import comentado em `Settings.tsx` | UI/feature possivelmente incompleta. |
 | Settings schema vs tipo | `AppSettings.punchTimes` tupla 4; schema aceita array max 8 | Drift de contrato runtime/type. |
+| ADR duplicado 0004 | [../13-decisoes-arquiteturais](../13-decisoes-arquiteturais/README.md) mantem dois arquivos 0004 | Historia de decisao ambigua. |
 
 ## Fluxo Interno
 Itens vieram de leitura das fases 1-9 e das dividas ja listadas em [../ARQUITETURA.md](../ARQUITETURA.md).

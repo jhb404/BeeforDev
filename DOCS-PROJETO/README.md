@@ -22,6 +22,8 @@ Este indice aponta para os modulos documentados em `DOCS-PROJETO/`. Use [ARQUITE
 | [10-build-empacotamento](./10-build-empacotamento/README.md) | scripts npm, Vite, tsconfig, preload bundle e electron-builder. |
 | [11-testes](./11-testes/README.md) | Vitest, coverage e padroes de testes. |
 | [12-debito-tecnico](./12-debito-tecnico/README.md) | TODOs e dividas tecnicas detectadas no codigo/documentos. |
+| [13-decisoes-arquiteturais](./13-decisoes-arquiteturais/README.md) | ADRs historicos movidos de `docs/adr`. |
+| [14-auditoria](./14-auditoria/README.md) | Artefatos de auditoria, incluindo Electronegativity. |
 
 ## Entradas Base Lidas
 | Fonte | Uso |
