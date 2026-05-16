@@ -1,5 +1,5 @@
-﻿import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { AppSettings } from '@shared/types';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import type { AppSettings } from '@shared/types/index';
 import { settingsClient } from '../../services/ipc';
 import { resolvePresetTokens } from '../../features/gamification';
 

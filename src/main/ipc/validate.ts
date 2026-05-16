@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 import { logger } from '../logger';
-import { fail } from '../services/result';
-import type { ActionResult } from '../../shared/types';
+import { fail } from '../../shared/result';
+import type { ActionResult } from '../../shared/types/index';
 
 /**
  * Validates IPC payload against a zod schema.

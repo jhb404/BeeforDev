@@ -1,5 +1,5 @@
-﻿import { useTranslation } from 'react-i18next';
-import type { TodayAlert } from '@shared/types';
+import { useTranslation } from 'react-i18next';
+import type { TodayAlert } from '@shared/types/index';
 
 interface BellPanelProps {
   alerts: TodayAlert[];

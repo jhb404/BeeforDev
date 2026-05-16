@@ -1,4 +1,4 @@
-﻿import type { Coin2uMember, Coin2uShopItem, Coin2uTransaction } from '../../shared/types';
+import type { Coin2uMember, Coin2uShopItem, Coin2uTransaction } from '../../shared/types/index';
 
 export function parseMembers(value: unknown): Coin2uMember[] {
   if (!Array.isArray(value)) return [];

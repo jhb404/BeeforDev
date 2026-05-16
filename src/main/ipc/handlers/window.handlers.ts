@@ -1,5 +1,5 @@
-﻿import { BrowserWindow, ipcMain, nativeImage } from 'electron';
-import { IPC } from '../../../shared/ipc';
+import { BrowserWindow, ipcMain, nativeImage } from 'electron';
+import { IPC } from '../../../shared/ipc/index';
 
 export function registerWindowHandlers(getWindow: () => BrowserWindow | null) {
   ipcMain.on(IPC.WIN_MINIMIZE, () => getWindow()?.minimize());

@@ -6,7 +6,7 @@ import type {
   Coin2uLog,
   Coin2uShop,
   Coin2uTransferRequest,
-} from '@shared/types';
+} from '@shared/types/index';
 import type { BeeforApi } from '../../../main/preload';
 
 export function createCoin2uClient(api: BeeforApi) {

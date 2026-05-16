@@ -1,4 +1,4 @@
-import type { ActionResult, TodayAlert } from '@shared/types';
+import type { ActionResult, TodayAlert } from '@shared/types/index';
 import type { BeeforApi } from '../../../main/preload';
 
 export function createSystemClient(api: BeeforApi) {

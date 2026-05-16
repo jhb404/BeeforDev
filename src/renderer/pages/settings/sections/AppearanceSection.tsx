@@ -1,5 +1,5 @@
-﻿import { useState } from 'react';
-import type { AppSettings } from '@shared/types';
+import { useState } from 'react';
+import type { AppSettings } from '@shared/types/index';
 import { Switch } from '../Switch';
 import { useGamification, UnlockCodeModal } from '../../../features/gamification';
 import type { ThemePreset } from '../../../features/gamification';

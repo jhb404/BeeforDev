@@ -1,5 +1,5 @@
-﻿import { useCallback, useEffect, useState } from 'react';
-import type { SessionStatus } from '@shared/types';
+import { useCallback, useEffect, useState } from 'react';
+import type { SessionStatus } from '@shared/types/index';
 import { sessionClient } from '../services/ipc';
 
 export function useBeefor() {

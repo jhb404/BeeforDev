@@ -1,14 +1,14 @@
 ﻿import { app, BrowserWindow, session } from 'electron';
 import { createMainWindow } from './window';
 import { installCsp } from './csp';
-import { registerIpcHandlers } from './ipcHandlers';
+import { registerIpcHandlers } from './ipc';
 import { bindLoggerWindow, logger } from './logger';
 import { loadSettings } from './sessionStore';
 import { setAutoStart } from './autoStart';
 import { BeeforClient } from '../automation/beefor/beeforClient';
 import { ensureSession, startWatchdog, stopWatchdog } from './sessionManager';
-import { startScheduler, stopScheduler } from './scheduler';
-import { initCoin2u } from './coin2uClient';
+import { startScheduler, stopScheduler } from './scheduler/index';
+import { initCoin2u } from './coin2u';
 import { createStartupSplash } from './startupSplash';
 import { revealMainWindow } from './bootstrap/windowReveal';
 import { ensureTray } from './bootstrap/tray';

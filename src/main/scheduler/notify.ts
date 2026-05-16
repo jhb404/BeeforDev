@@ -1,6 +1,6 @@
-﻿import { BrowserWindow, Notification } from 'electron';
+import { BrowserWindow, Notification } from 'electron';
 import { logger } from '../logger';
-import { IPC } from '../../shared/ipc';
+import { IPC } from '../../shared/ipc/index';
 import { getBuildAssetPath } from '../window';
 
 function appIconPath(): string {

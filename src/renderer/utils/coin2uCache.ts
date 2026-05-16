@@ -1,4 +1,4 @@
-﻿import type { Coin2uDashboard, Coin2uTransaction } from '@shared/types';
+import type { Coin2uDashboard, Coin2uTransaction } from '@shared/types/index';
 
 const CACHE_KEY = 'beefor-coin2u-cache-v1';
 

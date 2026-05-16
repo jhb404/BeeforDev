@@ -1,7 +1,7 @@
-﻿import { BrowserWindow } from 'electron';
+import { BrowserWindow } from 'electron';
 import { logger } from '../logger';
 import { loadSettings } from '../sessionStore';
-import type { AppSettings } from '../../shared/types';
+import type { AppSettings } from '../../shared/types/index';
 import { nowHHMM, isWeekend } from './time';
 import { alreadyFired, markFired } from './firedState';
 import { notify } from './notify';

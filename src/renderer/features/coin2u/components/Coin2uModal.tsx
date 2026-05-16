@@ -1,11 +1,11 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import type {
   AppSettings,
   Coin2uDashboard,
   Coin2uShopItem,
   Coin2uTransaction,
-} from '@shared/types';
+} from '@shared/types/index';
 import { playUiSound } from '../../../utils/alarm';
 import { useEscapeToClose } from '../../../hooks/useEscapeToClose';
 import { coin2uClient } from '../../../services/ipc';

@@ -1,5 +1,5 @@
-﻿import { useCallback, useState } from 'react';
-import type { Coin2uDashboard, Coin2uShopItem } from '@shared/types';
+import { useCallback, useState } from 'react';
+import type { Coin2uDashboard, Coin2uShopItem } from '@shared/types/index';
 import { coin2uClient } from '../../../services/ipc';
 import { getError } from '@shared/result';
 

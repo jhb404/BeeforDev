@@ -1,12 +1,12 @@
-﻿import { BrowserWindow } from 'electron';
+import { BrowserWindow } from 'electron';
 import { BeeforClient } from '../automation/beefor/beeforClient';
-import { performLogin, doVerifySession } from '../automation/beefor/beeforActions';
+import { performLogin, doVerifySession } from '../automation/beefor/actions';
 import { withPageLock } from '../automation/beefor/pageLock';
 import { logger } from './logger';
 import { sessionExists, sessionPath } from './sessionStore';
 import { getCredentials } from './secureStorage';
 import { emitStatus, getCurrentStatus } from './statusBus';
-import type { SessionStatus } from '../shared/types';
+import type { SessionStatus } from '../shared/types/index';
 
 const VERIFY_INTERVAL_MS = 60_000; // 1 min watchdog
 

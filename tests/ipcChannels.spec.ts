@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { IPC } from '../src/shared/ipc';
+import { IPC } from '../src/shared/ipc/index';
 
 describe('IPC channels', () => {
   it('all channels are unique', () => {

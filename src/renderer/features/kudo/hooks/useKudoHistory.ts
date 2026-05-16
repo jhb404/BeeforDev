@@ -1,10 +1,10 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type {
   KudoCardCounts,
   KudoCardDetail,
   KudoCardListItem,
   KudoCardLists,
-} from '@shared/types';
+} from '@shared/types/index';
 import { kudoClient } from '../../../services/ipc';
 import { getError } from '@shared/result';
 

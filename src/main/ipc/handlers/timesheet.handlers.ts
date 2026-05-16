@@ -1,71 +1,72 @@
-﻿import { BrowserWindow, ipcMain } from 'electron';
-import { IPC } from '../../../shared/ipc';
+import type { BrowserWindow } from 'electron';
+import { IPC } from '../../../shared/ipc/index';
 import { BEEFOR_LOGIN_URL } from '../../../shared/constants';
 import { openExternalSafe } from '../../openSafe';
 import {
   doAutoLancamento,
   doFetchTimesheet,
   doLancarHora,
-} from '../../../automation/beefor/beeforActions';
-import { logger } from '../../logger';
-import { ok, fail, withTimeout } from '../../services/result';
+} from '../../../automation/beefor/actions';
+import { ok, fail, withTimeout } from '../../../shared/result';
 import { runBeeforAction, runBeeforActionWithReconnect } from '../../services/beeforActionRunner';
 import { fetchTimesheetArgsSchema, timesheetEntrySchema } from '../schemas';
-import { validate } from '../validate';
+import { defineHandler } from '../defineHandler';
 
 export function registerTimesheetHandlers(getWindow: () => BrowserWindow | null) {
-  ipcMain.handle(IPC.ACTION_AUTO_LANCAMENTO, async () => {
-    const win = getWindow();
-    try {
+  defineHandler({
+    channel: IPC.ACTION_AUTO_LANCAMENTO,
+    errorMessage: 'Auto lançamento failed',
+    onError: () => {
+      getWindow()?.webContents.send(IPC.EVT_NOTIFY, {
+        title: 'sync:autoLancamento',
+        body: 'failed',
+      });
+    },
+    run: async () => {
+      const win = getWindow();
       await runBeeforActionWithReconnect(win, 'Auto lançamento', (page) => doAutoLancamento(page));
       win?.webContents.send(IPC.EVT_NOTIFY, {
         title: 'sync:autoLancamento',
         body: 'ok',
       });
       return ok();
-    } catch (err) {
-      logger.error('Auto lançamento failed', err);
-      win?.webContents.send(IPC.EVT_NOTIFY, {
-        title: 'sync:autoLancamento',
-        body: 'failed',
-      });
-      return fail(err);
-    }
+    },
   });
 
-  ipcMain.handle(IPC.ACTION_OPEN_BEEFOR, async () => {
-    const success = await openExternalSafe(BEEFOR_LOGIN_URL);
-    return success ? ok() : fail(new Error('URL rejeitada.'));
+  defineHandler({
+    channel: IPC.ACTION_OPEN_BEEFOR,
+    errorMessage: 'Open Beefor failed',
+    run: async () => {
+      const success = await openExternalSafe(BEEFOR_LOGIN_URL);
+      return success ? ok() : fail(new Error('URL rejeitada.'));
+    },
   });
 
-  ipcMain.handle(IPC.ACTION_LANCAR_HORA, async (_e, payload: unknown) => {
-    const parsed = validate(timesheetEntrySchema, payload);
-    if (!parsed.ok) return parsed.result;
-    const win = getWindow();
-    try {
-      await runBeeforAction(win, (page) => doLancarHora(page, parsed.data));
+  defineHandler({
+    channel: IPC.ACTION_LANCAR_HORA,
+    schema: timesheetEntrySchema,
+    errorMessage: 'Lançar hora failed',
+    run: async ({ data }) => {
+      const win = getWindow();
+      await runBeeforAction(win, (page) => doLancarHora(page, data));
       return ok();
-    } catch (err) {
-      logger.error('Lançar hora failed', err);
-      return fail(err);
-    }
+    },
   });
 
-  ipcMain.handle(IPC.ACTION_FETCH_TIMESHEET, async (_e, year: unknown, month: unknown) => {
-    const parsed = validate(fetchTimesheetArgsSchema, [year, month]);
-    if (!parsed.ok) return parsed.result;
-    const [pYear, pMonth] = parsed.data;
-    const win = getWindow();
-    try {
+  defineHandler({
+    channel: IPC.ACTION_FETCH_TIMESHEET,
+    schema: fetchTimesheetArgsSchema,
+    payload: (args) => args,
+    errorMessage: 'Fetch timesheet failed',
+    run: async ({ data }) => {
+      const [year, month] = data;
+      const win = getWindow();
       const rows = await withTimeout(
-        runBeeforAction(win, (page) => doFetchTimesheet(page, pYear, pMonth)),
+        runBeeforAction(win, (page) => doFetchTimesheet(page, year, month)),
         60_000,
         'Fetch timesheet',
       );
       return ok(rows);
-    } catch (err) {
-      logger.error('Fetch timesheet failed', err);
-      return fail(err);
-    }
+    },
   });
 }

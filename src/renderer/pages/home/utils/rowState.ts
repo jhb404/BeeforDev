@@ -1,7 +1,7 @@
-﻿import type {
+import type {
   FetchedTimesheetRow,
   TimesheetEntry,
-} from '@shared/types';
+} from '@shared/types/index';
 import { daysInMonth, isoDate, weekdayOf } from '../../../utils/dates';
 
 export interface RowState extends TimesheetEntry {

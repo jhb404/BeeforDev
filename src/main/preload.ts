@@ -1,5 +1,5 @@
-﻿import { contextBridge, ipcRenderer } from 'electron';
-import { IPC } from '../shared/ipc';
+import { contextBridge, ipcRenderer } from 'electron';
+import { IPC } from '../shared/ipc/index';
 import type {
   ActionResult,
   AppSettings,
@@ -24,7 +24,7 @@ import type {
   TeamMember,
   TimesheetEntry,
   TodayAlert,
-} from '../shared/types';
+} from '../shared/types/index';
 
 const api = {
   saveCredentials: (creds: Credentials): Promise<ActionResult> =>

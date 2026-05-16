@@ -1,4 +1,4 @@
-import type { ActionResult, FetchedTimesheetRow, TimesheetEntry } from '@shared/types';
+import type { ActionResult, FetchedTimesheetRow, TimesheetEntry } from '@shared/types/index';
 import type { BeeforApi } from '../../../main/preload';
 
 export function createTimesheetClient(api: BeeforApi) {

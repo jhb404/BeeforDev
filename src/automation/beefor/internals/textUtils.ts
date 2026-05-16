@@ -1,4 +1,4 @@
-﻿import type { Mood } from '../../../shared/types';
+import type { Mood } from '../../../shared/types/index';
 import { Selectors } from '../beeforSelectors';
 
 export function normalizeUiText(raw: string | null | undefined): string {

@@ -1,8 +1,8 @@
-﻿import { memo } from 'react';
-import type { TeamMember } from '@shared/types';
+import { memo } from 'react';
+import type { TeamMember } from '@shared/types/index';
 import type { BirthdayEntry } from '../../../utils/teamCache';
 import { Cake, Mail } from '../../../components/common/Icons';
-import { formatBirthdayPretty, isBirthdayToday } from '../../../utils/dateUtils';
+import { formatBirthdayPretty, isBirthdayToday } from '../../../utils/dates';
 import { TeamAvatar } from './TeamAvatar';
 import { TeamStatusBadge } from './TeamStatusBadge';
 

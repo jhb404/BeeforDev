@@ -1,4 +1,4 @@
-﻿import type { TeamMember } from '@shared/types';
+import type { TeamMember } from '@shared/types/index';
 import { teamClient } from './ipc';
 import { getError } from '@shared/result';
 

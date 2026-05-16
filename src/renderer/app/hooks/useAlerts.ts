@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from 'react';
-import type { TodayAlert } from '@shared/types';
+import { useEffect, useState } from 'react';
+import type { TodayAlert } from '@shared/types/index';
 import { moodClient, systemClient } from '../../services/ipc';
 
 function nowHHMM(): string {

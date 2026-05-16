@@ -1,7 +1,7 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
-import type { AppSettings, Mood } from '@shared/types';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { AppSettings, Mood } from '@shared/types/index';
 import { moodClient, settingsClient, systemClient, timesheetClient } from '../services/ipc';
-import { MOODS } from '@shared/types';
+import { MOODS } from '@shared/types/index';
 import { useBeefor } from '../hooks/useBeefor';
 import { MinimalView } from './home/components/MinimalView';
 import { KudoCardModal } from '../features/kudo/components/KudoCardModal';

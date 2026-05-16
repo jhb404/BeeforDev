@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo, useState } from 'react';
-import type { AppSettings, Coin2uDashboard, Coin2uMember } from '@shared/types';
+import { useEffect, useMemo, useState } from 'react';
+import type { AppSettings, Coin2uDashboard, Coin2uMember } from '@shared/types/index';
 import { Check, Search, Users } from '../../../components/common/Icons';
 import { playUiSound } from '../../../utils/alarm';
 import { coin2uClient } from '../../../services/ipc';

@@ -1,7 +1,7 @@
-﻿import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Bell, Moon, Newspaper, Sun } from '../../components/common/Icons';
 import { TeamButton } from '../../features/team/components/TeamButton';
-import type { AppSettings, SessionStatus, TodayAlert } from '@shared/types';
+import type { AppSettings, SessionStatus, TodayAlert } from '@shared/types/index';
 import { BellPanel } from './BellPanel';
 import { UpdateBadge } from './UpdateBadge';
 import { LunchTimerWidget } from './LunchTimerWidget';

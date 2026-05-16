@@ -1,6 +1,6 @@
-﻿import { useState } from 'react';
-import type { KudoCardType, SendKudoCardRequest } from '@shared/types';
-import { KUDO_CARD_TYPES } from '@shared/types';
+import { useState } from 'react';
+import type { KudoCardType, SendKudoCardRequest } from '@shared/types/index';
+import { KUDO_CARD_TYPES } from '@shared/types/index';
 import { kudoClient } from '../../../services/ipc';
 import { getError } from '@shared/result';
 

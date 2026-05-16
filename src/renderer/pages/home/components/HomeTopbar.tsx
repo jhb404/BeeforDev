@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import type { SessionStatus } from '@shared/types';
+import type { SessionStatus } from '@shared/types/index';
 import { Globe } from '../../../components/common/Icons';
 import { useClickOutside } from '../../../hooks/useClickOutside';
 

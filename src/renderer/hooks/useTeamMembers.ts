@@ -1,5 +1,5 @@
-﻿import { useCallback, useEffect, useState } from 'react';
-import type { TeamMember } from '@shared/types';
+import { useCallback, useEffect, useState } from 'react';
+import type { TeamMember } from '@shared/types/index';
 import { fetchTeamMembers } from '../services/teamsService';
 import {
   loadBirthdayCache,

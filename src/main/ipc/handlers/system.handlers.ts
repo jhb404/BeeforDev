@@ -1,14 +1,14 @@
-﻿import { BrowserWindow, app, ipcMain } from 'electron';
+import { BrowserWindow, app, ipcMain } from 'electron';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { IPC } from '../../../shared/ipc';
+import { IPC } from '../../../shared/ipc/index';
 import { isElevated, relaunchAsAdmin } from '../../adminCheck';
-import { fireTestNotification, getTodayAlerts } from '../../scheduler';
+import { fireTestNotification, getTodayAlerts } from '../../scheduler/index';
 import { getBuildAssetPath, getBuildAssetsDir } from '../../window';
 import { setLunchTimerActive } from '../../bootstrap/tray';
 import { notifyWindows } from '../../bootstrap/notifications';
 import { logger } from '../../logger';
-import { ok, fail } from '../../services/result';
+import { ok, fail } from '../../../shared/result';
 
 export function registerSystemHandlers(getWindow: () => BrowserWindow | null) {
   ipcMain.handle(IPC.ADMIN_STATUS, async () => ({

@@ -7,7 +7,7 @@ import type {
   KudoSearchResult,
   SendKudoCardRequest,
   SendKudoCardResult,
-} from '@shared/types';
+} from '@shared/types/index';
 import type { BeeforApi } from '../../../main/preload';
 
 export function createKudoClient(api: BeeforApi) {

@@ -1,4 +1,4 @@
-import type { Coin2uDashboard, Coin2uShopItem } from '@shared/types';
+import type { Coin2uDashboard, Coin2uShopItem } from '@shared/types/index';
 import { ShoppingBag } from '../../../components/common/Icons';
 
 interface Props {

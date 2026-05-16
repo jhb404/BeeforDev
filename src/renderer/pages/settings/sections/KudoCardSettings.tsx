@@ -1,4 +1,4 @@
-﻿import type { AppSettings, KudocardFrequency } from '@shared/types';
+import type { AppSettings, KudocardFrequency } from '@shared/types/index';
 import { Switch } from '../Switch';
 
 interface KudoCardSettingsProps {

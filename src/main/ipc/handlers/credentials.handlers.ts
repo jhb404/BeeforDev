@@ -1,33 +1,35 @@
-﻿import { ipcMain } from 'electron';
-import { IPC } from '../../../shared/ipc';
+import { IPC } from '../../../shared/ipc/index';
 import { clearCredentials, getCredentials, saveCredentials } from '../../secureStorage';
-import { ok, fail } from '../../services/result';
+import { ok } from '../../../shared/result';
 import { credentialsSchema } from '../schemas';
-import { validate } from '../validate';
+import { defineHandler } from '../defineHandler';
 
 export function registerCredentialsHandlers() {
-  ipcMain.handle(IPC.CREDS_SAVE, async (_e, payload: unknown) => {
-    const parsed = validate(credentialsSchema, payload);
-    if (!parsed.ok) return parsed.result;
-    try {
-      await saveCredentials(parsed.data);
+  defineHandler({
+    channel: IPC.CREDS_SAVE,
+    schema: credentialsSchema,
+    errorMessage: 'Save credentials failed',
+    run: async ({ data }) => {
+      await saveCredentials(data);
       return ok();
-    } catch (err) {
-      return fail(err);
-    }
+    },
   });
 
-  ipcMain.handle(IPC.CREDS_GET, async () => {
-    const c = await getCredentials();
-    return c ? { email: c.email } : null;
+  defineHandler({
+    channel: IPC.CREDS_GET,
+    errorMessage: 'Get credentials failed',
+    run: async () => {
+      const c = await getCredentials();
+      return c ? { email: c.email } : null;
+    },
   });
 
-  ipcMain.handle(IPC.CREDS_CLEAR, async () => {
-    try {
+  defineHandler({
+    channel: IPC.CREDS_CLEAR,
+    errorMessage: 'Clear credentials failed',
+    run: async () => {
       await clearCredentials();
       return ok();
-    } catch (err) {
-      return fail(err);
-    }
+    },
   });
 }

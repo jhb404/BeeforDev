@@ -65,7 +65,7 @@ src/
 │       ├── actions/     # Ações por domínio (mood, kudo, timesheet, session)
 │       ├── internals/   # Helpers internos (API client, cache, text utils)
 │       ├── beeforClient.ts      # Singleton: browser/context/page
-│       ├── beeforActions.ts     # Orquestrador de ações
+│       ├── actions/index.ts     # Barrel das ações por domínio
 │       ├── beeforSelectors.ts   # Seletores CSS/XPath centralizados
 │       ├── beeforSession.ts     # Persistência de sessão (storageState)
 │       └── pageLock.ts          # Mutex para acesso concorrente à página
@@ -82,7 +82,7 @@ src/
 │   ├── bootstrap/       # Inicialização (tray, notificações, splash, updater)
 │   ├── coin2u/          # Integração Coin2U (auth, HTTP, parsers, endpoints)
 │   ├── scheduler/       # Scheduler de 30s (alarmes, kudos, punch automático)
-│   ├── services/        # beeforActionRunner (auto-reconexão), result helpers
+│   ├── services/        # beeforActionRunner (auto-reconexão)
 │   ├── sessionManager.ts   # Watchdog 60s de verificação de sessão
 │   ├── sessionStore.ts     # Persistência de settings em userData/
 │   ├── secureStorage.ts    # Wrapper keytar
@@ -120,7 +120,7 @@ src/
 │   │   └── channels.ts  # Constantes de todos os canais IPC (60+)
 │   ├── types/           # Tipos compartilhados (session, timesheet, kudo, etc.)
 │   ├── constants.ts     # URLs, chaves, valores fixos
-│   └── result.ts        # Tipo Result<T, E> + helpers ok() / fail()
+│   └── result.ts        # ActionResult + helpers ok() / fail() / withTimeout()
 │
 └── test/                # Utilitários de teste
 
@@ -159,13 +159,13 @@ Electron start
 ## Arquitetura IPC
 
 ### Bridge (preload)
-O `preload.ts` é bundlado separadamente por esbuild e expõe a API via `contextBridge.exposeInMainWorld('ipc', { ... })`. O renderer nunca tem acesso direto ao Node.js.
+O `preload.ts` é bundlado separadamente por esbuild e expõe a API via `contextBridge.exposeInMainWorld('beefor', api)`. O renderer nunca tem acesso direto ao Node.js.
 
 ### Fluxo de uma chamada IPC
 ```
 Renderer (React)
     └─ ipcClient.login(creds)           [services/ipc/session.client.ts]
-           │  window.ipc.invoke(...)
+           │  window.beefor.login(...)
            ▼
     Preload (bridge)
            │  ipcRenderer.invoke(channel, args)
@@ -255,6 +255,17 @@ startScheduler()
 | Sessão Coin2U | `%APPDATA%/Beefor Dev/coin2u-session.json` | Criptografado (safeStore) |
 | Achievements / temas desbloqueados | `localStorage` do renderer | JSON |
 | Códigos de unlock | **Nunca persistidos** — apenas hashes SHA-256 no código | — |
+
+### AppSettings
+`src/shared/types/app.ts` é a fonte de verdade. Campos persistidos em `settings.json`:
+
+- inicialização/sessão: `autoStart`, `autoLoginOnLaunch`, `adminBannerDismissed`
+- ponto automático: `automatePunch`, `punchTimes`, `punchDriftMinutes`
+- notificações: `lunchAlarm`, `lunchAlarmTime`, `moodNotification`, `moodNotificationTime`, `moodAlarm`, `kudocardNotification`, `kudocardFrequency`, `kudocardDays`, `kudocardNotificationTime`, `kudocardSchedule`
+- jornada/valores: `hoursPerDay`, `hourRate`, `showOvertimeValue`, `showTotalSalary`
+- UI: `viewMode`, `calendarShowDiff`, `logoVariant`, `uiDensity`, `themeOverrides`, `themePresetId`, `uiSounds`, `trayMenu`
+- Coin2U: `coin2uUserId`, `coin2uInfo`, `coin2uOrgs`
+- runtime não persistido por `saveSettings`: `patchJournal`
 
 ### Isolamento do Renderer
 - Context isolation ativo — renderer não tem acesso ao Node.js
@@ -393,14 +404,17 @@ Sessão persistida criptografada. Se expirada, re-login automático com credenci
 
 ## Padrões e Convenções
 
-### Result<T, E>
-Todas operações assíncronas retornam `Result<T, E>`:
+### ActionResult<T>
+Operações assíncronas expostas via IPC retornam `ActionResult<T>`:
 ```typescript
 // src/shared/result.ts
-type Result<T, E = string> = { ok: true; data: T } | { ok: false; error: E }
+type ActionResult<T = void> =
+  | { ok: true; data: T extends void ? undefined : T }
+  | { ok: false; error: string }
 
 ok(data)    // → { ok: true, data }
 fail(error) // → { ok: false, error }
+withTimeout(promise, ms, label)
 ```
 
 ### Validação IPC
@@ -410,7 +424,8 @@ Todo handler IPC usa Zod:
 export const LoginArgsSchema = z.object({ email: z.string().email(), password: z.string().min(1) })
 
 // handler
-const args = validate(rawArgs, LoginArgsSchema) // throws se inválido
+const parsed = validate(schema, payload)
+if (!parsed.ok) return parsed.result
 ```
 
 ### Seletores Playwright centralizados

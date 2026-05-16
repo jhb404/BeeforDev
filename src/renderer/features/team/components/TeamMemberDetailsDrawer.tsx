@@ -1,7 +1,7 @@
-﻿import type { TeamMember } from '@shared/types';
+import type { TeamMember } from '@shared/types/index';
 import type { BirthdayEntry } from '../../../utils/teamCache';
 import { Briefcase, Mail, X } from '../../../components/common/Icons';
-import { formatDateTimePtBr } from '../../../utils/dateUtils';
+import { formatDateTimePtBr } from '../../../utils/dates';
 import { TeamAvatar } from './TeamAvatar';
 import { TeamStatusBadge } from './TeamStatusBadge';
 import { TeamBirthdayEditor } from './TeamBirthdayEditor';

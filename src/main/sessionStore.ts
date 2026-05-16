@@ -1,8 +1,8 @@
-﻿import { app } from 'electron';
+import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { SESSION_FILE, SETTINGS_FILE } from '../shared/constants';
-import type { AppSettings } from '../shared/types';
+import type { AppSettings } from '../shared/types/index';
 import { logger } from './logger';
 
 const FALLBACK_PATCH_JOURNAL = '- v0.1.0: base de lançamentos e mood.';

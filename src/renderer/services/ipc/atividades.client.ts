@@ -1,4 +1,4 @@
-import type { ActionResult, BeeforAtividade } from '@shared/types';
+import type { ActionResult, BeeforAtividade } from '@shared/types/index';
 import type { BeeforApi } from '../../../main/preload';
 
 export function createAtividadesClient(api: BeeforApi) {

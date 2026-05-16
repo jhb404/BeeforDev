@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron';
 import type { BrowserWindow } from 'electron';
-import { IPC } from '../../../shared/ipc';
-import { ok, fail } from '../../services/result';
+import { IPC } from '../../../shared/ipc/index';
+import { ok, fail } from '../../../shared/result';
 import { logger } from '../../logger';
 import { getBeeforTokenCache, refreshBeeforTokenCache } from '../../beeforTokenCache';
 import { BeeforClient } from '../../../automation/beefor/beeforClient';

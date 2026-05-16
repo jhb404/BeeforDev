@@ -5,7 +5,7 @@ import {
   KUDO_CARD_LABELS,
   KUDO_CARD_TYPES,
   type KudoCardRecipientType,
-} from '@shared/types';
+} from '@shared/types/index';
 import { useKudoRecipientSearch } from '../hooks/useKudoRecipientSearch';
 import { useKudoCardSend } from '../hooks/useKudoCardSend';
 

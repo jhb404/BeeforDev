@@ -1,9 +1,9 @@
-﻿import { ipcMain } from 'electron';
-import { IPC } from '../../../shared/ipc';
-import type { AppSettings, Coin2uOrg } from '../../../shared/types';
+import { ipcMain } from 'electron';
+import { IPC } from '../../../shared/ipc/index';
+import type { AppSettings, Coin2uOrg } from '../../../shared/types/index';
 import { loadSettings, saveSettings } from '../../sessionStore';
 import { logger } from '../../logger';
-import { ok, fail } from '../../services/result';
+import { ok, fail } from '../../../shared/result';
 import {
   buyCoin2uItem,
   clearCoin2uCredentials,
@@ -16,7 +16,7 @@ import {
   onCoin2uLogin,
   saveCoin2uCredentials,
   transferCoin2uCoins,
-} from '../../coin2uClient';
+} from '../../coin2u';
 import { coin2uBuyItemSchema, coin2uCredentialsSchema, coin2uTransferSchema } from '../schemas';
 import { validate } from '../validate';
 

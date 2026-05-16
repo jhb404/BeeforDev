@@ -1,5 +1,5 @@
-﻿import { useEffect, useRef, useState } from 'react';
-import type { KudoCardRecipientType, KudoSearchResult } from '@shared/types';
+import { useEffect, useRef, useState } from 'react';
+import type { KudoCardRecipientType, KudoSearchResult } from '@shared/types/index';
 import { kudoClient } from '../../../services/ipc';
 import { getError } from '@shared/result';
 

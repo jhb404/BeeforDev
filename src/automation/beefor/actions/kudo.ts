@@ -1,4 +1,4 @@
-﻿import type { Locator, Page } from 'playwright';
+import type { Locator, Page } from 'playwright';
 import {
   BEEFOR_URL,
   BEEFOR_KUDO_API,
@@ -6,7 +6,7 @@ import {
   DEFAULT_TIMEOUT_MS,
   NAV_TIMEOUT_MS,
 } from '../../../shared/constants';
-import type { SendKudoCardRequest, SendKudoCardResult } from '../../../shared/types';
+import type { SendKudoCardRequest, SendKudoCardResult } from '../../../shared/types/index';
 import { logger } from '../../../main/logger';
 import { Selectors } from '../beeforSelectors';
 import { firstVisible } from '../internals/playwrightHelpers';

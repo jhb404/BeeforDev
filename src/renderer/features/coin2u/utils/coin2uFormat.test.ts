@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { matchesMember, matchesShopItem, itemCategory } from './coin2uFormat';
-import type { Coin2uMember, Coin2uShopItem } from '@shared/types';
+import type { Coin2uMember, Coin2uShopItem } from '@shared/types/index';
 
 function member(text: string): Coin2uMember {
   return { Value: 1, Text: text } as Coin2uMember;

@@ -1,14 +1,14 @@
-﻿import { BrowserWindow, ipcMain } from 'electron';
-import { IPC } from '../../../shared/ipc';
+import { BrowserWindow, ipcMain } from 'electron';
+import { IPC } from '../../../shared/ipc/index';
 import {
   doFetchKudoCounts,
   doFetchKudoDetail,
   doFetchKudoLists,
   doSearchKudoRecipient,
   doSendKudoCard,
-} from '../../../automation/beefor/beeforActions';
+} from '../../../automation/beefor/actions';
 import { logger } from '../../logger';
-import { ok, fail } from '../../services/result';
+import { ok, fail } from '../../../shared/result';
 import { runBeeforAction, runBeeforActionWithReconnect } from '../../services/beeforActionRunner';
 import { kudoDetailIdSchema, kudoSearchArgsSchema, sendKudoCardSchema } from '../schemas';
 import { validate } from '../validate';

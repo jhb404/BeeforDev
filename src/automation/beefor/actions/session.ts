@@ -1,6 +1,6 @@
-﻿import type { Page } from 'playwright';
+import type { Page } from 'playwright';
 import { BEEFOR_LOGIN_URL, BEEFOR_URL, NAV_TIMEOUT_MS } from '../../../shared/constants';
-import type { Credentials } from '../../../shared/types';
+import type { Credentials } from '../../../shared/types/index';
 import { logger } from '../../../main/logger';
 import { Selectors } from '../beeforSelectors';
 import { clickByAnyText, firstVisible } from '../internals/playwrightHelpers';

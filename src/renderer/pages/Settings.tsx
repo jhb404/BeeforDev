@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '../app/providers/ToastProvider';
 import { coin2uClient, sessionClient, settingsClient, systemClient } from '../services/ipc';
-import type { AppSettings } from '@shared/types';
+import type { AppSettings } from '@shared/types/index';
 import { SETTINGS_DEFAULTS } from './settings/defaults';
 import { AdminBanner } from './settings/sections/AdminBanner';
 import { AppearanceSection } from './settings/sections/AppearanceSection';

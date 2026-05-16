@@ -1,10 +1,10 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { TeamMember } from '@shared/types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { TeamMember } from '@shared/types/index';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import { useTeamMembers } from '../../../hooks/useTeamMembers';
 import { useEscapeToClose } from '../../../hooks/useEscapeToClose';
 import { birthdayKey, type BirthdayEntry } from '../../../utils/teamCache';
-import { isBirthdayToday } from '../../../utils/dateUtils';
+import { isBirthdayToday } from '../../../utils/dates';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
 import { Refresh, Search } from '../../../components/common/Icons';
 import { TeamMemberCard } from './TeamMemberCard';

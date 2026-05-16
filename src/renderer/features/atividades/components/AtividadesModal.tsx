@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { BeeforAtividade } from '@shared/types';
+import type { BeeforAtividade } from '@shared/types/index';
 import { atividadesClient } from '../../../services/ipc';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
