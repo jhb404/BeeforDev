@@ -10,3 +10,6 @@ release
 coverage
 codes.private.md
 codes.private.json
+.claude
+.squad
+

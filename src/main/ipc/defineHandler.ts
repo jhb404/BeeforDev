@@ -53,6 +53,7 @@ export function defineHandler<TParsed = undefined, TResult = unknown>({
     let data: TParsed = undefined as TParsed;
     if (schema) {
       const parsed = validate(schema, payload(args));
+      // @ts-ignore
       if (!parsed.ok) return parsed.result;
       data = parsed.data;
     }

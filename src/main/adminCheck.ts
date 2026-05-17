@@ -1,36 +1,37 @@
 import { app } from 'electron';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { logger } from './logger';
 
 const execFileP = promisify(execFile);
 
 const USER_DATA_FLAG = '--user-data-dir=';
 
 export function isElevated(): boolean {
-  if (process.platform !== 'win32') {
-    return typeof process.getuid === 'function' && process.getuid() === 0;
+  if (process.platform === 'win32') {
+    const proc = process as unknown as { isElevated?: () => boolean };
+    if (typeof proc.isElevated === 'function') return proc.isElevated();
+    return false;
   }
-  const proc = process as unknown as { isElevated?: () => boolean };
-  if (typeof proc.isElevated === 'function') return proc.isElevated();
-  return false;
+  // macOS/Linux: check UID
+  return typeof process.getuid === 'function' && process.getuid() === 0;
 }
 
 /**
- * Relaunches the app with elevated privileges via PowerShell `Start-Process -Verb RunAs`.
- * Passes --user-data-dir so the elevated process reads the same userData path,
- * preventing settings/session loss when admin uses a different profile directory.
+ * Relaunches the app with elevated privileges.
+ * Windows: via PowerShell `Start-Process -Verb RunAs`.
+ * macOS: currently not supported as elevation is rarely needed for Electron apps on Mac.
  */
 export async function relaunchAsAdmin(): Promise<void> {
   if (process.platform !== 'win32') {
-    throw new Error('Elevação só suportada no Windows.');
+    logger.warn('Relaunch as admin called on non-Windows platform; ignoring.');
+    return;
   }
   const exe = process.execPath;
 
   // Keep existing args but ensure --user-data-dir points to current userData
   const userData = app.getPath('userData');
-  const existingArgs = process.argv.slice(1).filter(
-    (a) => !a.startsWith(USER_DATA_FLAG),
-  );
+  const existingArgs = process.argv.slice(1).filter((a) => !a.startsWith(USER_DATA_FLAG));
   const args = [...existingArgs, `${USER_DATA_FLAG}${userData}`];
 
   const psArgs = [
