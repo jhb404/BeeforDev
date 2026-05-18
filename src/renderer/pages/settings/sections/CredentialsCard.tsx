@@ -13,7 +13,6 @@ interface CredentialsCardProps {
   onCoin2uEmailChange: (v: string) => void;
   onCoin2uPasswordChange: (v: string) => void;
   onCoin2uSave: () => void;
-  onCoin2uTest: () => void;
   onCoin2uClear: () => void;
 }
 
@@ -83,9 +82,6 @@ export function CredentialsCard(p: CredentialsCardProps) {
       </div>
       <div className="row">
         <button onClick={p.onCoin2uSave}>Salvar</button>
-        <button className="secondary" onClick={p.onCoin2uTest}>
-          Testar
-        </button>
         <button className="danger" onClick={p.onCoin2uClear}>
           Remover
         </button>

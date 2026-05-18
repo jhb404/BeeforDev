@@ -71,7 +71,7 @@ export function useGamification(): GamificationData {
       achievements: ACHIEVEMENTS.filter((a) => isAchievementUnlocked(a.id)),
       locked: ACHIEVEMENTS.filter((a) => !isAchievementUnlocked(a.id)),
     },
-    themePresets: THEME_PRESETS,
+    themePresets: THEME_PRESETS.filter((p) => !p.hidden),
     iconVariants: ICON_VARIANTS,
     isAchievementUnlocked,
     isThemePresetUnlocked,

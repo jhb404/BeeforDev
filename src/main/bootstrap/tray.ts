@@ -2,7 +2,7 @@ import { Menu, Tray, app } from 'electron';
 import type { BrowserWindow, MenuItemConstructorOptions } from 'electron';
 import { DEFAULT_TRAY_MENU, MOODS, type TrayMenuItem } from '../../shared/types/index';
 import { IPC } from '../../shared/ipc/index';
-import { getBuildIconPath } from '../window';
+import { getTrayIcon } from '../window';
 import { loadSettings } from '../sessionStore';
 import { runAutoLancamentoFromTray, runMoodFromTray } from './trayActions';
 import { logger } from '../logger';
@@ -100,8 +100,7 @@ export function ensureTray(opts: TrayOptions): Tray {
   lastOpts = opts;
 
   const variant = opts.variant ?? 'orange';
-  const iconPath = getBuildIconPath(variant);
-  const tray = new Tray(iconPath);
+  const tray = new Tray(getTrayIcon(variant));
   tray.setToolTip('Beefor U');
 
   // Build initial menu with defaults, async upgrade after settings load

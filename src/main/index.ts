@@ -1,5 +1,5 @@
 ﻿import { app, BrowserWindow, session } from 'electron';
-import { createMainWindow } from './window';
+import { createMainWindow, getBuildIconPath } from './window';
 import { installCsp } from './csp';
 import { registerIpcHandlers } from './ipc';
 import { bindLoggerWindow, logger } from './logger';
@@ -69,6 +69,10 @@ async function bootstrap() {
   const splash = createStartupSplash('orange');
   const settings = await loadSettings();
   const variant = settings.logoVariant ?? 'orange';
+
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.setIcon(getBuildIconPath(variant));
+  }
 
   ensureIpcHandlers();
   mainWindow = createMainWindow(variant);

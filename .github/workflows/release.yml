@@ -1,21 +1,22 @@
-﻿name: Release
+name: Release
 
 on:
   push:
     branches: [main]
 
-# Avoid concurrent releases from rapid merges
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
-  release:
-    runs-on: windows-latest
-    # Skip if last commit was the bump itself (avoid infinite loop)
+  # ── 1. Testes, type-check, bump de versão e criação da tag ──────────────────
+  prepare:
+    runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'chore: release')"
     permissions:
       contents: write
+    outputs:
+      tag: ${{ steps.bump.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,13 +40,12 @@ jobs:
         run: npx vitest run
 
       - name: Config git
-        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Bump patch + tag
-        shell: bash
+        id: bump
         run: |
           git fetch --tags --force origin
           current=$(node -p "require('./package.json').version")
@@ -56,24 +56,86 @@ jobs:
             echo "Tag v$current missing — creating tag without bump."
             git tag -a "v$current" -m "chore: release v$current [skip ci]"
           fi
+          new_ver=$(node -p "require('./package.json').version")
+          echo "tag=v${new_ver}" >> "$GITHUB_OUTPUT"
 
       - name: Push commit + tag
-        shell: bash
-        run: |
-          git push origin main --follow-tags || git push origin --tags
+        run: git push origin main --follow-tags || git push origin --tags
 
-      - name: Build and publish
+  # ── 2a. Build Windows (.exe) ─────────────────────────────────────────────────
+  build-windows:
+    needs: prepare
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Cache Playwright (Windows)
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\ms-playwright
+          key: playwright-win-${{ hashFiles('package-lock.json') }}
+
+      - name: Install
+        run: npm ci --legacy-peer-deps
+
+      - name: Build and publish Windows
         run: npm run package:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish all draft releases
-        shell: bash
+  # ── 2b. Build macOS (.dmg) ───────────────────────────────────────────────────
+  build-mac:
+    needs: prepare
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Cache Playwright (macOS)
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/ms-playwright
+          key: playwright-mac-${{ hashFiles('package-lock.json') }}
+
+      - name: Install
+        run: npm ci --legacy-peer-deps
+
+      - name: Build and publish macOS
+        run: npm run package:mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── 3. Publica os drafts após ambos os builds concluírem ────────────────────
+  publish:
+    needs: [build-windows, build-mac]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish all draft releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
-          drafts=$(gh api repos/${{ github.repository }}/releases --jq '.[] | select(.draft==true) | .id')
+          drafts=$(gh api repos/$REPO/releases --jq '.[] | select(.draft==true) | .id')
           for id in $drafts; do
             echo "Publishing draft release $id"
-            gh api -X PATCH repos/${{ github.repository }}/releases/$id -f draft=false
+            gh api -X PATCH repos/$REPO/releases/$id -f draft=false
           done

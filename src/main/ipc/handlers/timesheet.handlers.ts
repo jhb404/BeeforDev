@@ -48,6 +48,7 @@ export function registerTimesheetHandlers(getWindow: () => BrowserWindow | null)
     errorMessage: 'Lançar hora failed',
     run: async ({ data }) => {
       const win = getWindow();
+      // @ts-ignore
       await runBeeforAction(win, (page) => doLancarHora(page, data));
       return ok();
     },

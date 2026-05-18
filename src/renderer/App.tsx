@@ -11,6 +11,8 @@ import { useBirthdayWatcher } from './app/hooks/useBirthdayWatcher';
 import { useTeamPhotoPreload } from './app/hooks/useTeamPhotoPreload';
 import { TopBar } from './app/components/TopBar';
 import { PatchJournalModal } from './app/components/PatchJournalModal';
+import { OnboardingModal } from './app/components/OnboardingModal';
+import { ThemePreviewBanner } from './app/components/ThemePreviewBanner';
 import { ToastProvider, useToast } from './app/providers/ToastProvider';
 import { ToastHost } from './app/components/ToastHost';
 import { ErrorBoundary } from './app/components/ErrorBoundary';
@@ -45,6 +47,8 @@ function AppShell() {
   const [startupComplete, setStartupComplete] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [coin2uForceOpen, setCoin2uForceOpen] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
   const { lunchTimerActive, lunchStartedAt, startLunchTimer, cancelLunchTimer } =
     useLunchTimer(showToast);
   const {
@@ -88,6 +92,13 @@ function AppShell() {
   }, [updateState.status]);
 
   const handleStartupComplete = useCallback(() => setStartupComplete(true), []);
+
+  useEffect(() => {
+    if (startupComplete && appSettings && !onboardingChecked) {
+      setOnboardingChecked(true);
+      if (!appSettings.onboarded) setOnboardingOpen(true);
+    }
+  }, [startupComplete, appSettings, onboardingChecked]);
 
   const openKudoFromTray = useCallback(() => {
     setTab('home');
@@ -155,9 +166,7 @@ function AppShell() {
           {tab === 'settings' && (
             <ErrorBoundary label="settings">
               <Suspense fallback={<div className="route-loader">Carregando...</div>}>
-                <SettingsPage
-                  onSettingsChanged={() => emitAppEvent(APP_EVENTS.SETTINGS_CHANGED)}
-                />
+                <SettingsPage onSettingsChanged={() => emitAppEvent(APP_EVENTS.SETTINGS_CHANGED)} />
               </Suspense>
             </ErrorBoundary>
           )}
@@ -179,6 +188,10 @@ function AppShell() {
         onClose={closePatchJournal}
       />
 
+      <OnboardingModal open={onboardingOpen} onClose={() => setOnboardingOpen(false)} />
+
+      <ThemePreviewBanner />
+
       <ProfileModal open={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
 
       <ToastHost />
@@ -199,13 +212,13 @@ function AppShell() {
 export default function App() {
   return (
     <IpcProvider>
-      <SettingsProvider>
-        <ThemeProvider>
-          <ToastProvider>
+      <ToastProvider>
+        <SettingsProvider>
+          <ThemeProvider>
             <AppShell />
-          </ToastProvider>
-        </ThemeProvider>
-      </SettingsProvider>
+          </ThemeProvider>
+        </SettingsProvider>
+      </ToastProvider>
     </IpcProvider>
   );
 }

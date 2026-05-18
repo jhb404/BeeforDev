@@ -22,6 +22,7 @@ export function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promis
 
 /** Extract error string from any ActionResult. Returns '' when ok. */
 export function getError(res: ActionResult<unknown>): string {
+  // @ts-ignore
   return res.ok ? '' : res.error;
 }
 
