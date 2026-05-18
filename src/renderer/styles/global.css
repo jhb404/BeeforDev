@@ -2073,6 +2073,34 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   display: block;
 }
 
+/* ── Tooltip genérico via data-tooltip ──────────────────────────────────── */
+[data-tooltip] {
+  position: relative;
+}
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-0);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 4px 9px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 200;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+[data-tooltip]:hover::after {
+  opacity: 1;
+}
+
 .topbar-kudo-wrap {
   position: relative;
 }
@@ -3173,7 +3201,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 .cal-num {
   font-weight: 700;
-  font-size: 13px;
+  font-size: clamp(12px, 1.6vw, 20px);
 }
 .cal-dot {
   width: 5px;
@@ -3208,10 +3236,10 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   position: absolute;
   top: 2px;
   right: 3px;
-  font-size: 10px;
+  font-size: clamp(9px, 1.1vw, 13px);
   font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 .cal-diff.pos { color: var(--ok); }
 .cal-diff.neg { color: var(--err); }

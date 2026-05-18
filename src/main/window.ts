@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, nativeImage } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import { openExternalSafe } from './openSafe';
@@ -44,6 +44,20 @@ export function getBuildIconPath(variant: LogoVariant = 'orange'): string {
   const file = pickFirstExistingAsset([...preferred, 'icon.png', 'icon-256.png', 'icon-512.png']);
 
   return getBuildAssetPath(file);
+}
+
+export function getTrayIcon(variant: LogoVariant = 'orange') {
+  if (process.platform === 'darwin') {
+    // Prefer RGBA PNGs — icon-16.png uses indexed colormap which can fail on macOS
+    const candidates = ['icon-32.png', 'icon-64.png', 'icon-128.png', 'icon-256.png', 'icon.png'];
+    for (const candidate of candidates) {
+      const p = getBuildAssetPath(candidate);
+      if (fs.existsSync(p)) {
+        return nativeImage.createFromPath(p).resize({ width: 16, height: 16 });
+      }
+    }
+  }
+  return getBuildIconPath(variant);
 }
 
 export function createMainWindow(variant: LogoVariant = 'orange'): BrowserWindow {

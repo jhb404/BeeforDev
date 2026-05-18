@@ -54,8 +54,8 @@ export function HomeTopbar({
         <button
           className="secondary compact topbar-icon-btn"
           onClick={onOpenBeefor}
-          title="Abrir Beefor no navegador"
-          aria-label="Abrir Beefor"
+          aria-label="Abrir Beefor no navegador"
+          data-tooltip="Abrir Beefor no navegador"
           data-sound="click"
         >
           <Globe size={15} />

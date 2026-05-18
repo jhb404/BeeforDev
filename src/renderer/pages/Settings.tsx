@@ -121,19 +121,6 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
     onSettingsChanged?.();
   };
 
-  const testCoin2u = async () => {
-    showToast({ kind: 'ok', msg: 'Coin2U: testando…' });
-    const verify = await coin2uClient.verify();
-    if (verify.ok && verify.data) {
-      setCoin2uConnected(true);
-      showToast({ kind: 'ok', msg: 'Coin2U: conectado.' });
-      onSettingsChanged?.();
-    } else {
-      setCoin2uConnected(false);
-      showToast({ kind: 'err', msg: `Coin2U: ${getError(verify)}` });
-    }
-  };
-
   const clearCoin2u = async () => {
     const res = await coin2uClient.clearCreds();
     showToast({
@@ -302,7 +289,6 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
               onCoin2uEmailChange={setCoin2uEmail}
               onCoin2uPasswordChange={setCoin2uPassword}
               onCoin2uSave={() => void saveCoin2u()}
-              onCoin2uTest={() => void testCoin2u()}
               onCoin2uClear={() => void clearCoin2u()}
             />
             <SecurityCard />
