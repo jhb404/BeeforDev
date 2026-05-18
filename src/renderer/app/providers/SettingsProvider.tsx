@@ -98,6 +98,10 @@ function currentThemeMode(): 'dark' | 'light' {
 function applyThemeTokens(presetId: string | undefined, overrides: AppSettings['themeOverrides']) {
   const el = document.documentElement;
 
+  // Expose preset id for CSS-scoped tweaks (e.g. glass blur on macazinha).
+  if (presetId) el.dataset.themePreset = presetId;
+  else delete el.dataset.themePreset;
+
   // Reset everything first → presets / "Resetar tema" actually take effect.
   for (const k of THEME_TOKEN_KEYS) {
     el.style.removeProperty(`--${k}`);

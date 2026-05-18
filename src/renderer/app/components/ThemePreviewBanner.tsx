@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import { THEME_PREVIEW_DURATION_S, useSettings } from '../providers/SettingsProvider';
-import { UnlockCodeModal, useGamification } from '../../features/gamification';
+import { useGamification } from '../../features/gamification';
 
 export function ThemePreviewBanner() {
   const { previewThemeId, previewName, previewSecondsLeft, stopThemePreview } = useSettings();
   const { themePresets } = useGamification();
-  const [codeModalOpen, setCodeModalOpen] = useState(false);
 
   if (!previewThemeId || !previewName) return null;
 
@@ -15,59 +13,34 @@ export function ThemePreviewBanner() {
   const progressPct = (previewSecondsLeft / THEME_PREVIEW_DURATION_S) * 100;
 
   return (
-    <>
-      <div className="theme-preview-banner theme-preview-banner--floating locked" role="status">
-        <div className="theme-preview-banner__info">
-          <span className="theme-preview-banner__swatches" aria-hidden="true">
-            {preset.swatches.map((c, i) => (
-              <span key={i} style={{ background: c }} />
-            ))}
-          </span>
-          <div className="theme-preview-banner__text">
-            <strong>
-              Pré-visualizando: {previewName}
-              <span className="theme-preview-banner__timer"> · {previewSecondsLeft}s</span>
-            </strong>
-            <small>🔒 Conquista necessária: {preset.requires}</small>
-          </div>
-        </div>
-        <div className="theme-preview-banner__actions">
-          <button
-            type="button"
-            className="warm"
-            onClick={() => {
-              stopThemePreview();
-              setCodeModalOpen(true);
-            }}
-            data-sound="click"
-          >
-            Desbloquear
-          </button>
-          <button
-            type="button"
-            className="secondary"
-            onClick={() => stopThemePreview()}
-            data-sound="close"
-          >
-            Cancelar
-          </button>
-        </div>
-        <div className="theme-preview-banner__progress" aria-hidden="true">
-          <div
-            className="theme-preview-banner__progress-fill"
-            style={{ width: `${progressPct}%` }}
-          />
+    <div className="theme-preview-banner theme-preview-banner--floating locked" role="status">
+      <div className="theme-preview-banner__info">
+        <span className="theme-preview-banner__swatches" aria-hidden="true">
+          {preset.swatches.map((c, i) => (
+            <span key={i} style={{ background: c }} />
+          ))}
+        </span>
+        <div className="theme-preview-banner__text">
+          <strong>
+            Pré-visualizando: {previewName}
+            <span className="theme-preview-banner__timer"> · {previewSecondsLeft}s</span>
+          </strong>
+          <small>🔒 Conquista necessária: {preset.requires}</small>
         </div>
       </div>
-
-      <UnlockCodeModal
-        open={codeModalOpen}
-        onClose={() => setCodeModalOpen(false)}
-        kind="theme"
-        targetId={preset.id}
-        targetName={preset.name}
-        requiresAchievement={preset.requires}
-      />
-    </>
+      <div className="theme-preview-banner__actions">
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => stopThemePreview()}
+          data-sound="close"
+        >
+          Cancelar
+        </button>
+      </div>
+      <div className="theme-preview-banner__progress" aria-hidden="true">
+        <div className="theme-preview-banner__progress-fill" style={{ width: `${progressPct}%` }} />
+      </div>
+    </div>
   );
 }

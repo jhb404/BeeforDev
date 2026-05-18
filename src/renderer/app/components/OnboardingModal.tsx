@@ -12,15 +12,17 @@ interface Props {
   onClose: () => void;
 }
 
-type Step = 'credentials' | 'punch';
+type Step = 'credentials' | 'coin2u' | 'punch';
 
 export function OnboardingModal({ open, onClose }: Props) {
-  const { session: sessionClient, settings: settingsClient } = useIpc();
+  const { session: sessionClient, settings: settingsClient, coin2u: coin2uClient } = useIpc();
   const showToast = useToast();
 
   const [step, setStep] = useState<Step>('credentials');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [coin2uEmail, setCoin2uEmail] = useState('');
+  const [coin2uPassword, setCoin2uPassword] = useState('');
   const [punchTimes, setPunchTimes] = useState<AppSettings['punchTimes']>(
     SETTINGS_DEFAULTS.punchTimes,
   );
@@ -39,7 +41,7 @@ export function OnboardingModal({ open, onClose }: Props) {
 
   const handleCredentialsNext = async () => {
     if (!email || !password) {
-      setStep('punch');
+      setStep('coin2u');
       return;
     }
     setSaving(true);
@@ -47,6 +49,21 @@ export function OnboardingModal({ open, onClose }: Props) {
     setSaving(false);
     if (!res.ok) {
       showToast({ kind: 'err', msg: `Erro ao salvar credenciais: ${getError(res)}` });
+      return;
+    }
+    setStep('coin2u');
+  };
+
+  const handleCoin2uNext = async () => {
+    if (!coin2uEmail || !coin2uPassword) {
+      setStep('punch');
+      return;
+    }
+    setSaving(true);
+    const res = await coin2uClient.saveCreds({ email: coin2uEmail, password: coin2uPassword });
+    setSaving(false);
+    if (!res.ok) {
+      showToast({ kind: 'err', msg: `Erro ao salvar Coin2U: ${getError(res)}` });
       return;
     }
     setStep('punch');
@@ -77,9 +94,19 @@ export function OnboardingModal({ open, onClose }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <BeeforLogo size={28} style={{ color: 'var(--warm)' }} />
           <div>
-            <p className="eyebrow">{step === 'credentials' ? 'Passo 1 de 2' : 'Passo 2 de 2'}</p>
+            <p className="eyebrow">
+              {step === 'credentials'
+                ? 'Passo 1 de 3'
+                : step === 'coin2u'
+                  ? 'Passo 2 de 3'
+                  : 'Passo 3 de 3'}
+            </p>
             <h2 id="onboarding-title">
-              {step === 'credentials' ? 'Credenciais do Beefor' : 'Horários de ponto'}
+              {step === 'credentials'
+                ? 'Credenciais do Beefor'
+                : step === 'coin2u'
+                  ? 'Credenciais do Coin2U'
+                  : 'Horários de ponto'}
             </h2>
           </div>
         </div>
@@ -137,6 +164,57 @@ export function OnboardingModal({ open, onClose }: Props) {
           </div>
         )}
 
+        {step === 'coin2u' && (
+          <div>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
+              Login do Coin2U (separado do Beefor). Mostra suas moedas no topo. Pode preencher
+              depois em <strong>Configurações → Segurança</strong>.
+            </p>
+            <div className="field">
+              <label className="label">E-mail</label>
+              <input
+                type="email"
+                value={coin2uEmail}
+                onChange={(e) => setCoin2uEmail(e.target.value)}
+                placeholder="seu@email.com"
+                autoComplete="off"
+                autoFocus
+              />
+            </div>
+            <div className="field">
+              <label className="label">Senha</label>
+              <input
+                type="password"
+                value={coin2uPassword}
+                onChange={(e) => setCoin2uPassword(e.target.value)}
+                placeholder="sua senha"
+                autoComplete="off"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void handleCoin2uNext();
+                }}
+              />
+            </div>
+            <div className="row" style={{ marginTop: 20, justifyContent: 'space-between' }}>
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setStep('credentials')}
+                data-sound="click"
+              >
+                ← Voltar
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleCoin2uNext()}
+                disabled={saving}
+                data-sound="click"
+              >
+                {saving ? 'Salvando…' : 'Próximo →'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {step === 'punch' && (
           <div>
             <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
@@ -177,7 +255,7 @@ export function OnboardingModal({ open, onClose }: Props) {
               <button
                 type="button"
                 className="secondary"
-                onClick={() => setStep('credentials')}
+                onClick={() => setStep('coin2u')}
                 data-sound="click"
               >
                 ← Voltar

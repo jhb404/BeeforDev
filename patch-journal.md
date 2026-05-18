@@ -1,3 +1,24 @@
+- v0.1.11: APPLEEEEE 🍎✨
+
+Eu ouvi voce, Ó USUÁRIO DE MAC bem parcelado em 12x...
+
+Atendendo ao seu pedido — tá aq, quentinho do forno —
+o seu Beefor rodando em macOS de verdadeee 🎉
+
+🍎 O que mudou pra galera do Mac:
+- App empacotado em .dmg, arrasta pra Applications e fim, sem mistério
+- Auto-start, tray, notificações… tudo do jeitinho Apple
+- Keychain pra guardar tuas credenciais com segurança (parou de usar o credential manager do Windows...obviamente né)
+- Tray na menu bar respeitando dark/light do sistema (pq se n a Apple chora)
+
+...acho q é isso crianças, bom proveito ai!
+
+https://media1.tenor.com/m/tdtXrq1ZGB0AAAAd/eu-sou-rica-carolina-ferraz.gif
+
+OBS: sabia q o cabo USB-C da apple custa mais q um combo de um Madero super bancon e uma Coquinha trincando??
+
+---
+
 - v0.1.9: Segurança!!!🔒
 
 Gente… tô escrevendo isso aqui tarde da noite pq resolvi fazer uns roles de segurança no app...yeeeeah🎊

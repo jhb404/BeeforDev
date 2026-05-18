@@ -74,6 +74,8 @@ export interface ThemePreset {
   };
   /** Visual swatches for preview (theme-agnostic). */
   swatches: [string, string, string];
+  /** Hidden from picker (work-in-progress / unreleased). */
+  hidden?: boolean;
 }
 
 export interface IconVariant {
