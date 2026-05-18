@@ -1,12 +1,33 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { AppSettings } from '@shared/types/index';
 import { useIpc } from '../../services/ipc';
 import { resolvePresetTokens } from '../../features/gamification';
 import { APP_EVENTS, onAppEvent } from '../events';
+import { useToast } from './ToastProvider';
+
+export const THEME_PREVIEW_DURATION_S = 15;
 
 type SettingsCtx = {
   settings: AppSettings | null;
   reload: () => void;
+  /** Active preview theme id — when set, overrides saved theme without persisting */
+  previewThemeId: string | null;
+  /** Name of preset being previewed (for banner/toast) */
+  previewName: string | null;
+  /** Seconds remaining on timed preview */
+  previewSecondsLeft: number;
+  /** Start timed preview. Auto-reverts after THEME_PREVIEW_DURATION_S with toast. */
+  startThemePreview: (presetId: string, presetName: string) => void;
+  /** Stop preview immediately, no toast. */
+  stopThemePreview: () => void;
 };
 
 const Ctx = createContext<SettingsCtx | null>(null);
@@ -106,13 +127,60 @@ function applyThemeTokens(presetId: string | undefined, overrides: AppSettings['
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const { settings: settingsClient } = useIpc();
+  const showToast = useToast();
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [previewThemeId, setPreviewThemeId] = useState<string | null>(null);
+  const [previewName, setPreviewName] = useState<string | null>(null);
+  const [previewSecondsLeft, setPreviewSecondsLeft] = useState(0);
+  const timerRef = useRef<number | null>(null);
+
+  const clearTimer = () => {
+    if (timerRef.current !== null) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const stopThemePreview = useCallback(() => {
+    clearTimer();
+    setPreviewSecondsLeft(0);
+    setPreviewName(null);
+    setPreviewThemeId(null);
+  }, []);
+
+  const startThemePreview = useCallback(
+    (presetId: string, presetName: string) => {
+      clearTimer();
+      setPreviewThemeId(presetId);
+      setPreviewName(presetName);
+      setPreviewSecondsLeft(THEME_PREVIEW_DURATION_S);
+      const start = Date.now();
+      timerRef.current = window.setInterval(() => {
+        const remaining = THEME_PREVIEW_DURATION_S - Math.floor((Date.now() - start) / 1000);
+        if (remaining <= 0) {
+          clearTimer();
+          setPreviewSecondsLeft(0);
+          setPreviewName(null);
+          setPreviewThemeId(null);
+          showToast({
+            kind: 'ok',
+            title: 'Preview encerrado',
+            msg: `Desbloqueie "${presetName}" via conquista pra usar de verdade.`,
+          });
+        } else {
+          setPreviewSecondsLeft(remaining);
+        }
+      }, 250);
+    },
+    [showToast],
+  );
+
+  useEffect(() => () => clearTimer(), []);
 
   const load = useCallback(() => {
     void settingsClient.get().then((s) => {
       setSettings(s);
       applyDensity(s.uiDensity);
-      applyThemeTokens(s.themePresetId, s.themeOverrides);
     });
   }, [settingsClient]);
 
@@ -125,19 +193,44 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     return onAppEvent(APP_EVENTS.SETTINGS_CHANGED, handler);
   }, [load]);
 
-  // Re-apply preset whenever theme toggle changes data-theme on <html>.
-  // ThemeProvider sets data-theme synchronously, but preset tokens differ between
-  // dark/light → must re-resolve. Watch via MutationObserver.
+  // Preview takes priority over saved theme. Overrides skipped during preview
+  // so user sees pure preset.
+  useEffect(() => {
+    if (!settings) return;
+    if (previewThemeId) {
+      applyThemeTokens(previewThemeId, undefined);
+    } else {
+      applyThemeTokens(settings.themePresetId, settings.themeOverrides);
+    }
+  }, [previewThemeId, settings]);
+
+  // Re-apply preset when data-theme (dark/light) toggles.
   useEffect(() => {
     const root = document.documentElement;
     const obs = new MutationObserver(() => {
-      if (settings) applyThemeTokens(settings.themePresetId, settings.themeOverrides);
+      if (!settings) return;
+      if (previewThemeId) applyThemeTokens(previewThemeId, undefined);
+      else applyThemeTokens(settings.themePresetId, settings.themeOverrides);
     });
     obs.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
     return () => obs.disconnect();
-  }, [settings]);
+  }, [settings, previewThemeId]);
 
-  return <Ctx.Provider value={{ settings, reload: load }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider
+      value={{
+        settings,
+        reload: load,
+        previewThemeId,
+        previewName,
+        previewSecondsLeft,
+        startThemePreview,
+        stopThemePreview,
+      }}
+    >
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export function useSettings(): SettingsCtx {

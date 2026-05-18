@@ -12,6 +12,7 @@ import { useTeamPhotoPreload } from './app/hooks/useTeamPhotoPreload';
 import { TopBar } from './app/components/TopBar';
 import { PatchJournalModal } from './app/components/PatchJournalModal';
 import { OnboardingModal } from './app/components/OnboardingModal';
+import { ThemePreviewBanner } from './app/components/ThemePreviewBanner';
 import { ToastProvider, useToast } from './app/providers/ToastProvider';
 import { ToastHost } from './app/components/ToastHost';
 import { ErrorBoundary } from './app/components/ErrorBoundary';
@@ -189,6 +190,8 @@ function AppShell() {
 
       <OnboardingModal open={onboardingOpen} onClose={() => setOnboardingOpen(false)} />
 
+      <ThemePreviewBanner />
+
       <ProfileModal open={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
 
       <ToastHost />
@@ -209,13 +212,13 @@ function AppShell() {
 export default function App() {
   return (
     <IpcProvider>
-      <SettingsProvider>
-        <ThemeProvider>
-          <ToastProvider>
+      <ToastProvider>
+        <SettingsProvider>
+          <ThemeProvider>
             <AppShell />
-          </ToastProvider>
-        </ThemeProvider>
-      </SettingsProvider>
+          </ThemeProvider>
+        </SettingsProvider>
+      </ToastProvider>
     </IpcProvider>
   );
 }

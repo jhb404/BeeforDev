@@ -1,15 +1,21 @@
 import { useState } from 'react';
 import { UnlockCodeModal, useGamification } from '../../../../features/gamification';
 import type { ThemePreset } from '../../../../features/gamification';
+import { THEME_PREVIEW_DURATION_S, useSettings } from '../../../../app/providers/SettingsProvider';
 import type { AppearanceCardProps } from './types';
 
 export function ThemePresetsCard({ settings, onUpdate }: AppearanceCardProps) {
   const { themePresets, isThemePresetUnlocked } = useGamification();
+  const { previewThemeId, startThemePreview, stopThemePreview } = useSettings();
   const [codeModalPreset, setCodeModalPreset] = useState<ThemePreset | null>(null);
 
-  const applyPreset = (preset: ThemePreset) => {
-    if (!isThemePresetUnlocked(preset.id)) return;
-    onUpdate('themePresetId', preset.id);
+  const handleCardClick = (preset: ThemePreset) => {
+    if (isThemePresetUnlocked(preset.id)) {
+      stopThemePreview();
+      onUpdate('themePresetId', preset.id);
+      return;
+    }
+    startThemePreview(preset.id, preset.name);
   };
 
   const activePresetId = settings.themePresetId ?? 'default';
@@ -17,26 +23,41 @@ export function ThemePresetsCard({ settings, onUpdate }: AppearanceCardProps) {
   return (
     <div className="card">
       <h2>Temas</h2>
-      <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
-        Presets prontos. Alguns são desbloqueados por conquistas.{' '}
-      </p>
+
+      <ul className="theme-presets-legend">
+        <li>
+          <kbd>1 clique</kbd> em desbloqueado → aplica
+        </li>
+        <li>
+          <kbd>1 clique</kbd> em bloqueado → pré-visualiza por {THEME_PREVIEW_DURATION_S}s no app
+          inteiro (pode navegar)
+        </li>
+        <li>
+          <kbd>2 cliques</kbd> em bloqueado → inserir código de desbloqueio
+        </li>
+      </ul>
+
       <div className="theme-presets-grid">
         {themePresets.map((preset) => {
           const unlocked = isThemePresetUnlocked(preset.id);
           const active = activePresetId === preset.id;
+          const previewing = previewThemeId === preset.id;
           return (
             <button
               key={preset.id}
               type="button"
-              className={`theme-preset ${active ? 'theme-preset--active' : ''} ${unlocked ? '' : 'theme-preset--locked'}`}
-              onClick={() => applyPreset(preset)}
+              className={`theme-preset ${active ? 'theme-preset--active' : ''} ${unlocked ? '' : 'theme-preset--locked'} ${previewing ? 'theme-preset--previewing' : ''}`}
+              onClick={() => handleCardClick(preset)}
               onDoubleClick={() => {
-                if (!unlocked) setCodeModalPreset(preset);
+                if (!unlocked) {
+                  stopThemePreview();
+                  setCodeModalPreset(preset);
+                }
               }}
-              title={
+              data-tooltip={
                 unlocked
-                  ? preset.description
-                  : `Bloqueado — clique 2x para usar código (conquista: ${preset.requires})`
+                  ? `Aplicar ${preset.name}`
+                  : `Clique pra pré-visualizar · 2x pra inserir código (conquista: ${preset.requires})`
               }
               data-sound="click"
             >
@@ -65,7 +86,10 @@ export function ThemePresetsCard({ settings, onUpdate }: AppearanceCardProps) {
         targetName={codeModalPreset?.name ?? ''}
         requiresAchievement={codeModalPreset?.requires}
         onUnlocked={() => {
-          if (codeModalPreset) onUpdate('themePresetId', codeModalPreset.id);
+          if (codeModalPreset) {
+            stopThemePreview();
+            onUpdate('themePresetId', codeModalPreset.id);
+          }
         }}
       />
     </div>
