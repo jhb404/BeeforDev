@@ -27,7 +27,6 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "electron": "^31.3.0",
     "electron-log": "^5.1.5",
     "electron-updater": "^6.8.3",
     "keytar": "^7.9.0",
@@ -47,6 +46,7 @@
     "@vitejs/plugin-react": "^4.3.1",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
+    "electron": "^31.3.0",
     "electron-builder": "^24.13.3",
     "esbuild": "^0.28.0",
     "eslint": "^10.3.0",
