@@ -3,10 +3,44 @@ import { BeeforClient } from '../automation/beefor/beeforClient';
 import { performLogin, doVerifySession, warmKudoRecipientCache } from '../automation/beefor/actions';
 import { withPageLock } from '../automation/beefor/pageLock';
 import { logger } from './logger';
-import { sessionExists, sessionPath } from './sessionStore';
+import { loadSettings, sessionExists, sessionPath } from './sessionStore';
 import { getCredentials } from './secureStorage';
 import { emitStatus, getCurrentStatus } from './statusBus';
 import type { SessionStatus } from '../shared/types/index';
+import {
+  getValidSession,
+  loginHttp,
+  getCachedSession,
+  clearCachedSession,
+} from './services/beeforHttpClient';
+
+async function isHttpMode(): Promise<boolean> {
+  const settings = await loadSettings();
+  return settings.loginMode === 'http';
+}
+
+async function runHttp(win: BrowserWindow | null): Promise<SessionStatus> {
+  if (getCachedSession()) {
+    emitStatus(win, 'connected');
+    return 'connected';
+  }
+  const creds = await getCredentials();
+  if (!creds) {
+    emitStatus(win, 'disconnected');
+    logger.info('HTTP mode: sem credenciais — abrir Configurações.');
+    return 'disconnected';
+  }
+  try {
+    await loginHttp(creds.email, creds.password);
+    emitStatus(win, 'connected');
+    logger.info('HTTP mode: sessão estabelecida (sem Chromium).');
+    return 'connected';
+  } catch (err) {
+    logger.error(`HTTP mode login falhou: ${err instanceof Error ? err.message : String(err)}`);
+    emitStatus(win, 'expired');
+    return 'expired';
+  }
+}
 
 const VERIFY_INTERVAL_MS = 60_000; // 1 min watchdog
 
@@ -43,6 +77,10 @@ async function run(
   // Reached only when before !== 'connected' — ignore announceReconnect.
   void opts;
   emitStatus(win, 'loading');
+
+  if (await isHttpMode()) {
+    return runHttp(win);
+  }
 
   try {
     return await withPageLock(async () => {
@@ -86,6 +124,16 @@ export function startWatchdog(getWin: () => BrowserWindow | null) {
     const status = getCurrentStatus();
     if (status !== 'connected') return;
     try {
+      if (await isHttpMode()) {
+        try {
+          await getValidSession();
+        } catch {
+          clearCachedSession();
+          logger.warn('Watchdog HTTP: sessão perdida — reconectando');
+          await ensureSession(getWin(), { announceReconnect: true });
+        }
+        return;
+      }
       const ok = await withPageLock(async () => {
         const client = BeeforClient.instance();
         const page = await client.getPage(sessionPath());

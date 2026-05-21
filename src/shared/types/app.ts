@@ -1,4 +1,5 @@
 import type { Coin2uOrg } from './coin2u';
+import type { BeeforEnv } from '../env';
 
 export type KudocardFrequency = 'once' | 'twice' | 'custom';
 
@@ -113,6 +114,16 @@ export interface AppSettings {
 
   /** Org list returned by /User/GetOrgList — cached for offline UI */
   coin2uOrgs?: Coin2uOrg[];
+
+  /** API environment toggle: 'local' (localhost:44341 / :5000) | 'prod' (apiteams.goobee.com.br) */
+  beeforEnv?: BeeforEnv;
+
+  /**
+   * Login mode:
+   * - 'playwright' (legado): lança Chromium, login via DOM. Token vive em localStorage do browser.
+   * - 'http': POST /api/Token direto, sem browser. Mobile-ready. Experimental.
+   */
+  loginMode?: 'playwright' | 'http';
 }
 
 export interface TodayAlert {

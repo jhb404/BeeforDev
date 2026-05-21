@@ -13,7 +13,7 @@ describe('useMoodFlow', () => {
       useMoodFlow({
         ready: true,
         moodClient,
-        wrap: async (fn) => fn(),
+        wrap: async (keyOrFn: any, maybeFn?: any) => (typeof keyOrFn === "function" ? keyOrFn() : maybeFn()),
         showToast: vi.fn(),
         onMoodChanged,
       }),
@@ -39,7 +39,7 @@ describe('useMoodFlow', () => {
       useMoodFlow({
         ready: false,
         moodClient,
-        wrap: async (fn) => fn(),
+        wrap: async (keyOrFn: any, maybeFn?: any) => (typeof keyOrFn === "function" ? keyOrFn() : maybeFn()),
         showToast,
         onMoodChanged,
       }),
@@ -69,7 +69,7 @@ describe('useMoodFlow', () => {
       useMoodFlow({
         ready: true,
         moodClient,
-        wrap: async (fn) => fn(),
+        wrap: async (keyOrFn: any, maybeFn?: any) => (typeof keyOrFn === "function" ? keyOrFn() : maybeFn()),
         showToast: vi.fn(),
       }),
     );

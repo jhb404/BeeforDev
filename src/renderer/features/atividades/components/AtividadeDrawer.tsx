@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { BeeforAtividade } from '@shared/types/index';
-import { mockInfoFor } from '../utils/atividadeMock';
+import { useAtividadeDetalhes } from '../hooks/useAtividadeDetalhes';
 import {
   TIPO_ICON,
   TIPO_LABEL,
@@ -19,7 +19,7 @@ interface DrawerProps {
 }
 
 export function AtividadeDrawer({ atividade: a, onClose }: DrawerProps) {
-  const info = mockInfoFor(a);
+  const { detalhes: info, loading, error } = useAtividadeDetalhes(a);
   const [tab, setTab] = useState<DrawerTab>('info');
   const [bloqueadoOpen, setBloqueadoOpen] = useState(false);
 
@@ -114,6 +114,13 @@ export function AtividadeDrawer({ atividade: a, onClose }: DrawerProps) {
       )}
 
       <div className="ativ-drawer__divider" />
+
+      {loading && (
+        <p className="ativ-drawer__coming-soon">Carregando detalhes do card…</p>
+      )}
+      {error && !loading && (
+        <p className="ativ-drawer__coming-soon">⚠️ {error}</p>
+      )}
 
       <div className="ativ-drawer__tabs" role="tablist">
         {(['info', 'descricao', 'comentarios', 'historico', 'anexos'] as DrawerTab[]).map((t) => (
