@@ -17,7 +17,7 @@ import { ToastProvider, useToast } from './app/providers/ToastProvider';
 import { ToastHost } from './app/components/ToastHost';
 import { ErrorBoundary } from './app/components/ErrorBoundary';
 import { UpdateOverlay } from './app/components/UpdateOverlay';
-import { ProfileModal } from './app/components/ProfileModal';
+import { ProfileModal } from './features/profile';
 import { useUpdater } from './hooks/useUpdater';
 import { useTeamPrefetch } from './app/hooks/useTeamPrefetch';
 import { useAppIconSync } from './hooks/useAppIconSync';

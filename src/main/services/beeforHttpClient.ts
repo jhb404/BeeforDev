@@ -30,14 +30,21 @@ let pendingRefresh: Promise<BeeforSession | null> | null = null;
 let credentials: { usuario: string; senha: string } | null = null;
 
 export class BeeforAuthError extends Error {
-  constructor(message: string, public status?: number) {
+  constructor(
+    message: string,
+    public status?: number,
+  ) {
     super(message);
     this.name = 'BeeforAuthError';
   }
 }
 
 export class BeeforApiError extends Error {
-  constructor(message: string, public status: number, public body?: string) {
+  constructor(
+    message: string,
+    public status: number,
+    public body?: string,
+  ) {
     super(message);
     this.name = 'BeeforApiError';
   }
@@ -177,7 +184,9 @@ interface HttpRequestOptions {
 }
 
 function buildUrl(path: string, query?: HttpRequestOptions['query']): string {
-  const base = path.startsWith('http') ? path : `${getBeeforApiBase()}${path.startsWith('/') ? path : `/${path}`}`;
+  const base = path.startsWith('http')
+    ? path
+    : `${getBeeforApiBase()}${path.startsWith('/') ? path : `/${path}`}`;
   if (!query) return base;
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(query)) {
@@ -200,7 +209,9 @@ export async function beeforHttpRequest<T = unknown>(
   // (timesheet roda em baseUrlProjectPro, fora dessa condição.)
   const hasBody = options.body !== undefined;
   const isBaseUrl = url.toLowerCase().includes(getBeeforApiBase().toLowerCase());
-  const needsCrypto = hasBody && isBaseUrl;
+  // Front RequestInterceptor encripta apenas POST/PUT com body. DELETE/PATCH vão crus.
+  const isCryptoMethod = method === 'POST' || method === 'PUT';
+  const needsCrypto = hasBody && isBaseUrl && isCryptoMethod;
 
   let bodyStr: string | undefined;
   const headers: Record<string, string> = {
@@ -262,9 +273,6 @@ export const beeforHttp = {
     beeforHttpRequest<T>(path, { method: 'POST', body, query }),
   put: <T = unknown>(path: string, body?: unknown, query?: HttpRequestOptions['query']) =>
     beeforHttpRequest<T>(path, { method: 'PUT', body, query }),
-  delete: <T = unknown>(
-    path: string,
-    query?: HttpRequestOptions['query'],
-    body?: unknown,
-  ) => beeforHttpRequest<T>(path, { method: 'DELETE', query, body }),
+  delete: <T = unknown>(path: string, query?: HttpRequestOptions['query'], body?: unknown) =>
+    beeforHttpRequest<T>(path, { method: 'DELETE', query, body }),
 };
