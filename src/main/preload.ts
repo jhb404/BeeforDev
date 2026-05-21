@@ -258,6 +258,40 @@ const httpApi = {
     },
   },
 
+  // Perfil
+  perfil: {
+    get: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_GET, idPessoa),
+    habilidades: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_HABILIDADES, idPessoa),
+    habilidadesCombo: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_HABILIDADES_COMBO, idPessoa),
+    addHabilidade: (nome: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_ADD_HABILIDADE, nome),
+    removeHabilidade: (idHabilidade: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_REMOVE_HABILIDADE, idHabilidade),
+    motivadores: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MOTIVADORES, idPessoa),
+    addMotivadores: (): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MOTIVADORES_ADD),
+    editMotivadores: (ordenados: Array<{ idMotivador: string }>): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MOTIVADORES_EDIT, ordenados),
+    acoes: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_ACOES, idPessoa),
+    mapping: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MAPPING, idPessoa),
+    addMapping: (titulo: string, itens: string[]): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MAPPING_ADD, { titulo, itens }),
+    editMapping: (
+      idTitulo: string,
+      titulo: string,
+      itens: Array<{ IdItem?: string; NomeItem: string }>,
+    ): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MAPPING_EDIT, { idTitulo, titulo, itens }),
+    delMapping: (idMapping: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MAPPING_DEL, idMapping),
+  },
+
   // Notificações
   notif: {
     unread: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_NOTIF_UNREAD),

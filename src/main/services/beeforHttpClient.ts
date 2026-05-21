@@ -262,6 +262,9 @@ export const beeforHttp = {
     beeforHttpRequest<T>(path, { method: 'POST', body, query }),
   put: <T = unknown>(path: string, body?: unknown, query?: HttpRequestOptions['query']) =>
     beeforHttpRequest<T>(path, { method: 'PUT', body, query }),
-  delete: <T = unknown>(path: string, query?: HttpRequestOptions['query']) =>
-    beeforHttpRequest<T>(path, { method: 'DELETE', query }),
+  delete: <T = unknown>(
+    path: string,
+    query?: HttpRequestOptions['query'],
+    body?: unknown,
+  ) => beeforHttpRequest<T>(path, { method: 'DELETE', query, body }),
 };

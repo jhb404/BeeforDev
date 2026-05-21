@@ -60,6 +60,21 @@ import {
   marcarNovidadeLida,
   marcarTodasNovidadesLidas,
 } from '../../services/beeforNotificacaoService';
+import {
+  getPerfil,
+  getHabilidades,
+  getHabilidadesCombo,
+  adicionarHabilidade,
+  removerHabilidade,
+  getMotivadores,
+  adicionarMotivadores,
+  editarMotivadores,
+  getAcoesColaborador,
+  getPersonalMapping,
+  adicionarPersonalMapping,
+  editarPersonalMapping,
+  deletarPersonalMapping,
+} from '../../services/beeforPerfilService';
 import { getBeeforEnv, setBeeforEnv } from '../../../shared/env';
 import { loadSettings, saveSettings } from '../../sessionStore';
 import { moodSchema } from '../schemas';
@@ -458,6 +473,104 @@ export function registerBeeforApiHandlers(): void {
     channel: IPC.API_NOTIF_NOVIDADES_READ_ALL,
     errorMessage: 'Notif novidades read all failed',
     run: async () => ok(await marcarTodasNovidadesLidas()),
+  });
+
+  // ─── Perfil ─────────────────────────────────────────────
+  const optionalId = z.string().max(64).optional();
+
+  defineHandler({
+    channel: IPC.API_PERFIL_GET,
+    schema: optionalId,
+    errorMessage: 'Perfil get failed',
+    run: async ({ data }) => ok(await getPerfil(data || undefined)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_HABILIDADES,
+    schema: optionalId,
+    errorMessage: 'Perfil habilidades failed',
+    run: async ({ data }) => ok(await getHabilidades(data || undefined)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_HABILIDADES_COMBO,
+    schema: optionalId,
+    errorMessage: 'Perfil habilidades combo failed',
+    run: async ({ data }) => ok(await getHabilidadesCombo(data || undefined)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_ADD_HABILIDADE,
+    schema: z.string().min(1).max(120),
+    errorMessage: 'Perfil add habilidade failed',
+    run: async ({ data }) => ok(await adicionarHabilidade(data)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_MOTIVADORES,
+    schema: optionalId,
+    errorMessage: 'Perfil motivadores failed',
+    run: async ({ data }) => ok(await getMotivadores(data || undefined)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_ACOES,
+    schema: optionalId,
+    errorMessage: 'Perfil acoes failed',
+    run: async ({ data }) => ok(await getAcoesColaborador(data || undefined)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_MAPPING,
+    schema: optionalId,
+    errorMessage: 'Perfil mapping failed',
+    run: async ({ data }) => ok(await getPersonalMapping(data || undefined)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_REMOVE_HABILIDADE,
+    schema: z.string().min(1).max(64),
+    errorMessage: 'Perfil remove habilidade failed',
+    run: async ({ data }) => ok(await removerHabilidade(data)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_MOTIVADORES_ADD,
+    errorMessage: 'Perfil motivadores add failed',
+    run: async () => ok(await adicionarMotivadores()),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_MOTIVADORES_EDIT,
+    schema: z.array(z.object({ idMotivador: z.string() })),
+    errorMessage: 'Perfil motivadores edit failed',
+    run: async ({ data }) => ok(await editarMotivadores(data)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_MAPPING_ADD,
+    schema: z.object({ titulo: z.string().min(1).max(120), itens: z.array(z.string()) }),
+    errorMessage: 'Perfil mapping add failed',
+    run: async ({ data }) => ok(await adicionarPersonalMapping(data.titulo, data.itens)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_MAPPING_EDIT,
+    schema: z.object({
+      idTitulo: z.string(),
+      titulo: z.string().min(1).max(120),
+      itens: z.array(z.object({ IdItem: z.string().optional(), NomeItem: z.string() })),
+    }),
+    errorMessage: 'Perfil mapping edit failed',
+    run: async ({ data }) =>
+      ok(await editarPersonalMapping(data.idTitulo, data.titulo, data.itens)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_MAPPING_DEL,
+    schema: z.string().min(1).max(64),
+    errorMessage: 'Perfil mapping del failed',
+    run: async ({ data }) => ok(await deletarPersonalMapping(data)),
   });
 
   // ─── SignalR Hub ───────────────────────────────────────

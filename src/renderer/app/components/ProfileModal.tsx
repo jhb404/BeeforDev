@@ -10,6 +10,8 @@ import {
   type IconVariant,
   type XpAction,
 } from '../../features/gamification';
+import { usePerfilData, type MotivadorItem } from '../../features/profile/hooks/usePerfilData';
+import { FunnyLoader } from '../../components/common/FunnyLoader';
 
 interface Props {
   open: boolean;
@@ -18,11 +20,12 @@ interface Props {
   userEmail?: string;
 }
 
-type View = 'home' | 'xp-info' | 'icons';
+type View = 'home' | 'xp-info' | 'icons' | 'conquistas';
 
 export function ProfileModal({ open, onClose, userName, userEmail }: Props) {
   const { stats, isAchievementUnlocked, isIconUnlocked } = useGamification();
   const [view, setView] = useState<View>('home');
+  const data = usePerfilData(open);
 
   const xpPct = Math.min(100, Math.round((stats.xp / stats.xpNext) * 100));
   const activeIconId =
@@ -38,16 +41,17 @@ export function ProfileModal({ open, onClose, userName, userEmail }: Props) {
     <ModalShell
       open={open}
       onClose={handleClose}
-      className="profile-modal"
+      className="profile-modal profile-modal--large"
       labelledBy="profile-modal-title"
     >
       <div className="modal-head">
         <div>
           <p className="eyebrow">Perfil</p>
           <h2 id="profile-modal-title">
-            {view === 'home' && 'Meu perfil'}
+            {view === 'home' && (data.perfil?.nome || userName || 'Meu perfil')}
             {view === 'xp-info' && 'Como funciona o XP'}
             {view === 'icons' && 'Variantes de ícone'}
+            {view === 'conquistas' && '🏆 Conquistas'}
           </h2>
         </div>
         <div className="profile-modal__head-actions">
@@ -80,20 +84,37 @@ export function ProfileModal({ open, onClose, userName, userEmail }: Props) {
             xpPct={xpPct}
             stats={stats}
             activeIcon={activeIcon ?? ICON_VARIANTS[0]}
-            isAchievementUnlocked={isAchievementUnlocked}
+            data={data}
             onOpenXpInfo={() => setView('xp-info')}
             onOpenIcons={() => setView('icons')}
+            onOpenConquistas={() => setView('conquistas')}
           />
         )}
-
         {view === 'xp-info' && <XpInfoView />}
-
         {view === 'icons' && (
           <IconsView isIconUnlocked={isIconUnlocked} activeIconId={activeIconId} />
+        )}
+        {view === 'conquistas' && (
+          <ConquistasView isAchievementUnlocked={isAchievementUnlocked} />
         )}
       </div>
     </ModalShell>
   );
+}
+
+function motivadorEmoji(nome: string): string {
+  const n = nome.toLowerCase();
+  if (n.includes('maestria')) return '♟️';
+  if (n.includes('relaç') || n.includes('relac')) return '💬';
+  if (n.includes('meta')) return '⛰️';
+  if (n.includes('honra')) return '🎖️';
+  if (n.includes('liberdade')) return '🕊️';
+  if (n.includes('ordem')) return '🧱';
+  if (n.includes('curiosidade')) return '🔍';
+  if (n.includes('aceita')) return '🧑‍🤝‍🧑';
+  if (n.includes('poder')) return '👑';
+  if (n.includes('status')) return '🏆';
+  return '✨';
 }
 
 interface ProfileHomeProps {
@@ -102,9 +123,10 @@ interface ProfileHomeProps {
   xpPct: number;
   stats: ReturnType<typeof useGamification>['stats'];
   activeIcon: IconVariant;
-  isAchievementUnlocked: (id: string) => boolean;
+  data: ReturnType<typeof usePerfilData>;
   onOpenXpInfo: () => void;
   onOpenIcons: () => void;
+  onOpenConquistas: () => void;
 }
 
 function ProfileHome({
@@ -113,107 +135,444 @@ function ProfileHome({
   xpPct,
   stats,
   activeIcon,
-  isAchievementUnlocked,
+  data,
   onOpenXpInfo,
   onOpenIcons,
+  onOpenConquistas,
 }: ProfileHomeProps) {
+  const {
+    perfil,
+    habilidades,
+    habilidadesCombo,
+    motivadores,
+    acoes,
+    mapping,
+    loading,
+    error,
+    addHabilidade,
+    removeHabilidade,
+    reorderMotivadores,
+    addMapping,
+    delMapping,
+  } = data;
+
+  const nome = perfil?.nome || userName || 'Beta Tester';
+  const foto = perfil?.foto;
+
   return (
     <>
-      <div className="profile-modal__header">
+      {/* Banner identidade — estilo Steam */}
+      <div className="pfx-banner">
         <button
           type="button"
-          className={`profile-modal__avatar profile-modal__avatar--button ${activeIcon.effectClass ?? ''}`}
+          className={`pfx-avatar ${activeIcon.effectClass ?? ''}`}
           onClick={onOpenIcons}
-          title="Trocar ícone"
+          title="Trocar moldura/ícone"
           aria-label="Trocar variante de ícone"
         >
-          <BeeforLogo size={48} style={{ color: activeIcon.color }} />
-          {activeIcon.overlay && (
-            <span className="profile-modal__avatar-overlay" aria-hidden="true">
-              {activeIcon.overlay}
-            </span>
+          {foto ? (
+            <img className="pfx-avatar__img" src={foto} alt={nome} />
+          ) : (
+            <BeeforLogo size={56} style={{ color: activeIcon.color }} />
           )}
-          <div className="profile-modal__level-badge">Lv {stats.level}</div>
+          <span className="pfx-avatar__lv">Lv {stats.level}</span>
         </button>
-        <div className="profile-modal__identity">
-          <strong className="profile-modal__name">{userName ?? 'Beta Tester'}</strong>
-          <span className="profile-modal__email">{userEmail ?? '—'}</span>
-        </div>
-      </div>
-
-      <div className="profile-modal__xp">
-        <div className="profile-modal__xp-info">
-          <span>XP</span>
-          <button
-            type="button"
-            className="profile-modal__xp-help"
-            onClick={onOpenXpInfo}
-            aria-label="Como funciona o XP"
-            title="Como funciona o XP"
-          >
-            ?
-          </button>
-          <span className="profile-modal__xp-numbers">
-            {stats.xp} / {stats.xpNext}
-          </span>
-        </div>
-        <div className="profile-modal__xp-bar">
-          <div className="profile-modal__xp-fill" style={{ width: `${xpPct}%` }} />
-        </div>
-      </div>
-
-      <div className="profile-modal__stats">
-        <div className="profile-stat">
-          <span className="profile-stat__icon">🔥</span>
-          <span className="profile-stat__value">{stats.moodStreak}</span>
-          <span className="profile-stat__label">streak de mood</span>
-        </div>
-        <div className="profile-stat">
-          <span className="profile-stat__icon">⚡</span>
-          <span className="profile-stat__value">{stats.totalLancamentos}</span>
-          <span className="profile-stat__label">lançamentos</span>
-        </div>
-        <div className="profile-stat">
-          <span className="profile-stat__icon">🎁</span>
-          <span className="profile-stat__value">{stats.totalKudos}</span>
-          <span className="profile-stat__label">kudos enviados</span>
-        </div>
-        <div className="profile-stat">
-          <span className="profile-stat__icon">💰</span>
-          <span className="profile-stat__value">{stats.coinsGanhos}</span>
-          <span className="profile-stat__label">coins ganhos</span>
-        </div>
-      </div>
-
-      <div className="profile-modal__achievements">
-        <h3 className="profile-modal__section-title">🏆 Conquistas</h3>
-        <div className="profile-modal__achievement-grid">
-          {ACHIEVEMENTS.map((a) => {
-            const unlocked = isAchievementUnlocked(a.id);
-            return (
-              <div
-                key={a.id}
-                className={`profile-achievement ${unlocked ? '' : 'profile-achievement--locked'}`}
-                title={a.description}
+        <div className="pfx-banner__id">
+          <strong className="pfx-banner__name">{nome}</strong>
+          {perfil?.funcaoPrincipal && (
+            <span className="pfx-banner__role">{perfil.funcaoPrincipal}</span>
+          )}
+          <span className="pfx-banner__email">{userEmail ?? '—'}</span>
+          <div className="pfx-xp">
+            <div className="pfx-xp__bar">
+              <div className="pfx-xp__fill" style={{ width: `${xpPct}%` }} />
+            </div>
+            <span className="pfx-xp__txt">
+              {stats.xp}/{stats.xpNext} XP
+              <button
+                type="button"
+                className="pfx-xp__help"
+                onClick={onOpenXpInfo}
+                aria-label="Como funciona o XP"
+                title="Como funciona o XP"
               >
-                <span className="profile-achievement__icon">{a.icon}</span>
-                <span className="profile-achievement__label">{a.label}</span>
-                {!unlocked && (
-                  <span className="profile-achievement__lock" aria-hidden="true">
-                    🔒
-                  </span>
-                )}
-              </div>
-            );
-          })}
+                ?
+              </button>
+            </span>
+          </div>
         </div>
+        <button
+          type="button"
+          className="pfx-trophy"
+          onClick={onOpenConquistas}
+          title="Conquistas"
+          aria-label="Ver conquistas"
+          data-sound="click"
+        >
+          🏆
+          <span className="pfx-trophy__count">
+            {ACHIEVEMENTS.filter((a) => data.loading === false).length ? '' : ''}
+          </span>
+        </button>
       </div>
 
-      <p className="profile-modal__hint">
-        💡 Sistema de gamificação em desenvolvimento. Dados reais (streak, XP, conquistas) virão em
-        breve, conectados ao backend.
-      </p>
+      {loading && <FunnyLoader title="Carregando perfil" />}
+      {error && !loading && <p className="pfx-hint">⚠️ {error}</p>}
+
+      {!loading && (
+        <div className="pfx-grid">
+          {/* Mini bio */}
+          <PfxCard title="📝 Mini bio" wide>
+            <p className="pfx-bio">
+              {perfil?.miniBio?.trim() || 'Sem bio ainda. Conte um pouco sobre você!'}
+            </p>
+          </PfxCard>
+
+          {/* Checkpoints — só quantidade */}
+          <PfxCard title="📍 Checkpoints">
+            <div className="pfx-bignum">{perfil?.quantidadeVisitas ?? 0}</div>
+            <span className="pfx-card__sub">checkpoints realizados</span>
+          </PfxCard>
+
+          {/* Habilidades */}
+          <PfxCard title="🛠️ Habilidades" wide>
+            <HabilidadesBlock
+              habilidades={habilidades}
+              combo={habilidadesCombo}
+              onAdd={addHabilidade}
+              onRemove={removeHabilidade}
+            />
+          </PfxCard>
+
+          {/* Motivadores ranqueáveis */}
+          <PfxCard title="⚡ Motivadores" wide>
+            <MotivadoresBlock
+              motivadores={motivadores}
+              onReorder={reorderMotivadores}
+            />
+          </PfxCard>
+
+          {/* Ações de desenvolvimento */}
+          <PfxCard title="🚀 Ações de desenvolvimento" wide>
+            {acoes.length === 0 ? (
+              <span className="pfx-empty">Nenhuma ação registrada.</span>
+            ) : (
+              <ul className="pfx-acoes">
+                {acoes.map((a) => (
+                  <li key={a.id || a.titulo} className="pfx-acao">
+                    <span className="pfx-acao__dot" />
+                    <div>
+                      <strong>{a.titulo}</strong>
+                      {a.descricao && <p>{a.descricao}</p>}
+                      {a.status && <span className="pfx-acao__status">{a.status}</span>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </PfxCard>
+
+          {/* Personal mapping CRUD */}
+          <PfxCard title="🗺️ Personal mapping" wide>
+            <MappingBlock mapping={mapping} onAdd={addMapping} onDel={delMapping} />
+          </PfxCard>
+        </div>
+      )}
     </>
+  );
+}
+
+function PfxCard({
+  title,
+  children,
+  wide,
+}: {
+  title: string;
+  children: React.ReactNode;
+  wide?: boolean;
+}) {
+  return (
+    <section className={`pfx-card ${wide ? 'pfx-card--wide' : ''}`}>
+      <h3 className="pfx-card__title">{title}</h3>
+      <div className="pfx-card__body">{children}</div>
+    </section>
+  );
+}
+
+function HabilidadesBlock({
+  habilidades,
+  combo,
+  onAdd,
+  onRemove,
+}: {
+  habilidades: ReturnType<typeof usePerfilData>['habilidades'];
+  combo: ReturnType<typeof usePerfilData>['habilidadesCombo'];
+  onAdd: (nome: string) => Promise<boolean>;
+  onRemove: (id: string) => Promise<boolean>;
+}) {
+  const [novaHab, setNovaHab] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const sugestoes = combo
+    .filter((c) => !habilidades.some((h) => h.nome.toLowerCase() === c.nome.toLowerCase()))
+    .filter((c) => !novaHab || c.nome.toLowerCase().includes(novaHab.toLowerCase()))
+    .slice(0, 6);
+
+  async function add(nome: string) {
+    const n = nome.trim();
+    if (!n || busy) return;
+    setBusy(true);
+    const ok = await onAdd(n);
+    if (ok) setNovaHab('');
+    setBusy(false);
+  }
+
+  return (
+    <>
+      <div className="pfx-chips">
+        {habilidades.length === 0 && <span className="pfx-empty">Nenhuma habilidade.</span>}
+        {habilidades.map((h) => (
+          <span key={h.id || h.nome} className="pfx-chip">
+            {h.nome}
+            <button
+              type="button"
+              className="pfx-chip__x"
+              onClick={() => void onRemove(h.id)}
+              aria-label={`Remover ${h.nome}`}
+              title="Remover"
+              data-sound="click"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+      <div className="pfx-add">
+        <input
+          type="text"
+          value={novaHab}
+          placeholder="Adicionar habilidade…"
+          onChange={(e) => setNovaHab(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void add(novaHab);
+          }}
+          maxLength={80}
+        />
+        <button
+          type="button"
+          className="warm compact"
+          disabled={busy || !novaHab.trim()}
+          onClick={() => void add(novaHab)}
+          data-sound="click"
+        >
+          {busy ? '…' : '+'}
+        </button>
+      </div>
+      {sugestoes.length > 0 && (
+        <div className="pfx-suggest">
+          {sugestoes.map((s) => (
+            <button
+              key={s.id || s.nome}
+              type="button"
+              className="pfx-suggest__chip"
+              onClick={() => void add(s.nome)}
+              data-sound="click"
+            >
+              + {s.nome}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+function MotivadoresBlock({
+  motivadores,
+  onReorder,
+}: {
+  motivadores: MotivadorItem[];
+  onReorder: (ordenados: MotivadorItem[]) => Promise<boolean>;
+}) {
+  if (motivadores.length === 0) {
+    return <span className="pfx-empty">Sem motivadores definidos no Beefor.</span>;
+  }
+
+  function move(idx: number, dir: -1 | 1) {
+    const next = [...motivadores];
+    const j = idx + dir;
+    if (j < 0 || j >= next.length) return;
+    [next[idx], next[j]] = [next[j], next[idx]];
+    void onReorder(next);
+  }
+
+  return (
+    <ol className="pfx-motiv">
+      {motivadores.map((m, idx) => (
+        <li key={m.idMotivador || m.nome} className="pfx-motiv__row">
+          <span className="pfx-motiv__rank">{idx + 1}</span>
+          <span className="pfx-motiv__emoji">{motivadorEmoji(m.nome)}</span>
+          <span className="pfx-motiv__nome">{m.nome}</span>
+          <span className="pfx-motiv__arrows">
+            <button
+              type="button"
+              disabled={idx === 0}
+              onClick={() => move(idx, -1)}
+              aria-label="Subir"
+              data-sound="click"
+            >
+              ▲
+            </button>
+            <button
+              type="button"
+              disabled={idx === motivadores.length - 1}
+              onClick={() => move(idx, 1)}
+              aria-label="Descer"
+              data-sound="click"
+            >
+              ▼
+            </button>
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function MappingBlock({
+  mapping,
+  onAdd,
+  onDel,
+}: {
+  mapping: ReturnType<typeof usePerfilData>['mapping'];
+  onAdd: (titulo: string, itens: string[]) => Promise<boolean>;
+  onDel: (idTitulo: string) => Promise<boolean>;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [titulo, setTitulo] = useState('');
+  const [itensTxt, setItensTxt] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function salvar() {
+    const t = titulo.trim();
+    if (!t || busy) return;
+    const itens = itensTxt
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    setBusy(true);
+    const ok = await onAdd(t, itens);
+    setBusy(false);
+    if (ok) {
+      setTitulo('');
+      setItensTxt('');
+      setAdding(false);
+    }
+  }
+
+  return (
+    <>
+      <div className="pfx-mapping">
+        {mapping.length === 0 && <span className="pfx-empty">Sem personal mapping ainda.</span>}
+        {mapping.map((m) => (
+          <div key={m.idTitulo || m.titulo} className="pfx-mapping__card">
+            <div className="pfx-mapping__head">
+              <strong>{m.titulo}</strong>
+              <button
+                type="button"
+                className="pfx-mapping__del"
+                onClick={() => void onDel(m.idTitulo)}
+                aria-label={`Remover ${m.titulo}`}
+                title="Remover"
+                data-sound="click"
+              >
+                ×
+              </button>
+            </div>
+            <ul>
+              {m.itens.map((it, i) => (
+                <li key={i}>{it.nomeItem}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      {adding ? (
+        <div className="pfx-mapping__form">
+          <input
+            type="text"
+            placeholder="Título (ex.: Curiosidades, Família…)"
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            maxLength={80}
+          />
+          <textarea
+            placeholder="Um item por linha…"
+            value={itensTxt}
+            onChange={(e) => setItensTxt(e.target.value)}
+            rows={4}
+          />
+          <div className="pfx-mapping__form-actions">
+            <button
+              type="button"
+              className="secondary compact"
+              onClick={() => setAdding(false)}
+              data-sound="click"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="warm compact"
+              disabled={busy || !titulo.trim()}
+              onClick={() => void salvar()}
+              data-sound="success"
+            >
+              {busy ? 'Salvando…' : 'Salvar'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="secondary compact pfx-mapping__addbtn"
+          onClick={() => setAdding(true)}
+          data-sound="click"
+        >
+          + Adicionar mapping
+        </button>
+      )}
+    </>
+  );
+}
+
+function ConquistasView({
+  isAchievementUnlocked,
+}: {
+  isAchievementUnlocked: (id: string) => boolean;
+}) {
+  return (
+    <div className="profile-modal__achievement-grid">
+      {ACHIEVEMENTS.map((a) => {
+        const unlocked = isAchievementUnlocked(a.id);
+        return (
+          <div
+            key={a.id}
+            className={`profile-achievement ${unlocked ? '' : 'profile-achievement--locked'}`}
+            title={a.description}
+          >
+            <span className="profile-achievement__icon">{a.icon}</span>
+            <span className="profile-achievement__label">{a.label}</span>
+            {!unlocked && (
+              <span className="profile-achievement__lock" aria-hidden="true">
+                🔒
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -236,9 +595,6 @@ function XpInfoView() {
           </li>
         ))}
       </ul>
-      <p className="profile-modal__hint">
-        💡 Em desenvolvimento. Os valores podem mudar conforme balanceamento do sistema.
-      </p>
     </div>
   );
 }
@@ -299,9 +655,6 @@ function IconsView({ isIconUnlocked, activeIconId }: IconsViewProps) {
           );
         })}
       </div>
-      <p className="profile-modal__hint">
-        💡 Troca de ícone em tempo real está sendo desenvolvida. Por enquanto a seleção é só visual.
-      </p>
 
       <UnlockCodeModal
         open={!!codeModalIcon}

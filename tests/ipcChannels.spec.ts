@@ -101,6 +101,19 @@ const EXPECTED_IPC = {
   API_ATIV_ITERACOES: 'api:atividadesIteracoes',
   API_ATIV_ETIQUETAS: 'api:atividadesEtiquetas',
   API_ATIV_COLUNAS: 'api:atividadesColunas',
+  API_PERFIL_GET: 'api:perfilGet',
+  API_PERFIL_HABILIDADES: 'api:perfilHabilidades',
+  API_PERFIL_HABILIDADES_COMBO: 'api:perfilHabilidadesCombo',
+  API_PERFIL_ADD_HABILIDADE: 'api:perfilAddHabilidade',
+  API_PERFIL_MOTIVADORES: 'api:perfilMotivadores',
+  API_PERFIL_MOTIVADORES_ADD: 'api:perfilMotivadoresAdd',
+  API_PERFIL_MOTIVADORES_EDIT: 'api:perfilMotivadoresEdit',
+  API_PERFIL_ACOES: 'api:perfilAcoes',
+  API_PERFIL_MAPPING: 'api:perfilMapping',
+  API_PERFIL_MAPPING_ADD: 'api:perfilMappingAdd',
+  API_PERFIL_MAPPING_EDIT: 'api:perfilMappingEdit',
+  API_PERFIL_MAPPING_DEL: 'api:perfilMappingDel',
+  API_PERFIL_REMOVE_HABILIDADE: 'api:perfilRemoveHabilidade',
 } as const satisfies typeof IPC;
 
 describe('IPC channels', () => {

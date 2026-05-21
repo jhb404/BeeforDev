@@ -23,10 +23,34 @@ export interface EnviarKudoBody {
   IdKudoCard?: string | null;
 }
 
+// Enum TipoKudoCardEnum (backend) — nome → número (1-8). API pode serializar enum como string.
+const TIPO_NOME_TO_NUM: Record<string, number> = {
+  ObrigadoPelaForca: 1,
+  ParabensMestre: 2,
+  QueMaravilha: 3,
+  QueTrabalhoIncrivel: 4,
+  VoceEImbativel: 5,
+  SuperTrabalho: 6,
+  TimePoderoso: 7,
+  Parabens: 8,
+};
+
+function parseTipo(v: unknown): number {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string') {
+    const n = Number(v);
+    if (Number.isFinite(n) && n > 0) return n; // "3"
+    if (TIPO_NOME_TO_NUM[v]) return TIPO_NOME_TO_NUM[v]; // "QueMaravilha"
+  }
+  return 0;
+}
+
 function mapItem(raw: any): KudoCardListItem {
   return {
     id: String(raw?.id ?? raw?.idKudoCard ?? '').trim(),
-    mensagemBoxKudoCard: String(raw?.mensagemBoxKudoCard ?? raw?.mensagem ?? ''),
+    mensagemBoxKudoCard: String(
+      raw?.mensagemBoxKudoCard ?? raw?.mensagemBox ?? raw?.mensagem ?? '',
+    ),
     mensagemKudoCard: String(raw?.mensagemKudoCard ?? raw?.mensagem ?? ''),
     nomeOrganizacao: String(raw?.nomeOrganizacao ?? ''),
     destinatario:
@@ -41,7 +65,7 @@ function mapItem(raw: any): KudoCardListItem {
         : typeof raw?.nomeDe === 'string'
           ? raw.nomeDe
           : undefined,
-    tipoKudoCard: Number(raw?.tipoKudoCard ?? 0),
+    tipoKudoCard: parseTipo(raw?.tipoKudoCard),
     dataEnvio: String(raw?.dataEnvio ?? raw?.dataCriacao ?? ''),
   };
 }
@@ -104,7 +128,7 @@ export async function getKudoDetail(id: string): Promise<KudoCardDetail | null> 
     imagem: typeof data?.imagem === 'string' ? data.imagem : null,
     nomeTraducao:
       typeof data?.nomeTraducao === 'string' ? data.nomeTraducao : null,
-    tipoKudoCard: Number(data?.tipoKudoCard ?? 0),
+    tipoKudoCard: parseTipo(data?.tipoKudoCard),
     times: Array.isArray(data?.times) ? data.times : [],
     dataEnvio: String(data?.dataEnvio ?? data?.dataCriacao ?? ''),
   };

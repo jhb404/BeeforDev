@@ -1,9 +1,5 @@
 import { BrowserWindow } from 'electron';
-import { BeeforClient } from '../automation/beefor/beeforClient';
-import { performLogin, doVerifySession, warmKudoRecipientCache } from '../automation/beefor/actions';
-import { withPageLock } from '../automation/beefor/pageLock';
 import { logger } from './logger';
-import { loadSettings, sessionExists, sessionPath } from './sessionStore';
 import { getCredentials } from './secureStorage';
 import { emitStatus, getCurrentStatus } from './statusBus';
 import type { SessionStatus } from '../shared/types/index';
@@ -14,42 +10,13 @@ import {
   clearCachedSession,
 } from './services/beeforHttpClient';
 
-async function isHttpMode(): Promise<boolean> {
-  const settings = await loadSettings();
-  return settings.loginMode === 'http';
-}
-
-async function runHttp(win: BrowserWindow | null): Promise<SessionStatus> {
-  if (getCachedSession()) {
-    emitStatus(win, 'connected');
-    return 'connected';
-  }
-  const creds = await getCredentials();
-  if (!creds) {
-    emitStatus(win, 'disconnected');
-    logger.info('HTTP mode: sem credenciais — abrir Configurações.');
-    return 'disconnected';
-  }
-  try {
-    await loginHttp(creds.email, creds.password);
-    emitStatus(win, 'connected');
-    logger.info('HTTP mode: sessão estabelecida (sem Chromium).');
-    return 'connected';
-  } catch (err) {
-    logger.error(`HTTP mode login falhou: ${err instanceof Error ? err.message : String(err)}`);
-    emitStatus(win, 'expired');
-    return 'expired';
-  }
-}
-
 const VERIFY_INTERVAL_MS = 60_000; // 1 min watchdog
 
 let watchdogTimer: NodeJS.Timeout | null = null;
 let inFlight: Promise<SessionStatus> | null = null;
 
 /**
- * Ensures session is valid; reconnects silently if not.
- * De-duplicates concurrent calls.
+ * Garante sessão HTTP válida; reconecta silencioso se preciso. Dedup concorrente.
  */
 export function ensureSession(
   win: BrowserWindow | null,
@@ -66,53 +33,31 @@ async function run(
   win: BrowserWindow | null,
   opts: { announceReconnect?: boolean },
 ): Promise<SessionStatus> {
-  const client = BeeforClient.instance();
   const before = getCurrentStatus();
+  if (before === 'connected') return 'connected';
 
-  // Trust cached "connected" — skip work + don't emit so UI stays enabled.
-  if (before === 'connected') {
-    return 'connected';
-  }
-
-  // Reached only when before !== 'connected' — ignore announceReconnect.
   void opts;
   emitStatus(win, 'loading');
 
-  if (await isHttpMode()) {
-    return runHttp(win);
+  if (getCachedSession()) {
+    emitStatus(win, 'connected');
+    return 'connected';
+  }
+
+  const creds = await getCredentials();
+  if (!creds) {
+    emitStatus(win, 'disconnected');
+    logger.info('Sem credenciais — abrir Configurações.');
+    return 'disconnected';
   }
 
   try {
-    return await withPageLock(async () => {
-      const exists = await sessionExists();
-      if (exists) {
-        const page = await client.getPage(sessionPath());
-        if (await doVerifySession(page)) {
-          emitStatus(win, 'connected');
-          void warmKudoRecipientCache(page);
-          return 'connected';
-        }
-        logger.warn('Saved session invalid — silent re-login');
-      } else {
-        logger.info('No saved session — silent login');
-      }
-
-      const creds = await getCredentials();
-      if (!creds) {
-        emitStatus(win, 'disconnected');
-        logger.info('No credentials saved — open Configurações');
-        return 'disconnected';
-      }
-
-      const page = await client.getPage();
-      await performLogin(page, creds);
-      await client.persistSession(sessionPath());
-      emitStatus(win, 'connected');
-      void warmKudoRecipientCache(page);
-      return 'connected';
-    });
+    await loginHttp(creds.email, creds.password);
+    emitStatus(win, 'connected');
+    logger.info('Sessão HTTP estabelecida.');
+    return 'connected';
   } catch (err) {
-    logger.error('ensureSession failed', err);
+    logger.error(`Login HTTP falhou: ${err instanceof Error ? err.message : String(err)}`);
     emitStatus(win, 'expired');
     return 'expired';
   }
@@ -124,27 +69,11 @@ export function startWatchdog(getWin: () => BrowserWindow | null) {
     const status = getCurrentStatus();
     if (status !== 'connected') return;
     try {
-      if (await isHttpMode()) {
-        try {
-          await getValidSession();
-        } catch {
-          clearCachedSession();
-          logger.warn('Watchdog HTTP: sessão perdida — reconectando');
-          await ensureSession(getWin(), { announceReconnect: true });
-        }
-        return;
-      }
-      const ok = await withPageLock(async () => {
-        const client = BeeforClient.instance();
-        const page = await client.getPage(sessionPath());
-        return doVerifySession(page);
-      });
-      if (!ok) {
-        logger.warn('Watchdog: session lost — reconnecting');
-        await ensureSession(getWin(), { announceReconnect: true });
-      }
-    } catch (err) {
-      logger.error('Watchdog check failed', err);
+      await getValidSession();
+    } catch {
+      clearCachedSession();
+      logger.warn('Watchdog: sessão perdida — reconectando');
+      await ensureSession(getWin(), { announceReconnect: true });
     }
   }, VERIFY_INTERVAL_MS);
 }

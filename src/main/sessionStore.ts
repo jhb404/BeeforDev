@@ -30,7 +30,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoLoginOnLaunch: true,
 
   beeforEnv: 'prod',
-  loginMode: 'playwright',
 
   automatePunch: false,
   punchTimes: ['09:00', '12:00', '13:00', '18:00'],
