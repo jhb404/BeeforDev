@@ -1,0 +1,180 @@
+/* === Bell / Alerts === */
+.bell-wrap {
+  position: relative;
+}
+
+.bell-wrap .icon-btn {
+  position: relative;
+}
+
+.bell-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--err);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.bell-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 200;
+  width: 320px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: toastIn 0.15s ease;
+}
+
+.bell-panel__header {
+  padding: 10px 14px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.bell-panel__empty {
+  padding: 16px 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.bell-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+.bell-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+.bell-item:last-child {
+  border-bottom: none;
+}
+
+.bell-item:hover {
+  background: var(--bg-2);
+}
+
+.bell-item__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bell-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.bell-action {
+  min-height: 24px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius);
+}
+
+.bell-action--snooze {
+  background: var(--bg-3);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.bell-action--snooze:hover:not(:disabled) {
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+.bell-action--primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
+
+.bell-action--primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.bell-action--dismiss {
+  margin-left: auto;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  font-size: 12px;
+  min-height: 24px;
+  padding: 3px 6px;
+  border-radius: 6px;
+}
+
+.bell-action--dismiss:hover:not(:disabled) {
+  background: var(--err-border);
+  color: var(--err);
+}
+
+.bell-item--kudocard { border-left-color: var(--warn); }
+.bell-item--mood     { border-left-color: var(--ok); }
+.bell-item--lunch    { border-left-color: var(--accent-2); }
+.bell-item--punch    { border-left-color: var(--accent); }
+.bell-item--birthday {
+  border-left-color: #e91e8c;
+  background: rgba(233, 30, 140, 0.06);
+}
+[data-theme="light"] .bell-item--birthday {
+  background: rgba(233, 30, 140, 0.05);
+}
+.bell-item--birthday .bell-item__title {
+  color: #e91e8c;
+}
+
+.bell-item__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.bell-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bell-item__time {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-3);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.bell-item__body {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+

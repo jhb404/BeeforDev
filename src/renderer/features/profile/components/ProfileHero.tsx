@@ -75,47 +75,52 @@ export function ProfileHero({
 
       {/* Linha superior: identidade + sociais + stats */}
       <div className="pfx-hero__top">
-        <div className="pfx-hero__main">
-          <strong className="pfx-hero__name">{nome}</strong>
-          {meta && <span className="pfx-hero__meta">{meta}</span>}
+        <div className="pfx-hero__left">
+          {/* identidade (barra vertical vai só até o XP) + sociais */}
+          <div className="pfx-hero__id">
+            <div className="pfx-hero__main">
+              <strong className="pfx-hero__name">{nome}</strong>
+              {meta && <span className="pfx-hero__meta">{meta}</span>}
 
-          <div className="pfx-hero__chips">
-            <span className="pfx-tag">Beta tester</span>
+              <div className="pfx-hero__chips">
+                <span className="pfx-tag">Beta tester</span>
+              </div>
+
+              <XPBar xp={xp} xpNext={xpNext} pct={xpPct} onHelp={onOpenXpInfo} />
+            </div>
+
+            <SocialLinks />
           </div>
 
-          <XPBar xp={xp} xpNext={xpNext} pct={xpPct} onHelp={onOpenXpInfo} />
+          {/* mini bio: começa no padrão (sob o hexágono) e termina no ícone */}
+          <div className="pfx-hero__bio">
+            <BioCard bio={miniBio} />
+          </div>
         </div>
 
-        <SocialLinks />
-
-        <div className="pfx-hero__stats">
-          <StatsCard
-            iconKind="trophy"
-            value={`${achUnlocked}/${achTotal}`}
-            label="Conquistas"
-            onClick={onOpenConquistas}
-          />
-          <StatsCard iconKind="check" value={checkpoints} label="Checkpoints" />
-          <StatsCard iconKind="action" value={acoesCount} label="Ações" />
-          <StatsCard iconKind="sentiment" value="--" label="Sentimento" />
-        </div>
-      </div>
-
-      {/* Linha inferior: mini bio + habilidades */}
-      <div className="pfx-hero__bottom">
-        <div className="pfx-hero__bio">
-          <BioCard bio={miniBio} />
-        </div>
-
-        <div className="pfx-hero__skills">
-          <PfxCard title="🛠️ Habilidades">
-            <HabilidadesBlock
-              habilidades={habilidades}
-              combo={habilidadesCombo}
-              onAdd={onAddHabilidade}
-              onRemove={onRemoveHabilidade}
+        {/* coluna direita: stats no topo + habilidades logo abaixo */}
+        <div className="pfx-hero__right">
+          <div className="pfx-hero__stats">
+            <StatsCard
+              iconKind="trophy"
+              value={`${achUnlocked}/${achTotal}`}
+              label="Conquistas"
+              onClick={onOpenConquistas}
             />
-          </PfxCard>
+            <StatsCard iconKind="check" value={checkpoints} label="Checkpoints" />
+            <StatsCard iconKind="action" value={acoesCount} label="Ações" />
+          </div>
+
+          <div className="pfx-hero__skills">
+            <PfxCard title="🛠️ Habilidades">
+              <HabilidadesBlock
+                habilidades={habilidades}
+                combo={habilidadesCombo}
+                onAdd={onAddHabilidade}
+                onRemove={onRemoveHabilidade}
+              />
+            </PfxCard>
+          </div>
         </div>
       </div>
     </div>

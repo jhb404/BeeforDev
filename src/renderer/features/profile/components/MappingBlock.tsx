@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { MappingItem } from '../hooks/usePerfilData';
+import { mappingEmoji } from '../utils/mappingEmoji';
 
 type EditItens = Array<{ IdItem?: string; NomeItem: string }>;
 
@@ -38,7 +39,18 @@ export function MappingBlock({ mapping, onAdd, onEdit, onDel }: Props) {
   return (
     <>
       <div className="pfx-mapping">
-        {mapping.length === 0 && <span className="pfx-empty">Sem personal mapping ainda.</span>}
+        {mapping.length === 0 && !adding && (
+          <button
+            type="button"
+            className="pfx-mapping__ghost"
+            onClick={() => setAdding(true)}
+            data-sound="click"
+          >
+            <span className="pfx-mapping__ghost-icon">🗺️</span>
+            <strong>Crie seu primeiro mapa</strong>
+            <span>Conte curiosidades, família, hobbies…</span>
+          </button>
+        )}
         {mapping.map((m) =>
           editingId === (m.idTitulo || m.titulo) ? (
             <MappingCardEdit
@@ -61,7 +73,11 @@ export function MappingBlock({ mapping, onAdd, onEdit, onDel }: Props) {
               data-sound="click"
             >
               <div className="pfx-mapping__head">
-                <strong>{m.titulo}</strong>
+                <span className="pfx-mapping__icon">{mappingEmoji(m.titulo)}</span>
+                <strong className="pfx-mapping__title">{m.titulo}</strong>
+                <span key={m.itens.length} className="pfx-mapping__count">
+                  {m.itens.length}
+                </span>
                 <span
                   className="pfx-mapping__del"
                   role="button"
@@ -154,6 +170,8 @@ function MappingCardEdit({ item, onSave, onCancel }: EditProps) {
     item.itens.length ? item.itens.map((it) => ({ ...it })) : [{ nomeItem: '' }],
   );
   const [busy, setBusy] = useState(false);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [overIdx, setOverIdx] = useState<number | null>(null);
 
   function setItem(idx: number, valor: string) {
     setItens((prev) => prev.map((it, i) => (i === idx ? { ...it, nomeItem: valor } : it)));
@@ -163,6 +181,21 @@ function MappingCardEdit({ item, onSave, onCancel }: EditProps) {
   }
   function delItem(idx: number) {
     setItens((prev) => prev.filter((_, i) => i !== idx));
+  }
+  function moveItem(target: number) {
+    if (dragIdx === null || dragIdx === target) {
+      setDragIdx(null);
+      setOverIdx(null);
+      return;
+    }
+    setItens((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIdx, 1);
+      next.splice(target, 0, moved);
+      return next;
+    });
+    setDragIdx(null);
+    setOverIdx(null);
   }
 
   async function salvar() {
@@ -189,7 +222,29 @@ function MappingCardEdit({ item, onSave, onCancel }: EditProps) {
       />
       <div className="pfx-mapping__edit-itens">
         {itens.map((it, i) => (
-          <div key={it.idItem ?? i} className="pfx-mapping__edit-row">
+          <div
+            key={it.idItem ?? i}
+            className={`pfx-mapping__edit-row ${dragIdx === i ? 'pfx-mapping__edit-row--dragging' : ''} ${overIdx === i ? 'pfx-mapping__edit-row--over' : ''}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setOverIdx(i);
+            }}
+            onDragLeave={() => setOverIdx((o) => (o === i ? null : o))}
+            onDrop={() => moveItem(i)}
+          >
+            <span
+              className="pfx-mapping__edit-handle"
+              draggable
+              onDragStart={() => setDragIdx(i)}
+              onDragEnd={() => {
+                setDragIdx(null);
+                setOverIdx(null);
+              }}
+              aria-label="Arrastar para reordenar"
+              title="Arraste para reordenar"
+            >
+              ⠿
+            </span>
             <span className="pfx-mapping__edit-dot" />
             <input
               type="text"

@@ -16,8 +16,8 @@ export const API_BASES: Record<BeeforEnv, ApiBases> = {
     appUrl: 'https://app.beefor.io',
   },
   prod: {
-    teams: 'http://localhost:44341/api',
-    // teams: 'https://apiteams.goobee.com.br/api',
+    // teams: 'http://localhost:44341/api',
+    teams: 'https://apiteams.goobee.com.br/api',
     timesheet: 'https://apiteams.goobee.com.br/timesheet-beefor/api',
     appUrl: 'https://app.beefor.io',
   },
