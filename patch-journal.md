@@ -1,5 +1,7 @@
 - v0.1.11: APPLEEEEE 🍎✨
 
+GENTE GENTE GENTE -> AINDA N DA PRA USAR PQ TEM Q PAGAR $99 POR CONTA DE UM CERTIFICADO...JAJA RESOLVO ISSO :D
+
 Eu ouvi voce, Ó USUÁRIO DE MAC bem parcelado em 12x...
 
 Atendendo ao seu pedido — tá aq, quentinho do forno —

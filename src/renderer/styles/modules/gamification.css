@@ -148,18 +148,6 @@ button.profile-modal__xp-help:hover:not(:disabled) {
   50%      { transform: scale(1.15) rotate(4deg); }
 }
 
-/* Achievement lock indicator */
-.profile-achievement {
-  position: relative;
-}
-.profile-achievement__lock {
-  position: absolute;
-  top: 2px;
-  right: 4px;
-  font-size: 10px;
-  opacity: 0.6;
-}
-
 /* XP info view */
 .xp-info__intro {
   margin: 0 0 4px;

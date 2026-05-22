@@ -29,6 +29,8 @@ export interface Achievement {
   icon: string;
   label: string;
   description: string;
+  /** Progression tier 1–6 (Onboarding → Endgame). Drives rarity styling. */
+  tier?: 1 | 2 | 3 | 4 | 5 | 6;
   /** Condition checker — receives current stats, returns true if unlocked. */
   check: (stats: UserStats) => boolean;
   /** Optional reward when unlocked. */
