@@ -2,13 +2,12 @@ import type { BrowserWindow } from 'electron';
 import { IPC } from '../../../shared/ipc/index';
 import { BEEFOR_LOGIN_URL } from '../../../shared/constants';
 import { openExternalSafe } from '../../openSafe';
+import { ok, fail } from '../../../shared/result';
 import {
-  doAutoLancamento,
-  doFetchTimesheet,
-  doLancarHora,
-} from '../../../automation/beefor/actions';
-import { ok, fail, withTimeout } from '../../../shared/result';
-import { runBeeforAction, runBeeforActionWithReconnect } from '../../services/beeforActionRunner';
+  autoLancarApontamentos,
+  getMonthPayload,
+  lancarHora,
+} from '../../services/beeforTimesheetService';
 import { fetchTimesheetArgsSchema, timesheetEntrySchema } from '../schemas';
 import { defineHandler } from '../defineHandler';
 
@@ -24,11 +23,8 @@ export function registerTimesheetHandlers(getWindow: () => BrowserWindow | null)
     },
     run: async () => {
       const win = getWindow();
-      await runBeeforActionWithReconnect(win, 'Auto lançamento', (page) => doAutoLancamento(page));
-      win?.webContents.send(IPC.EVT_NOTIFY, {
-        title: 'sync:autoLancamento',
-        body: 'ok',
-      });
+      await autoLancarApontamentos();
+      win?.webContents.send(IPC.EVT_NOTIFY, { title: 'sync:autoLancamento', body: 'ok' });
       return ok();
     },
   });
@@ -47,9 +43,16 @@ export function registerTimesheetHandlers(getWindow: () => BrowserWindow | null)
     schema: timesheetEntrySchema,
     errorMessage: 'Lançar hora failed',
     run: async ({ data }) => {
-      const win = getWindow();
-      // @ts-ignore
-      await runBeeforAction(win, (page) => doLancarHora(page, data));
+      await lancarHora({
+        date: data.date,
+        entrada: data.entrada,
+        int1: data.int1,
+        ret1: data.ret1,
+        int2: data.int2,
+        ret2: data.ret2,
+        saida: data.saida,
+        comentario: data.comentario,
+      });
       return ok();
     },
   });
@@ -61,13 +64,8 @@ export function registerTimesheetHandlers(getWindow: () => BrowserWindow | null)
     errorMessage: 'Fetch timesheet failed',
     run: async ({ data }) => {
       const [year, month] = data;
-      const win = getWindow();
-      const rows = await withTimeout(
-        runBeeforAction(win, (page) => doFetchTimesheet(page, year, month)),
-        60_000,
-        'Fetch timesheet',
-      );
-      return ok(rows);
+      const payload = await getMonthPayload(year, month);
+      return ok(payload);
     },
   });
 }

@@ -15,17 +15,17 @@ interface LogoVariantSpec {
 const LOGO_VARIANTS: LogoVariantSpec[] = [
   {
     id: 'orange',
-    name: 'Abelha Clássica',
-    description: 'Logo padrão laranja, sempre disponível.',
+    name: 'Abelha Classica',
+    description: 'Logo padrao laranja, sempre disponivel.',
     color: '#e6a817',
     requires: null,
   },
   {
     id: 'purple',
     name: 'Abelha Real',
-    description: 'Variante roxa, sempre disponível.',
+    description: 'Variante roxa bloqueada por enquanto.',
     color: '#7c5cbf',
-    requires: null,
+    requires: 'logo-purple-locked',
   },
   {
     id: 'logo-flame',
@@ -33,7 +33,7 @@ const LOGO_VARIANTS: LogoVariantSpec[] = [
     description: 'Mantenha streak de 30 dias para revelar.',
     color: '#dc2626',
     effectClass: 'logo-fx-flame',
-    overlay: '🔥',
+    overlay: '!',
     requires: 'mood-month',
   },
   {
@@ -42,25 +42,25 @@ const LOGO_VARIANTS: LogoVariantSpec[] = [
     description: 'Envie 50 KudoCards para desvendar.',
     color: '#fbbf24',
     effectClass: 'logo-fx-crown',
-    overlay: '👑',
+    overlay: '^',
     requires: 'kudo-master',
   },
   {
     id: 'logo-galaxy',
     name: 'Abelha Estelar',
-    description: 'Alcance o nível 10 para descobrir.',
+    description: 'Alcance o nivel 10 para descobrir.',
     color: '#a855f7',
     effectClass: 'logo-fx-galaxy',
-    overlay: '✨',
+    overlay: '*',
     requires: 'lvl-10',
   },
   {
     id: 'logo-diamond',
     name: 'Cristal Beefor',
-    description: 'Conquista de nível 25.',
+    description: 'Conquista de nivel 25.',
     color: '#60a5fa',
     effectClass: 'logo-fx-diamond',
-    overlay: '💎',
+    overlay: '<>',
     requires: 'lvl-25',
   },
   {
@@ -69,7 +69,7 @@ const LOGO_VARIANTS: LogoVariantSpec[] = [
     description: '100 KudoCards enviados.',
     color: '#f59e0b',
     effectClass: 'logo-fx-trophy',
-    overlay: '🏆',
+    overlay: '#',
     requires: 'kudo-legend',
   },
   {
@@ -78,7 +78,7 @@ const LOGO_VARIANTS: LogoVariantSpec[] = [
     description: 'Complete todas as conquistas.',
     color: '#fbbf24',
     effectClass: 'logo-fx-master',
-    overlay: '🌟',
+    overlay: '+',
     requires: 'beefor-master',
   },
 ];
@@ -91,17 +91,16 @@ export function LogoCard({ settings, onUpdate }: AppearanceCardProps) {
     if (v.id === 'orange' || v.id === 'purple') {
       onUpdate('logoVariant', v.id);
     }
-    // Outras variantes não persistem ainda: aguardam assets finais.
   };
 
   return (
     <div className="card">
       <h2>Logo do app</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 12px' }}>
-        Variantes desbloqueadas via conquistas. As bloqueadas só revelam quando você completa o
+        Variantes desbloqueadas via conquistas. As bloqueadas so revelam quando voce completa o
         requisito.{' '}
         <em style={{ color: 'var(--warm)' }}>
-          Em desenvolvimento — apenas Laranja aplicam por enquanto (O roxo tá dodoi).
+          Em desenvolvimento: apenas Laranja aplica por enquanto.
         </em>
       </p>
       <div className="logo-variants-grid">
@@ -115,7 +114,7 @@ export function LogoCard({ settings, onUpdate }: AppearanceCardProps) {
               className={`logo-variant-card ${active ? 'logo-variant-card--active' : ''} ${unlocked ? '' : 'logo-variant-card--locked'}`}
               onClick={() => apply(v)}
               disabled={!unlocked}
-              title={unlocked ? v.description : `Bloqueado — conquista "${v.requires}"`}
+              title={unlocked ? v.description : `Bloqueado - conquista "${v.requires}"`}
               data-sound="click"
             >
               <span
@@ -135,7 +134,7 @@ export function LogoCard({ settings, onUpdate }: AppearanceCardProps) {
               <small>{v.description}</small>
               {!unlocked && (
                 <span className="logo-variant-card__lock" aria-hidden="true">
-                  🔒
+                  locked
                 </span>
               )}
             </button>

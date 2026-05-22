@@ -22,6 +22,7 @@ import { AtividadesModal } from '../features/atividades/components/AtividadesMod
 import { APP_EVENTS, onAppEvent } from '../app/events';
 import { useMoodFlow } from './home/hooks/useMoodFlow';
 import { useTimesheetData } from './home/hooks/useTimesheetData';
+import { usePrefetch } from '../app/hooks/usePrefetch';
 
 interface HomeProps {
   onMoodChanged?: (mood: string | null) => void;
@@ -36,8 +37,9 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
     system: systemClient,
     timesheet: timesheetClient,
   } = useIpc();
-  const { status, busy, wrap } = useBeefor();
+  const { status, busy, isBusy, wrap } = useBeefor();
   const ready = status === 'connected';
+  usePrefetch(ready);
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -90,7 +92,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
   const lancar = async (idx: number, refreshAfter = false) => {
     const r = rows[idx];
     updateRow(idx, { saving: true, saved: false, failed: false, errMsg: undefined });
-    await wrap(async () => {
+    await wrap('lancarHora', async () => {
       const res = await timesheetClient.lancarHora({
         date: r.date,
         entrada: r.entrada,
@@ -142,15 +144,15 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
   }, []);
 
   const autoLancamento = async () => {
-    await wrap(async () => {
+    await wrap('autoLancamento', async () => {
       const res = await timesheetClient.autoLancamento();
       if (settings?.uiSounds && res.ok) playUiSound('auto-lancar-success');
       showToast(
         res.ok
           ? {
               kind: 'ok',
-              title: 'Auto lançamento iniciado',
-              msg: 'Processando... calendário atualiza quando concluir.',
+              title: 'Auto lançamento concluído',
+              msg: 'Calendário atualizado.',
             }
           : {
               kind: 'err',
@@ -159,9 +161,11 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
             },
       );
       if (res.ok) {
+        // HTTP síncrono concluiu — recarrega mês atual imediatamente.
         const nowDate = new Date();
         setYear(nowDate.getFullYear());
         setMonth(nowDate.getMonth() + 1);
+        await refreshTimesheet();
       }
     });
   };
@@ -248,7 +252,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
       <MoodPanel
         loading={showMoodLoader}
         currentMood={currentMood}
-        busy={busy}
+        busy={isBusy('mood')}
         ready={ready}
         onSelect={selectMood}
       />
@@ -258,7 +262,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
           year={year}
           month={month}
           yearOptions={yearOptions}
-          busy={busy}
+          busy={isBusy('autoLancamento')}
           ready={ready}
           onYearChange={setYear}
           onMonthChange={setMonth}
@@ -279,7 +283,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
             rows={rows}
             year={year}
             month={month}
-            busy={busy}
+            busy={isBusy('lancarHora')}
             ready={ready}
             hoursPerDayMin={hoursPerDayMin}
             showDiff={settings?.calendarShowDiff ?? false}
@@ -291,7 +295,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
             rows={rows}
             today={today}
             hoursPerDayMin={hoursPerDayMin}
-            busy={busy}
+            busy={isBusy('lancarHora')}
             ready={ready}
             onUpdateRow={updateRow}
             onLancar={(idx) => void lancar(idx)}

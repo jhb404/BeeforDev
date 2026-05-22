@@ -5,7 +5,7 @@ import type { MoodClient } from '../../../services/ipc/mood.client';
 interface UseMoodFlowOptions {
   ready: boolean;
   moodClient: MoodClient;
-  wrap: (fn: () => Promise<void>) => Promise<void>;
+  wrap: (keyOrFn: any, maybeFn?: () => Promise<void>) => Promise<void>;
   showToast: (toast: { kind: 'ok' | 'err'; title?: string; msg: string }) => void;
   onMoodChanged?: (mood: string | null) => void;
 }
@@ -61,7 +61,7 @@ export function useMoodFlow({
       if (currentMood === m) return;
       const previous = currentMood;
       setCurrentMood(m);
-      await wrap(async () => {
+      await wrap('mood', async () => {
         const res = await moodClient.select(m);
         if (!res.ok) {
           setCurrentMood(previous);

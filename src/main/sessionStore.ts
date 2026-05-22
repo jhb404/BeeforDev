@@ -2,6 +2,7 @@ import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { SESSION_FILE, SETTINGS_FILE } from '../shared/constants';
+import { setBeeforEnv } from '../shared/env';
 import type { AppSettings } from '../shared/types/index';
 import { logger } from './logger';
 
@@ -27,6 +28,8 @@ async function readPatchJournal(): Promise<string> {
 const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
   autoLoginOnLaunch: true,
+
+  beeforEnv: 'prod',
 
   automatePunch: false,
   punchTimes: ['09:00', '12:00', '13:00', '18:00'],
@@ -77,16 +80,24 @@ export async function clearSession(): Promise<void> {
 
 export async function loadSettings(): Promise<AppSettings> {
   const journal = await readPatchJournal();
+  let merged: AppSettings;
   try {
     const raw = await fs.readFile(settingsPath(), 'utf-8');
     const parsed = JSON.parse(raw);
-    return { ...DEFAULT_SETTINGS, ...parsed, patchJournal: journal };
+    merged = { ...DEFAULT_SETTINGS, ...parsed, patchJournal: journal };
   } catch {
-    return { ...DEFAULT_SETTINGS, patchJournal: journal };
+    merged = { ...DEFAULT_SETTINGS, patchJournal: journal };
   }
+  if (merged.beeforEnv === 'local' || merged.beeforEnv === 'prod') {
+    setBeeforEnv(merged.beeforEnv);
+  }
+  return merged;
 }
 
 export async function saveSettings(s: AppSettings): Promise<void> {
   const { patchJournal: _omit, ...rest } = s;
   await fs.writeFile(settingsPath(), JSON.stringify(rest, null, 2), 'utf-8');
+  if (s.beeforEnv === 'local' || s.beeforEnv === 'prod') {
+    setBeeforEnv(s.beeforEnv);
+  }
 }

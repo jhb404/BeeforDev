@@ -1,0 +1,67 @@
+/* === Custom Titlebar (Discord-style) === */
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  background: var(--bg-0);
+  padding: 0 0 0 12px;
+  user-select: none;
+  -webkit-app-region: drag;
+  flex-shrink: 0;
+}
+
+.titlebar-drag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.titlebar-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.titlebar-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+}
+
+.titlebar-controls {
+  display: flex;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 32px;
+  min-height: unset;
+  padding: 0;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-radius: 0;
+  font-size: 0;
+  transition: background 0.1s, color 0.1s;
+}
+
+.titlebar-btn:hover:not(:disabled) {
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+.titlebar-btn--close:hover:not(:disabled) {
+  background: #c42b1c;
+  color: #fff;
+}
+

@@ -1,0 +1,470 @@
+.kudo-modal {
+  max-width: 600px;
+  width: min(600px, calc(100vw - 32px));
+}
+.kudo-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.kudo-card-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-left-width: var(--selectable-left-width);
+  color: var(--text);
+  padding: 14px 8px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    transform 0.08s,
+    box-shadow 0.12s;
+  min-height: 92px;
+}
+button.kudo-card-pick:hover:not(:disabled) {
+  background: var(--selectable-hover-bg);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: var(--selectable-hover-shadow);
+}
+.kudo-card-pick.active {
+  background: var(--selectable-active-bg);
+  border-color: var(--selectable-active-border);
+  color: var(--text);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent) inset;
+}
+button.kudo-card-pick.active:hover:not(:disabled) {
+  background: var(--selectable-active-bg);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent) inset;
+}
+.kudo-card-pick:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.kudo-card-emoji {
+  font-size: 26px;
+  line-height: 1;
+}
+.kudo-card-name {
+  font-weight: 500;
+}
+
+.kudo-segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+}
+.kudo-segmented button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  padding: 9px 12px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s,
+    border-color 0.12s;
+}
+.kudo-segmented button:hover:not(:disabled):not(.active) {
+  background: var(--selectable-hover-bg);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.kudo-segmented button.active {
+  background: var(--selectable-active-bg);
+  color: var(--text);
+  border-color: var(--selectable-active-border);
+  box-shadow: none;
+}
+.kudo-segmented button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.kudo-seg-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.kudo-autocomplete {
+  position: relative;
+}
+.kudo-autocomplete input[type='text'] {
+  width: 100%;
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  min-height: var(--control-height);
+  padding: 8px var(--control-pad-x);
+  font-size: 13px;
+}
+.kudo-autocomplete input[type='text']:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.kudo-suggest {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  max-height: 240px;
+  overflow-y: auto;
+}
+.kudo-suggest-empty {
+  padding: 10px 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.kudo-suggest-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kudo-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--text-muted);
+  border-top-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: kudo-spin 0.7s linear infinite;
+}
+@keyframes kudo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.kudo-suggest-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.kudo-suggest-item:last-child {
+  border-bottom: none;
+}
+button.kudo-suggest-item:hover:not(:disabled) {
+  background: var(--selectable-hover-bg);
+  color: var(--text);
+}
+button.kudo-suggest-item:hover:not(:disabled) span {
+  color: var(--text-muted);
+}
+.kudo-suggest-item span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.kudo-modal textarea {
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  padding: 8px var(--control-pad-x);
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  min-height: 120px;
+  max-height: 320px;
+}
+.kudo-modal textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.kudo-err {
+  background: rgba(224, 84, 112, 0.1);
+  border: 1px solid var(--err-border);
+  color: var(--err);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+@media (max-width: 540px) {
+  .kudo-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.kudo-history-modal {
+  max-width: 880px;
+  width: min(880px, calc(100vw - 32px));
+  height: 720px;
+  max-height: calc(100vh - 44px);
+  display: flex;
+  flex-direction: column;
+}
+.kudo-history-body {
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+.kudo-history-counts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.kudo-count-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.kudo-count-card strong {
+  font-size: 22px;
+  color: var(--warm);
+}
+.kudo-history-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  width: fit-content;
+}
+.kudo-history-tabs button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  padding: 7px 14px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s,
+    border-color 0.12s;
+}
+.kudo-history-tabs button:hover:not(.active) {
+  background: var(--selectable-hover-bg);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.kudo-history-tabs button.active {
+  background: var(--selectable-active-bg);
+  color: var(--text);
+  border-color: var(--selectable-active-border);
+}
+.kudo-history-empty {
+  padding: 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+.kudo-history-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+.kudo-history-list {
+  list-style: none;
+  margin: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  align-content: start;
+  align-items: start;
+  grid-auto-rows: min-content;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-1);
+}
+.kudo-history-list > li {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+}
+.kudo-history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--bg-1);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  border-left-width: var(--selectable-left-width);
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
+  min-height: 58px;
+  height: auto;
+}
+button.kudo-history-item:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: var(--selectable-hover-bg);
+  color: var(--text);
+  box-shadow: var(--selectable-hover-shadow);
+}
+button.kudo-history-item:hover:not(:disabled) .kudo-history-meta,
+button.kudo-history-item:hover:not(:disabled) .kudo-history-date {
+  color: var(--text-muted);
+}
+.kudo-history-item.active {
+  border-color: var(--selectable-active-border);
+  border-left-color: var(--selectable-active-border);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent) inset;
+  background: var(--selectable-active-bg);
+}
+button.kudo-history-item.active:hover:not(:disabled) {
+  background: var(--selectable-active-bg);
+}
+.kudo-history-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+.kudo-history-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.kudo-history-info strong {
+  font-size: 13px;
+}
+.kudo-history-meta,
+.kudo-history-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.kudo-history-detail {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  overflow-y: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.kudo-detail-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.kudo-detail-emoji {
+  font-size: 36px;
+  line-height: 1;
+}
+.kudo-detail-head strong {
+  display: block;
+  font-size: 15px;
+}
+.kudo-detail-head span {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.kudo-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13px;
+}
+.kudo-detail-row .label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.kudo-detail-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+.kudo-history-loader-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.kudo-slow-hint {
+  color: var(--warm);
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+}
+.kudo-detail-loading {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+}
+.kudo-detail-msg p {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin: 0;
+  font-size: 13px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+@media (max-width: 720px) {
+  .kudo-history-grid {
+    grid-template-columns: 1fr;
+  }
+  .kudo-history-list,
+  .kudo-history-detail {
+    max-height: 280px;
+  }
+}
