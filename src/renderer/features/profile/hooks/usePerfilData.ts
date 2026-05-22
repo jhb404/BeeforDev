@@ -54,6 +54,38 @@ export interface PerfilData {
     itens: Array<{ IdItem?: string; NomeItem: string }>,
   ) => Promise<boolean>;
   delMapping: (idTitulo: string) => Promise<boolean>;
+  saving: boolean;
+  saveProfile: (patch: ProfilePatch) => Promise<boolean>;
+  editData: EditPerfilSnapshot | null;
+  editLoading: boolean;
+  gestores: GestorItem[];
+  loadEditData: () => Promise<void>;
+}
+
+export interface ProfilePatch {
+  nome?: string;
+  email?: string;
+  miniBio?: string;
+  funcaoPrincipal?: string;
+  telefone?: string;
+  idGestor?: string | null;
+  idioma?: number;
+  /** Data URI base64 (data:image/...;base64,...) p/ trocar foto. */
+  foto?: string;
+}
+
+/** Snapshot completo do PegarEditarPerfil — campos não expostos pelo hero (email/tel/gestor/idioma). */
+export interface EditPerfilSnapshot {
+  email: string;
+  telefone: string;
+  funcaoPrincipal: string;
+  idGestor: string | null;
+  idioma: number;
+}
+
+export interface GestorItem {
+  id: string;
+  nome: string;
 }
 
 function arr<T>(v: unknown): T[] {
@@ -68,8 +100,12 @@ export function usePerfilData(open: boolean): PerfilData {
   const [acoes, setAcoes] = useState<AcaoItem[]>([]);
   const [mapping, setMapping] = useState<MappingItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [editData, setEditData] = useState<EditPerfilSnapshot | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+  const [gestores, setGestores] = useState<GestorItem[]>([]);
 
   const refresh = useCallback(() => setReloadKey((k) => k + 1), []);
 
@@ -139,16 +175,13 @@ export function usePerfilData(open: boolean): PerfilData {
     [refetchHabilidades],
   );
 
-  const reorderMotivadores = useCallback(
-    async (ordenados: MotivadorItem[]): Promise<boolean> => {
-      setMotivadores(ordenados.map((m, i) => ({ ...m, indice: i + 1 })));
-      const res = await window.beeforHttp.perfil.editMotivadores(
-        ordenados.map((m) => ({ idMotivador: m.idMotivador })),
-      );
-      return res.ok;
-    },
-    [],
-  );
+  const reorderMotivadores = useCallback(async (ordenados: MotivadorItem[]): Promise<boolean> => {
+    setMotivadores(ordenados.map((m, i) => ({ ...m, indice: i + 1 })));
+    const res = await window.beeforHttp.perfil.editMotivadores(
+      ordenados.map((m) => ({ idMotivador: m.idMotivador })),
+    );
+    return res.ok;
+  }, []);
 
   const refetchMapping = useCallback(async () => {
     const res = await window.beeforHttp.perfil.mapping();
@@ -186,6 +219,57 @@ export function usePerfilData(open: boolean): PerfilData {
     [refetchMapping],
   );
 
+  const loadEditData = useCallback(async (): Promise<void> => {
+    setEditLoading(true);
+    try {
+      const [eRes, gRes] = await Promise.all([
+        window.beeforHttp.perfil.editGet(),
+        window.beeforHttp.perfil.gestores(),
+      ]);
+      if (eRes.ok && eRes.data) {
+        const d = eRes.data as Record<string, unknown>;
+        setEditData({
+          email: String(d.email ?? ''),
+          telefone: String(d.telefone ?? ''),
+          funcaoPrincipal: String(d.funcaoPrincipal ?? ''),
+          idGestor: d.idGestor ? String(d.idGestor) : null,
+          idioma: Number(d.idioma ?? 1),
+        });
+      }
+      if (gRes.ok) setGestores(arr<GestorItem>(gRes.data));
+    } finally {
+      setEditLoading(false);
+    }
+  }, []);
+
+  const saveProfile = useCallback(async (patch: ProfilePatch): Promise<boolean> => {
+    setSaving(true);
+    try {
+      const res = await window.beeforHttp.perfil.editSave(patch);
+      if (res.ok) {
+        // PegarPerfil (hero) e PegarEditarPerfil são fontes distintas; reflete o patch no
+        // state local imediatamente e dispara refresh p/ reconciliar com o servidor.
+        setPerfil((prev) =>
+          prev
+            ? {
+                ...prev,
+                nome: patch.nome ?? prev.nome,
+                miniBio: patch.miniBio ?? prev.miniBio,
+                funcaoPrincipal: patch.funcaoPrincipal ?? prev.funcaoPrincipal,
+                foto: patch.foto ?? prev.foto,
+              }
+            : prev,
+        );
+        setReloadKey((k) => k + 1);
+      } else {
+        setError(res.error || 'Falha ao salvar perfil.');
+      }
+      return res.ok;
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
   return {
     perfil,
     habilidades,
@@ -202,5 +286,11 @@ export function usePerfilData(open: boolean): PerfilData {
     addMapping,
     editMapping,
     delMapping,
+    saving,
+    saveProfile,
+    editData,
+    editLoading,
+    gestores,
+    loadEditData,
   };
 }

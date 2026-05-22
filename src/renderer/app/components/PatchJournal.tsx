@@ -9,19 +9,19 @@ const UPCOMING: RoadmapSection[] = [
   {
     title: '🛣️ Em breve',
     items: [
+      '📐 RESPONSIVIDADE PRA TELAS MENORES',
       '🧊 Streak freeze — escudo pra não perder streak por esquecimento',
-      '🌐 Migrar Beefor 100% pra API REST (sem Playwright = mais rápido)',
       '📱 Versão mobile (iOS + Android) — code share via Capacitor',
-      '🍎 Suporte completo macOS (build + signing + notarization)',
+      '🍎 Instalação sem erros no mac...(Precisa de certificado)',
       '🔐 Code signing Windows (sem warning "Unknown publisher")',
       '🗄️ Backend de gamificação — XP/conquistas persistem entre PCs',
-      '🏆 Ranking de streak REAL entre colegas do time',
+      '🏆 Ranking de streak REAL entre coleguinhas',
     ],
   },
   {
     title: '💭 Wishlist',
     items: [
-      '🎲 Loot box semanal (Honeycomb da semana)',
+      '🎲 Loot box semanal (Honeycomb da semana)...talvez?',
       '🎄 Eventos sazonais (Natal, Halloween, etc)',
       '🔗 Sincronização cross-device (configs entre PCs)',
       '📆 Integração com Google Calendar / Outlook',

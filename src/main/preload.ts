@@ -178,12 +178,14 @@ const httpApi = {
   login: (usuario: string, senha: string): Promise<ActionResult> =>
     ipcRenderer.invoke(IPC.API_LOGIN, { usuario, senha }),
   logout: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_LOGOUT),
-  sessionInfo: (): Promise<ActionResult<{
-    idPessoa: string;
-    idOrganizacao: string | null;
-    nome?: string;
-    email?: string;
-  } | null>> => ipcRenderer.invoke(IPC.API_SESSION_INFO),
+  sessionInfo: (): Promise<
+    ActionResult<{
+      idPessoa: string;
+      idOrganizacao: string | null;
+      nome?: string;
+      email?: string;
+    } | null>
+  > => ipcRenderer.invoke(IPC.API_SESSION_INFO),
 
   // Env
   getEnv: (): Promise<ActionResult<'local' | 'prod'>> => ipcRenderer.invoke(IPC.API_ENV_GET),
@@ -196,11 +198,7 @@ const httpApi = {
     add: (mood: Mood): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_MOOD_ADD, mood),
     edit: (idSentimentoPessoa: string, mood: Mood): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_MOOD_EDIT, { idSentimentoPessoa, mood }),
-    streakOrg: (
-      dataInicio?: string,
-      dataFim?: string,
-      topN: number = 30,
-    ): Promise<ActionResult> =>
+    streakOrg: (dataInicio?: string, dataFim?: string, topN: number = 30): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_MOOD_STREAK_ORG, { dataInicio, dataFim, topN }),
   },
 
@@ -213,8 +211,7 @@ const httpApi = {
       mensagem: string;
       idTime?: string;
     }): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_KUDO_SEND, req),
-    counts: (): Promise<ActionResult<KudoCardCounts>> =>
-      ipcRenderer.invoke(IPC.API_KUDO_COUNTS),
+    counts: (): Promise<ActionResult<KudoCardCounts>> => ipcRenderer.invoke(IPC.API_KUDO_COUNTS),
     lists: (): Promise<ActionResult<KudoCardLists>> => ipcRenderer.invoke(IPC.API_KUDO_LISTS),
     detail: (id: string): Promise<ActionResult<KudoCardDetail>> =>
       ipcRenderer.invoke(IPC.API_KUDO_DETAIL, id),
@@ -249,9 +246,7 @@ const httpApi = {
     connect: (): Promise<ActionResult<{ connected: boolean }>> =>
       ipcRenderer.invoke(IPC.API_HUB_CONNECT),
     disconnect: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_HUB_DISCONNECT),
-    onEvent: (
-      cb: (e: { type: string; payload: unknown }) => void,
-    ): (() => void) => {
+    onEvent: (cb: (e: { type: string; payload: unknown }) => void): (() => void) => {
       const listener = (_e: unknown, msg: { type: string; payload: unknown }) => cb(msg);
       ipcRenderer.on(IPC.EVT_HUB, listener);
       return () => ipcRenderer.removeListener(IPC.EVT_HUB, listener);
@@ -272,8 +267,7 @@ const httpApi = {
       ipcRenderer.invoke(IPC.API_PERFIL_REMOVE_HABILIDADE, idHabilidade),
     motivadores: (idPessoa?: string): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_PERFIL_MOTIVADORES, idPessoa),
-    addMotivadores: (): Promise<ActionResult> =>
-      ipcRenderer.invoke(IPC.API_PERFIL_MOTIVADORES_ADD),
+    addMotivadores: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_PERFIL_MOTIVADORES_ADD),
     editMotivadores: (ordenados: Array<{ idMotivador: string }>): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_PERFIL_MOTIVADORES_EDIT, ordenados),
     acoes: (idPessoa?: string): Promise<ActionResult> =>
@@ -290,6 +284,19 @@ const httpApi = {
       ipcRenderer.invoke(IPC.API_PERFIL_MAPPING_EDIT, { idTitulo, titulo, itens }),
     delMapping: (idMapping: string): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_PERFIL_MAPPING_DEL, idMapping),
+    editGet: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_EDIT_GET, idPessoa),
+    editSave: (patch: {
+      nome?: string;
+      email?: string;
+      miniBio?: string;
+      funcaoPrincipal?: string;
+      telefone?: string;
+      idGestor?: string | null;
+      idioma?: number;
+      foto?: string;
+    }): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_PERFIL_EDIT_SAVE, patch),
+    gestores: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_PERFIL_GESTORES),
   },
 
   // Notificações
@@ -310,13 +317,8 @@ const httpApi = {
 
   // Atividades
   atividades: {
-    minhas: (): Promise<ActionResult<BeeforAtividade[]>> =>
-      ipcRenderer.invoke(IPC.API_ATIV_MINHAS),
-    detail: (
-      idCard: string,
-      idTime: string,
-      idOrganizacao?: string,
-    ): Promise<ActionResult> =>
+    minhas: (): Promise<ActionResult<BeeforAtividade[]>> => ipcRenderer.invoke(IPC.API_ATIV_MINHAS),
+    detail: (idCard: string, idTime: string, idOrganizacao?: string): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_ATIV_DETAIL, { idCard, idTime, idOrganizacao }),
     edit: (
       idCard: string,

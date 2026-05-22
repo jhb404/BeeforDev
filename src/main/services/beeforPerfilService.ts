@@ -38,6 +38,64 @@ export interface PersonalMappingItem {
   itens: Array<{ idItem?: string; nomeItem: string }>;
 }
 
+/**
+ * Snapshot completo p/ edição — vem do GET PegarEditarPerfil. Inclui flags/bools que o PUT
+ * EditarPerfil exige espelhados (ViewModel C# não-nullable → omitir = false acidental).
+ */
+export interface EditarPerfilDados {
+  id: string;
+  foto: string;
+  nome: string;
+  funcaoPrincipal: string;
+  email: string;
+  telefone: string;
+  miniBio: string;
+  status: boolean;
+  eUsuario: boolean;
+  liberarCicloPerformance: boolean;
+  eContaGoogle: boolean;
+  perfilRH: boolean;
+  perfilRecrutador: boolean;
+  pulse: boolean;
+  pulseAdmin: boolean;
+  nivelPermissao: number | null;
+  idGestor: string | null;
+  idsGrupos: string[];
+  idioma: number;
+  usaTimeSheetBeefor: boolean;
+  usaSomenteTimeSheetBeefor: boolean;
+  adminProjectPro: boolean;
+}
+
+/** Campos que a UI inline edita. Resto do snapshot é espelhado intacto. */
+export interface EditarPerfilPatch {
+  nome?: string;
+  email?: string;
+  miniBio?: string;
+  funcaoPrincipal?: string;
+  telefone?: string;
+  /** GUID do gestor ou null/'' p/ remover. */
+  idGestor?: string | null;
+  /** IdiomaEnum: 1=Brasil, 2=USA, 3=ES. */
+  idioma?: number;
+  /** Data URI base64 (data:image/...;base64,...) p/ trocar; URL atual mantém. */
+  foto?: string;
+}
+
+export interface GestorItem {
+  id: string;
+  nome: string;
+}
+
+function asBool(v: unknown): boolean {
+  return v === true || v === 'true';
+}
+
+function asStrOrNull(v: unknown): string | null {
+  if (v == null || v === '') return null;
+  return String(v);
+}
+
 function asStr(v: unknown): string {
   return typeof v === 'string' ? v : v == null ? '' : String(v);
 }
@@ -220,6 +278,91 @@ export async function deletarPersonalMapping(
   return beeforHttp.delete(
     `/Pessoa/DeletarPersonalMapping/${encodeURIComponent(idMapping)}/${encodeURIComponent(target)}`,
   );
+}
+
+/** GET PegarEditarPerfil — snapshot completo p/ alimentar o modo edição + base do PUT. */
+export async function getEditarPerfil(idPessoa?: string): Promise<EditarPerfilDados | null> {
+  const session = await getValidSession();
+  const target = idPessoa ?? session.idPessoa;
+  const data = await beeforHttp.get<any>(`/Pessoa/PegarEditarPerfil/${encodeURIComponent(target)}`);
+  if (!data) return null;
+  return {
+    id: asStr(data.id ?? target),
+    foto: asStr(data.foto),
+    nome: asStr(data.nome),
+    funcaoPrincipal: asStr(data.funcaoPrincipal),
+    email: asStr(data.email),
+    telefone: asStr(data.telefone),
+    miniBio: asStr(data.miniBio),
+    status: asBool(data.status),
+    eUsuario: asBool(data.eUsuario),
+    liberarCicloPerformance: asBool(data.liberarCicloPerformance),
+    eContaGoogle: asBool(data.eContaGoogle),
+    perfilRH: asBool(data.perfilRH),
+    perfilRecrutador: asBool(data.perfilRecrutador),
+    pulse: asBool(data.pulse),
+    pulseAdmin: asBool(data.pulseAdmin),
+    nivelPermissao: typeof data.nivelPermissao === 'number' ? data.nivelPermissao : null,
+    idGestor: asStrOrNull(data.idGestor),
+    idsGrupos: Array.isArray(data.idsGrupos) ? data.idsGrupos.map(asStr) : [],
+    idioma: Number(data.idioma ?? 0),
+    usaTimeSheetBeefor: asBool(data.usaTimeSheetBeefor),
+    usaSomenteTimeSheetBeefor: asBool(data.usaSomenteTimeSheetBeefor),
+    adminProjectPro: asBool(data.adminProjectPro),
+  };
+}
+
+/**
+ * PUT EditarPerfil. Carrega snapshot atual, mescla o patch (campos editáveis) e envia o
+ * ViewModel completo — espelhar bools/flags evita zerá-los (C# não-nullable). Gates server-side:
+ * body.Id === {id} na rota; IdResponsavelEdicao === usuário do token.
+ */
+export async function editarPerfil(patch: EditarPerfilPatch, idPessoa?: string): Promise<unknown> {
+  const session = await getValidSession();
+  const target = idPessoa ?? session.idPessoa;
+
+  const atual = await getEditarPerfil(target);
+  if (!atual) throw new Error('Perfil não encontrado para edição.');
+
+  const body = {
+    id: atual.id,
+    foto: patch.foto ?? atual.foto,
+    nome: patch.nome ?? atual.nome,
+    funcaoPrincipal: patch.funcaoPrincipal ?? atual.funcaoPrincipal,
+    email: patch.email ?? atual.email,
+    telefone: patch.telefone ?? atual.telefone,
+    miniBio: patch.miniBio ?? atual.miniBio,
+    idGestor: patch.idGestor !== undefined ? asStrOrNull(patch.idGestor) : atual.idGestor,
+    status: atual.status,
+    eUsuario: atual.eUsuario,
+    liberarCicloPerformance: atual.liberarCicloPerformance,
+    eContaGoogle: atual.eContaGoogle,
+    perfilRH: atual.perfilRH,
+    perfilRecrutador: atual.perfilRecrutador,
+    pulse: atual.pulse,
+    pulseAdmin: atual.pulseAdmin,
+    nivelPermissao: atual.nivelPermissao,
+    idResponsavelEdicao: session.idPessoa,
+    senha: null,
+    confirmacaoSenha: null,
+    usaTimeSheetBeefor: atual.usaTimeSheetBeefor,
+    usaSomenteTimeSheetBeefor: atual.usaSomenteTimeSheetBeefor,
+    adminProjectPro: atual.adminProjectPro,
+    motivoSaida: null,
+    idioma: patch.idioma ?? atual.idioma,
+    idsGrupos: atual.idsGrupos,
+  };
+
+  return beeforHttp.put(`/Pessoa/EditarPerfil/${encodeURIComponent(atual.id)}`, body);
+}
+
+/** GET PegarGestores — combo de gestores da organização p/ o select de edição. */
+export async function getGestores(): Promise<GestorItem[]> {
+  await getValidSession();
+  const data = await beeforHttp.get<any[]>('/Pessoa/PegarGestores');
+  return Array.isArray(data)
+    ? data.map((g) => ({ id: asStr(g?.id), nome: asStr(g?.nome) })).filter((g) => g.id && g.nome)
+    : [];
 }
 
 export async function getPersonalMapping(idPessoa?: string): Promise<PersonalMappingItem[]> {

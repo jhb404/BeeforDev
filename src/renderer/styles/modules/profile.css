@@ -15,6 +15,7 @@
 }
 .profile-modal--large .profile-modal__body {
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
   padding: 14px 18px 18px;
 }
@@ -383,7 +384,7 @@ button.pfx-xp__help:hover:not(:disabled) {
 }
 .pfx-stat {
   width: 92px;
-  height: 92px;
+  height: 104px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -417,8 +418,9 @@ button.pfx-stat {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
   border-radius: var(--radius);
 }
 .pfx-stat__icon svg {
@@ -543,7 +545,7 @@ button.pfx-stat {
     min-height: 120px;
   }
   .pfx-hero__skills .pfx-card {
-    height: 380px;
+    height: 240px;
   }
   .pfx-grid {
     grid-template-columns: 1fr;
@@ -724,12 +726,12 @@ button.pfx-suggest__chip:hover:not(:disabled) {
 }
 .pfx-motiv-pod {
   flex: 0 0 auto;
-  width: 124px;
+  width: 104px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 9px;
-  padding: 22px 12px 14px;
+  gap: 7px;
+  padding: 18px 10px 12px;
   background: var(--bg-1);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -759,8 +761,8 @@ button.pfx-suggest__chip:hover:not(:disabled) {
 }
 /* 1º — ouro, maior e elevado */
 .pfx-motiv-pod--p1 {
-  width: 146px;
-  padding-top: 28px;
+  width: 124px;
+  padding-top: 24px;
   border-color: #f0b429;
   background: color-mix(in srgb, #f0b429 9%, var(--bg-1));
   box-shadow:
@@ -786,19 +788,19 @@ button.pfx-suggest__chip:hover:not(:disabled) {
 }
 .pfx-motiv-pod__medal {
   position: absolute;
-  top: -16px;
-  font-size: 26px;
+  top: -14px;
+  font-size: 22px;
   line-height: 1;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
 }
 .pfx-motiv-pod .pfx-motiv-card__emoji {
-  width: 56px;
-  height: 56px;
+  width: 46px;
+  height: 46px;
 }
 .pfx-motiv-pod--p1 .pfx-motiv-card__emoji {
-  width: 66px;
-  height: 66px;
-  font-size: 32px;
+  width: 54px;
+  height: 54px;
+  font-size: 27px;
 }
 
 /* ── Grid: do 4º ao 10º ── */
@@ -807,7 +809,8 @@ button.pfx-suggest__chip:hover:not(:disabled) {
   margin: 14px 0 0;
   padding: 12px 2px 4px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(88px, 104px));
+  justify-content: center;
   gap: 10px;
   overflow: visible;
 }
@@ -815,8 +818,8 @@ button.pfx-suggest__chip:hover:not(:disabled) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 9px;
-  padding: 18px 10px 14px;
+  gap: 7px;
+  padding: 15px 8px 12px;
   background: var(--bg-1);
   border: 1px solid var(--border);
   border-left-width: var(--selectable-left-width);
@@ -871,11 +874,11 @@ button.pfx-suggest__chip:hover:not(:disabled) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--accent-2-soft);
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1;
   margin-top: 4px;
 }
@@ -1512,60 +1515,323 @@ button.profile-modal__trophy-btn:hover:not(:disabled) {
   font-size: 0.95rem;
   font-weight: 700;
 }
-.profile-modal__achievement-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 8px;
-  max-height: 320px;
-  overflow-y: auto;
-  padding: 4px 4px 4px 0;
-  /* Custom scroll — discrete, follows theme */
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
-}
-.profile-modal__achievement-grid::-webkit-scrollbar {
-  width: 6px;
-}
-.profile-modal__achievement-grid::-webkit-scrollbar-track {
-  background: transparent;
-}
-.profile-modal__achievement-grid::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: 999px;
-}
-.profile-modal__achievement-grid::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
-}
-.profile-achievement {
+/* ════════════════════════════════════════════════════════════
+   EM BREVE — placeholder da tela de variantes de ícone
+   ════════════════════════════════════════════════════════════ */
+.coming-soon {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 10px;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  padding: 32px 24px;
+  min-height: 320px;
+}
+.coming-soon__media {
+  width: 220px;
+  height: 220px;
+  border-radius: 18px;
+  overflow: hidden;
   background: var(--bg-2);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.coming-soon__gif {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.coming-soon__badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.coming-soon__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.coming-soon__text {
+  margin: 0;
+  max-width: 340px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ════════════════════════════════════════════════════════════
+   CONQUISTAS — grid por tier, raridade, progresso, recompensas
+   ════════════════════════════════════════════════════════════ */
+
+/* Cores de raridade por tier (1→6). Usadas como --rar local. */
+.ach-tier[data-tier='1'],
+.ach-card[data-tier='1'] {
+  --rar: #9aa4b2;
+}
+.ach-tier[data-tier='2'],
+.ach-card[data-tier='2'] {
+  --rar: #2ec27e;
+}
+.ach-tier[data-tier='3'],
+.ach-card[data-tier='3'] {
+  --rar: #3b82f6;
+}
+.ach-tier[data-tier='4'],
+.ach-card[data-tier='4'] {
+  --rar: #a855f7;
+}
+.ach-tier[data-tier='5'],
+.ach-card[data-tier='5'] {
+  --rar: #f59e0b;
+}
+.ach-tier[data-tier='6'],
+.ach-card[data-tier='6'] {
+  --rar: #06b6d4;
+}
+
+.ach-view {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 2px 6px 2px 0;
+}
+
+/* ── Cabeçalho de progresso ─────────────────────────────── */
+.ach-summary {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(6px);
+}
+.ach-summary__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.ach-summary__count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.ach-summary__count strong {
+  font-size: 1.1rem;
+  color: var(--text);
+}
+.ach-summary__pct {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+.ach-summary__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-3, rgba(127, 127, 127, 0.18));
+  overflow: hidden;
+}
+.ach-summary__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #fff));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Seção de tier ──────────────────────────────────────── */
+.ach-tier__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.ach-tier__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rar);
+  box-shadow: 0 0 8px var(--rar);
+  flex: none;
+}
+.ach-tier__name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.ach-tier__rarity {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rar);
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rar) 16%, transparent);
+}
+.ach-tier__progress {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.ach-tier__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+/* ── Card de conquista ──────────────────────────────────── */
+.ach-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  background: var(--bg-2);
+  overflow: hidden;
   transition:
-    transform 0.15s,
-    background 0.15s,
-    border-color 0.15s;
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.2s ease;
 }
-.profile-achievement:hover {
-  transform: translateY(-1px);
-  background: var(--selectable-hover-bg);
-  border-color: var(--accent);
+/* Faixa de raridade na borda esquerda */
+.ach-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--rar);
 }
-.profile-achievement--locked {
-  opacity: 0.35;
-  filter: grayscale(0.8);
+.ach-card--unlocked {
+  border-color: color-mix(in srgb, var(--rar) 45%, var(--border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--rar) 9%, var(--bg-2)),
+    var(--bg-2) 60%
+  );
 }
-.profile-achievement__icon {
-  font-size: 1.5rem;
+.ach-card--unlocked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--rar) 28%, transparent);
 }
-.profile-achievement__label {
-  font-size: 0.7rem;
-  text-align: center;
+.ach-card--locked {
+  opacity: 0.62;
+}
+.ach-card--locked::before {
+  background: var(--border-strong);
+}
+.ach-card--locked:hover {
+  opacity: 0.85;
+  border-color: var(--border-strong);
+}
+
+.ach-card__icon-wrap {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--rar) 14%, transparent);
+}
+.ach-card--locked .ach-card__icon-wrap {
+  background: rgba(127, 127, 127, 0.12);
+}
+.ach-card__icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+.ach-card--unlocked .ach-card__icon {
+  filter: drop-shadow(0 1px 4px color-mix(in srgb, var(--rar) 60%, transparent));
+}
+
+.ach-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.ach-card__label {
+  font-size: 0.82rem;
+  font-weight: 700;
   color: var(--text);
+  line-height: 1.2;
+}
+.ach-card__desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.ach-card__rewards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.ach-reward {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.ach-reward--theme {
+  color: #a855f7;
+  background: color-mix(in srgb, #a855f7 14%, transparent);
+}
+.ach-reward--icon {
+  color: #06b6d4;
+  background: color-mix(in srgb, #06b6d4 14%, transparent);
+}
+.ach-reward--xp {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.ach-card--locked .ach-reward {
+  filter: grayscale(0.5);
+  opacity: 0.85;
+}
+
+/* Selo ✓ no canto, só desbloqueado */
+.ach-card__check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: #fff;
+  background: var(--rar);
+  border-radius: 50%;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--rar) 70%, transparent);
 }
 .profile-modal__hint {
   margin: 0;
@@ -1573,4 +1839,167 @@ button.profile-modal__trophy-btn:hover:not(:disabled) {
   color: var(--text-muted);
   text-align: center;
   opacity: 0.8;
+}
+
+/* ── Edição inline do perfil ─────────────────────────────── */
+
+/* Botão editar: âncora no canto sup. direito do card, fora do fluxo dos stats */
+.pfx-hero__edit-btn {
+  position: absolute;
+  top: -15px;
+  right: -10px;
+  z-index: 4;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0;
+  border-radius: var(--radius);
+  background: var(--pfx-blue-soft);
+  border: 1px solid var(--border);
+  color: var(--pfx-blue);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+.pfx-hero__edit-btn:hover {
+  background: color-mix(in srgb, var(--pfx-blue) 22%, transparent);
+  border-color: var(--pfx-blue);
+  transform: translateY(-1px);
+}
+
+/* Foto em edição: overlay com a cor do tema + lápis centralizado */
+.pfx-hex__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--pfx-blue) 55%, transparent);
+  opacity: 0.92;
+  transition: opacity 0.15s ease;
+  /* Acompanha o recorte hexagonal do avatar (mesma var do __shape) */
+  clip-path: var(--hex-clip);
+}
+.pfx-hex--editing:hover .pfx-hex__overlay {
+  opacity: 1;
+}
+.pfx-hex__overlay-pencil {
+  font-size: 22px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+}
+
+/* Inputs inline herdam a tipografia dos rótulos que substituem */
+.pfx-hero__name-input {
+  width: 100%;
+  background: var(--bg-1, var(--bg-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 4px 8px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.pfx-hero__name-input:focus,
+.pfx-bio-input:focus,
+.pfx-edit-field input:focus,
+.pfx-edit-field select:focus {
+  outline: none;
+  border-color: var(--pfx-blue);
+}
+.pfx-hero__foto-erro {
+  font-size: 11px;
+  color: var(--danger, #e5484d);
+}
+
+/* Casa a tipografia/tamanho do .pfx-bio (<p>) — não cresce o card em edição */
+.pfx-bio-input {
+  width: 100%;
+  resize: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 4px 6px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  font-family: inherit;
+}
+
+/* Em edição: bio mantém posição/altura normais — preenche toda a coluna esquerda,
+   acompanhando o form à direita. Textarea enche o corpo do card. */
+.pfx-hero--editing .pfx-hero__bio .pfx-bio-input {
+  height: 100%;
+  min-height: 0;
+}
+/* recua a bio p/ não ficar sob o hexágono (alinha com a identidade) */
+.pfx-hero--editing .pfx-hero__bio {
+  padding-top: 70px;
+}
+
+/* Form de campos (coluna direita em modo edição) */
+.pfx-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pfx-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pfx-edit-field > span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.pfx-edit-field input,
+.pfx-edit-field select {
+  width: 100%;
+  background: var(--bg-1, var(--bg-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 7px 9px;
+  font: inherit;
+}
+
+.pfx-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+.pfx-btn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.pfx-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.pfx-btn--primary {
+  background: var(--pfx-blue);
+  border: 1px solid var(--pfx-blue);
+  color: #fff;
+}
+.pfx-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
 }
