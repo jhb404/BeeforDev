@@ -1,3 +1,13 @@
+- v0.2.0: HOLY MOLY, TEMOS API E COISINHAS NOVAAAAAS ✨🔥
+
+Gente, mó felicidade, me deram acesso a api do beefor...sinceramente não sei nem como kk
+
+
+
+OBS: sinceramente já desisti de tentar identificar se o video é real ou ia...pra mim esse gif é 100% REAL
+
+---
+
 - v0.1.11: APPLEEEEE 🍎✨
 
 GENTE GENTE GENTE -> AINDA N DA PRA USAR PQ TEM Q PAGAR $99 POR CONTA DE UM CERTIFICADO...JAJA RESOLVO ISSO :D
