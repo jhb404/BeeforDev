@@ -142,6 +142,9 @@ export const IPC = {
   API_PERFIL_MAPPING_EDIT: 'api:perfilMappingEdit',
   API_PERFIL_MAPPING_DEL: 'api:perfilMappingDel',
   API_PERFIL_REMOVE_HABILIDADE: 'api:perfilRemoveHabilidade',
+  API_PERFIL_EDIT_GET: 'api:perfilEditGet',
+  API_PERFIL_EDIT_SAVE: 'api:perfilEditSave',
+  API_PERFIL_GESTORES: 'api:perfilGestores',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];

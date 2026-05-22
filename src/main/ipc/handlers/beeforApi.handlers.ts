@@ -74,6 +74,9 @@ import {
   adicionarPersonalMapping,
   editarPersonalMapping,
   deletarPersonalMapping,
+  getEditarPerfil,
+  editarPerfil,
+  getGestores,
 } from '../../services/beeforPerfilService';
 import { getBeeforEnv, setBeeforEnv } from '../../../shared/env';
 import { loadSettings, saveSettings } from '../../sessionStore';
@@ -91,10 +94,7 @@ const dateRangeSchema = z.object({
   topN: z.number().int().min(1).max(200).optional(),
 });
 
-const monthArgs = z.tuple([
-  z.number().int().min(2000).max(2100),
-  z.number().int().min(1).max(12),
-]);
+const monthArgs = z.tuple([z.number().int().min(2000).max(2100), z.number().int().min(1).max(12)]);
 
 const sendKudoSchema = z.object({
   idDestinatario: z.string().min(1).max(64),
@@ -318,8 +318,7 @@ export function registerBeeforApiHandlers(): void {
       idOrganizacao: stringIdSchema.optional(),
     }),
     errorMessage: 'Atividade detail failed',
-    run: async ({ data }) =>
-      ok(await getCardDetail(data.idCard, data.idTime, data.idOrganizacao)),
+    run: async ({ data }) => ok(await getCardDetail(data.idCard, data.idTime, data.idOrganizacao)),
   });
 
   defineHandler({
@@ -573,6 +572,38 @@ export function registerBeeforApiHandlers(): void {
     run: async ({ data }) => ok(await deletarPersonalMapping(data)),
   });
 
+  defineHandler({
+    channel: IPC.API_PERFIL_EDIT_GET,
+    schema: optionalId,
+    errorMessage: 'Perfil edit get failed',
+    run: async ({ data }) => ok(await getEditarPerfil(data || undefined)),
+  });
+
+  const editPerfilSchema = z.object({
+    nome: z.string().max(200).optional(),
+    email: z.string().max(254).optional(),
+    miniBio: z.string().max(1000).optional(),
+    funcaoPrincipal: z.string().max(200).optional(),
+    telefone: z.string().max(20).optional(),
+    idGestor: z.string().max(64).nullable().optional(),
+    idioma: z.number().int().min(1).max(3).optional(),
+    // data URI base64 ou URL — limite alto p/ acomodar imagem inline.
+    foto: z.string().max(10_000_000).optional(),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_EDIT_SAVE,
+    schema: editPerfilSchema,
+    errorMessage: 'Perfil edit save failed',
+    run: async ({ data }) => ok(await editarPerfil(data)),
+  });
+
+  defineHandler({
+    channel: IPC.API_PERFIL_GESTORES,
+    errorMessage: 'Perfil gestores failed',
+    run: async () => ok(await getGestores()),
+  });
+
   // ─── SignalR Hub ───────────────────────────────────────
   const hubEventTypes = [
     'mood:changed',
@@ -619,4 +650,3 @@ export function registerBeeforApiHandlers(): void {
     },
   });
 }
-

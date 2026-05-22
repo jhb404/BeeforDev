@@ -15,6 +15,7 @@
 }
 .profile-modal--large .profile-modal__body {
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
   padding: 14px 18px 18px;
 }
@@ -383,7 +384,7 @@ button.pfx-xp__help:hover:not(:disabled) {
 }
 .pfx-stat {
   width: 92px;
-  height: 92px;
+  height: 104px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -417,8 +418,9 @@ button.pfx-stat {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
   border-radius: var(--radius);
 }
 .pfx-stat__icon svg {
@@ -543,7 +545,7 @@ button.pfx-stat {
     min-height: 120px;
   }
   .pfx-hero__skills .pfx-card {
-    height: 380px;
+    height: 240px;
   }
   .pfx-grid {
     grid-template-columns: 1fr;
@@ -724,12 +726,12 @@ button.pfx-suggest__chip:hover:not(:disabled) {
 }
 .pfx-motiv-pod {
   flex: 0 0 auto;
-  width: 124px;
+  width: 104px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 9px;
-  padding: 22px 12px 14px;
+  gap: 7px;
+  padding: 18px 10px 12px;
   background: var(--bg-1);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -759,8 +761,8 @@ button.pfx-suggest__chip:hover:not(:disabled) {
 }
 /* 1º — ouro, maior e elevado */
 .pfx-motiv-pod--p1 {
-  width: 146px;
-  padding-top: 28px;
+  width: 124px;
+  padding-top: 24px;
   border-color: #f0b429;
   background: color-mix(in srgb, #f0b429 9%, var(--bg-1));
   box-shadow:
@@ -786,19 +788,19 @@ button.pfx-suggest__chip:hover:not(:disabled) {
 }
 .pfx-motiv-pod__medal {
   position: absolute;
-  top: -16px;
-  font-size: 26px;
+  top: -14px;
+  font-size: 22px;
   line-height: 1;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
 }
 .pfx-motiv-pod .pfx-motiv-card__emoji {
-  width: 56px;
-  height: 56px;
+  width: 46px;
+  height: 46px;
 }
 .pfx-motiv-pod--p1 .pfx-motiv-card__emoji {
-  width: 66px;
-  height: 66px;
-  font-size: 32px;
+  width: 54px;
+  height: 54px;
+  font-size: 27px;
 }
 
 /* ── Grid: do 4º ao 10º ── */
@@ -807,7 +809,8 @@ button.pfx-suggest__chip:hover:not(:disabled) {
   margin: 14px 0 0;
   padding: 12px 2px 4px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(88px, 104px));
+  justify-content: center;
   gap: 10px;
   overflow: visible;
 }
@@ -815,8 +818,8 @@ button.pfx-suggest__chip:hover:not(:disabled) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 9px;
-  padding: 18px 10px 14px;
+  gap: 7px;
+  padding: 15px 8px 12px;
   background: var(--bg-1);
   border: 1px solid var(--border);
   border-left-width: var(--selectable-left-width);
@@ -871,11 +874,11 @@ button.pfx-suggest__chip:hover:not(:disabled) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--accent-2-soft);
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1;
   margin-top: 4px;
 }
@@ -1573,4 +1576,167 @@ button.profile-modal__trophy-btn:hover:not(:disabled) {
   color: var(--text-muted);
   text-align: center;
   opacity: 0.8;
+}
+
+/* ── Edição inline do perfil ─────────────────────────────── */
+
+/* Botão editar: âncora no canto sup. direito do card, fora do fluxo dos stats */
+.pfx-hero__edit-btn {
+  position: absolute;
+  top: -15px;
+  right: -10px;
+  z-index: 4;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0;
+  border-radius: var(--radius);
+  background: var(--pfx-blue-soft);
+  border: 1px solid var(--border);
+  color: var(--pfx-blue);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+.pfx-hero__edit-btn:hover {
+  background: color-mix(in srgb, var(--pfx-blue) 22%, transparent);
+  border-color: var(--pfx-blue);
+  transform: translateY(-1px);
+}
+
+/* Foto em edição: overlay com a cor do tema + lápis centralizado */
+.pfx-hex__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--pfx-blue) 55%, transparent);
+  opacity: 0.92;
+  transition: opacity 0.15s ease;
+  /* Acompanha o recorte hexagonal do avatar (mesma var do __shape) */
+  clip-path: var(--hex-clip);
+}
+.pfx-hex--editing:hover .pfx-hex__overlay {
+  opacity: 1;
+}
+.pfx-hex__overlay-pencil {
+  font-size: 22px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+}
+
+/* Inputs inline herdam a tipografia dos rótulos que substituem */
+.pfx-hero__name-input {
+  width: 100%;
+  background: var(--bg-1, var(--bg-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 4px 8px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.pfx-hero__name-input:focus,
+.pfx-bio-input:focus,
+.pfx-edit-field input:focus,
+.pfx-edit-field select:focus {
+  outline: none;
+  border-color: var(--pfx-blue);
+}
+.pfx-hero__foto-erro {
+  font-size: 11px;
+  color: var(--danger, #e5484d);
+}
+
+/* Casa a tipografia/tamanho do .pfx-bio (<p>) — não cresce o card em edição */
+.pfx-bio-input {
+  width: 100%;
+  resize: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 4px 6px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  font-family: inherit;
+}
+
+/* Em edição: bio mantém posição/altura normais — preenche toda a coluna esquerda,
+   acompanhando o form à direita. Textarea enche o corpo do card. */
+.pfx-hero--editing .pfx-hero__bio .pfx-bio-input {
+  height: 100%;
+  min-height: 0;
+}
+/* recua a bio p/ não ficar sob o hexágono (alinha com a identidade) */
+.pfx-hero--editing .pfx-hero__bio {
+  padding-top: 70px;
+}
+
+/* Form de campos (coluna direita em modo edição) */
+.pfx-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pfx-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pfx-edit-field > span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.pfx-edit-field input,
+.pfx-edit-field select {
+  width: 100%;
+  background: var(--bg-1, var(--bg-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 7px 9px;
+  font: inherit;
+}
+
+.pfx-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+.pfx-btn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.pfx-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.pfx-btn--primary {
+  background: var(--pfx-blue);
+  border: 1px solid var(--pfx-blue);
+  color: #fff;
+}
+.pfx-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
 }

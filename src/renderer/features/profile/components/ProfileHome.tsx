@@ -51,6 +51,11 @@ export function ProfileHome({
     addMapping,
     editMapping,
     delMapping,
+    saving,
+    saveProfile,
+    editData,
+    gestores,
+    loadEditData,
   } = data;
 
   const nome = perfil?.nome || userName || 'Beta Tester';
@@ -66,6 +71,7 @@ export function ProfileHome({
       <ProfileHero
         nome={nome}
         meta={meta}
+        funcaoPrincipal={perfil?.funcaoPrincipal}
         foto={perfil?.foto}
         level={level}
         xp={xp}
@@ -81,6 +87,11 @@ export function ProfileHome({
         habilidadesCombo={habilidadesCombo}
         onAddHabilidade={addHabilidade}
         onRemoveHabilidade={removeHabilidade}
+        saving={saving}
+        onSave={saveProfile}
+        editData={editData}
+        gestores={gestores}
+        onLoadEditData={loadEditData}
         onOpenIcons={onOpenIcons}
         onOpenXpInfo={onOpenXpInfo}
         onOpenConquistas={onOpenConquistas}
