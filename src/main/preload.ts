@@ -323,13 +323,45 @@ const httpApi = {
     edit: (
       idCard: string,
       body: Partial<{
-        Nome: string;
-        Descricao: string;
-        Tipo: number;
-        IdResponsavel: string;
-        DataConclusao: string | null;
+        nome: string;
+        descricao: string;
+        idProjeto: string | null;
+        idEpico: string | null;
+        idIteracao: string | null;
+        nomeIteracao: string | null;
+        idColuna: string | null;
+        pontuacao: number | string | null;
+        bloqueado: boolean;
+        motivoBloqueio: string | null;
+        idsResponsaveisCard: string[];
+        cardEtiquetas: Array<{ idEtiqueta: string; nomeEtiqueta: string; corEtiqueta: string }>;
+        esforco: string | null;
+        quantidadeVagas: number | string | null;
+        dataPrevistaEntrega: string | null;
+        tipo: number;
+        idCardHistoria: string | null;
+        dataInicio: string | null;
       }>,
     ): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_ATIV_EDIT, { idCard, body }),
+    arquivar: (
+      idCard: string,
+      arquivado: boolean,
+      idQuadro?: string,
+    ): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_ARQUIVAR, { idCard, arquivado, idQuadro }),
+    logs: (idCard: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_LOGS, idCard),
+    anexos: (idCard: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_ANEXOS, idCard),
+    removerAnexo: (idAnexo: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_ANEXO_DEL, idAnexo),
+    adicionarAnexo: (params: {
+      idCard: string;
+      idTime: string;
+      fileName: string;
+      fileType: string;
+      fileBytes: ArrayBuffer;
+    }): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_ATIV_ANEXO_ADD, params),
     comments: (idCard: string): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_ATIV_COMMENTS, idCard),
     addComment: (idCard: string, texto: string): Promise<ActionResult> =>

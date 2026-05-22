@@ -1,4 +1,4 @@
-import { beeforHttp, getValidSession } from './beeforHttpClient';
+import { beeforHttp, beeforHttpUpload, getValidSession } from './beeforHttpClient';
 import type { BeeforAtividade } from '../../shared/types/index';
 
 export interface CardComentario {
@@ -29,12 +29,33 @@ export interface AdicionarCardBody {
   IdResponsavelCriacao: string;
 }
 
+/**
+ * Body do EditarCard espelhando o contrato do front goobeeteams (Quadro/EditarCard).
+ * O backend espera o card completo no PUT; enviar parcial pode zerar campos.
+ * Todos opcionais aqui pois o renderer monta a partir do card carregado.
+ */
 export interface EditarCardBody {
-  Nome?: string;
-  Descricao?: string;
-  Tipo?: number;
-  IdResponsavel?: string;
-  DataConclusao?: string | null;
+  idCard?: string;
+  nome?: string;
+  descricao?: string;
+  idProjeto?: string | null;
+  idEpico?: string | null;
+  idIteracao?: string | null;
+  nomeIteracao?: string | null;
+  idColuna?: string | null;
+  pontuacao?: number | string | null;
+  bloqueado?: boolean;
+  motivoBloqueio?: string | null;
+  idsResponsaveisCard?: string[];
+  cardEtiquetas?: Array<{ idEtiqueta: string; nomeEtiqueta: string; corEtiqueta: string }>;
+  backlog?: boolean;
+  idResponsavelEdicao?: string;
+  esforco?: string | null;
+  quantidadeVagas?: number | string | null;
+  dataPrevistaEntrega?: string | null;
+  tipo?: number;
+  idCardHistoria?: string | null;
+  dataInicio?: string | null;
 }
 
 export interface MoverCardBody {
@@ -48,12 +69,35 @@ export interface AdicionarComentarioBody {
   IdPessoa: string;
 }
 
+function pickStr(raw: any, ...keys: string[]): string | undefined {
+  for (const k of keys) {
+    const v = raw?.[k];
+    if (typeof v === 'string' && v.trim()) return v.trim();
+    if (v && typeof v === 'object') {
+      // tenta um nivel aninhado (ex: time.idTime)
+      for (const sk of keys) {
+        const sv = v[sk];
+        if (typeof sv === 'string' && sv.trim()) return sv.trim();
+      }
+    }
+  }
+  return undefined;
+}
+
+let _loggedRaw = false;
+
 function mapAtividade(raw: any): BeeforAtividade {
-  const idTime = typeof raw?.idTime === 'string' ? raw.idTime : undefined;
-  const idOrganizacao = typeof raw?.idOrganizacao === 'string' ? raw.idOrganizacao : undefined;
+  // DEBUG temporario: loga as chaves reais do 1o item p/ achar idTime/idQuadro corretos
+  if (!_loggedRaw && raw && typeof raw === 'object') {
+    _loggedRaw = true;
+    // eslint-disable-next-line no-console
+    console.log('[ATIV-RAW] keys:', Object.keys(raw), 'sample:', raw);
+  }
+  const idTime = pickStr(raw, 'idTime', 'idTimeQuadro', 'idTimeBoard', 'time');
+  const idOrganizacao = pickStr(raw, 'idOrganizacao', 'idOrg');
   return {
     id: String(raw?.id ?? raw?.idCard ?? '').trim(),
-    idQuadro: String(raw?.idQuadro ?? '').trim(),
+    idQuadro: String(raw?.idQuadro ?? raw?.idBoard ?? '').trim(),
     idTime,
     idOrganizacao,
     nome: String(raw?.nome ?? raw?.titulo ?? '').trim(),
@@ -117,7 +161,14 @@ export async function adicionarCard(body: AdicionarCardBody): Promise<unknown> {
 }
 
 export async function editarCard(idCard: string, body: EditarCardBody): Promise<unknown> {
-  return beeforHttp.put(`/Quadro/EditarCard/${encodeURIComponent(idCard)}`, body);
+  const session = await getValidSession();
+  const fullBody: EditarCardBody = {
+    backlog: false,
+    ...body,
+    idCard,
+    idResponsavelEdicao: body.idResponsavelEdicao ?? session.idPessoa,
+  };
+  return beeforHttp.put(`/Quadro/EditarCard/${encodeURIComponent(idCard)}`, fullBody);
 }
 
 export async function moverCard(idCard: string, body: MoverCardBody): Promise<unknown> {
@@ -131,8 +182,14 @@ export async function removerCard(idCard: string): Promise<unknown> {
 export async function arquivarCard(
   idCard: string,
   arquivado: boolean,
+  idQuadro?: string,
 ): Promise<unknown> {
-  const body = { IdCard: idCard, Arquivado: arquivado };
+  const session = await getValidSession();
+  const body = {
+    idCard,
+    idQuadro: idQuadro ?? '',
+    idResponsavelEdicao: session.idPessoa,
+  };
   const path = arquivado ? 'ArquivarCard' : 'DesarquivarCard';
   return beeforHttp.put(`/Quadro/${path}/${encodeURIComponent(idCard)}`, body);
 }
@@ -192,6 +249,47 @@ export async function listarLogsCard(idCard: string): Promise<CardLog[]> {
         nomePessoa: typeof l?.nomePessoa === 'string' ? l.nomePessoa : undefined,
       }))
     : [];
+}
+
+export interface CardAnexo {
+  idAnexo: string;
+  nome: string;
+  url: string;
+  tipo: string;
+}
+
+export async function listarAnexos(idCard: string): Promise<CardAnexo[]> {
+  const data = await beeforHttp.get<any[]>(
+    `/Quadro/PegarAnexos/${encodeURIComponent(idCard)}`,
+  );
+  return Array.isArray(data)
+    ? data.map((x) => ({
+        idAnexo: String(x?.idAnexo ?? x?.id ?? ''),
+        nome: String(x?.nome ?? x?.nomeArquivo ?? x?.nomeAnexo ?? 'arquivo'),
+        url: String(x?.url ?? x?.caminho ?? x?.link ?? ''),
+        tipo: String(x?.tipo ?? x?.extensao ?? ''),
+      }))
+    : [];
+}
+
+export async function removerAnexo(idAnexo: string): Promise<unknown> {
+  return beeforHttp.delete(`/Quadro/RemoverAnexo/${encodeURIComponent(idAnexo)}`);
+}
+
+export async function adicionarAnexo(params: {
+  idCard: string;
+  idTime: string;
+  fileName: string;
+  fileType: string;
+  fileBytes: ArrayBuffer;
+}): Promise<unknown> {
+  const session = await getValidSession();
+  return beeforHttpUpload('/Quadro/AdicionarAnexo', {
+    IdCard: params.idCard,
+    IdTime: params.idTime,
+    IdPessoaResponsavel: session.idPessoa,
+    ProjetoEpico: 'false',
+  }, { name: params.fileName, type: params.fileType, bytes: params.fileBytes });
 }
 
 export async function listarTodosQuadrosTime(idTime: string): Promise<unknown[]> {

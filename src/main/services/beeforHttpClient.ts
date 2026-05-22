@@ -266,6 +266,52 @@ export async function beeforHttpRequest<T = unknown>(
   }
 }
 
+/**
+ * Upload multipart/form-data. Nao passa pela criptografia AES (so JSON POST/PUT encripta).
+ * Mantem Authorization. Usado p/ AdicionarAnexo.
+ */
+export async function beeforHttpUpload<T = unknown>(
+  path: string,
+  fields: Record<string, string>,
+  file: { name: string; type: string; bytes: ArrayBuffer } | null,
+): Promise<T> {
+  const session = await getValidSession();
+  const url = buildUrl(path);
+
+  const form = new FormData();
+  for (const [k, v] of Object.entries(fields)) form.append(k, v ?? '');
+  if (file) {
+    const blob = new Blob([file.bytes], { type: file.type || 'application/octet-stream' });
+    form.append('Arquivo', blob, file.name);
+  }
+
+  const response = await fetchKeepAlive(url, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json, text/plain, */*',
+      authorization: `Bearer ${session.token}`,
+      // content-type definido automaticamente pelo FormData (com boundary)
+    },
+    body: form,
+  });
+
+  if (!response.ok) {
+    const txt = await response.text().catch(() => '');
+    throw new BeeforApiError(
+      `POST ${url} → ${response.status}: ${txt.slice(0, 300)}`,
+      response.status,
+      txt,
+    );
+  }
+  const text = await response.text();
+  if (!text) return null as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return text as unknown as T;
+  }
+}
+
 export const beeforHttp = {
   get: <T = unknown>(path: string, query?: HttpRequestOptions['query']) =>
     beeforHttpRequest<T>(path, { method: 'GET', query }),
