@@ -63,13 +63,17 @@ export async function getPerfil(idPessoa?: string): Promise<PerfilDados | null> 
 export async function getHabilidades(idPessoa?: string): Promise<HabilidadeItem[]> {
   const session = await getValidSession();
   const target = idPessoa ?? session.idPessoa;
-  const data = await beeforHttp.get<any[]>(`/Pessoa/PegarHabilidades/${encodeURIComponent(target)}`);
+  const data = await beeforHttp.get<any[]>(
+    `/Pessoa/PegarHabilidades/${encodeURIComponent(target)}`,
+  );
   return Array.isArray(data)
-    ? data.map((h) => ({
-        id: asStr(h?.id ?? h?.idHabilidade),
-        nome: asStr(h?.nome ?? h?.nomeHabilidade),
-        nivel: typeof h?.nivel === 'number' ? h.nivel : undefined,
-      })).filter((h) => h.nome)
+    ? data
+        .map((h) => ({
+          id: asStr(h?.id ?? h?.idHabilidade),
+          nome: asStr(h?.nome ?? h?.nomeHabilidade),
+          nivel: typeof h?.nivel === 'number' ? h.nivel : undefined,
+        }))
+        .filter((h) => h.nome)
     : [];
 }
 
@@ -98,18 +102,15 @@ export async function adicionarHabilidade(
   return beeforHttp.post('/Pessoa/AdicionarHabilidade', body);
 }
 
-export async function removerHabilidade(
-  idHabilidade: string,
-  idPessoa?: string,
-): Promise<unknown> {
+export async function removerHabilidade(idHabilidade: string, idPessoa?: string): Promise<unknown> {
   const session = await getValidSession();
   const target = idPessoa ?? session.idPessoa;
-  // Front: DELETE /pessoa/RemoverHabilidade/{idPessoa} com body = idHabilidade
-  return beeforHttp.delete(
-    `/Pessoa/RemoverHabilidade/${encodeURIComponent(target)}`,
-    undefined,
-    idHabilidade, // body cru (string)
-  );
+  // DELETE /Pessoa/RemoverHabilidade/{idPessoa} — body = RemoverHabilidadeViewModel (objeto),
+  // não a string crua do GUID (a API rejeita string com 400 "Error converting value").
+  return beeforHttp.delete(`/Pessoa/RemoverHabilidade/${encodeURIComponent(target)}`, undefined, {
+    idPessoa: target,
+    idHabilidade,
+  });
 }
 
 export async function getMotivadores(idPessoa?: string): Promise<MotivadorItem[]> {
@@ -117,11 +118,7 @@ export async function getMotivadores(idPessoa?: string): Promise<MotivadorItem[]
   const target = idPessoa ?? session.idPessoa;
   // Retorno: { idPessoa, motivadores: [{ id, nome, nomeTraduzido, indice }] }
   const data = await beeforHttp.get<any>(`/Pessoa/PegarMotivadores/${encodeURIComponent(target)}`);
-  const arr = Array.isArray(data?.motivadores)
-    ? data.motivadores
-    : Array.isArray(data)
-      ? data
-      : [];
+  const arr = Array.isArray(data?.motivadores) ? data.motivadores : Array.isArray(data) ? data : [];
   return arr
     .map((m: any) => ({
       idMotivador: asStr(m?.id ?? m?.idMotivador ?? m?.motivador?.id),
@@ -167,13 +164,15 @@ export async function getAcoesColaborador(idPessoa?: string): Promise<AcaoColabo
     `/Pessoa/ListarAcaoColaborador/${encodeURIComponent(target)}`,
   );
   return Array.isArray(data)
-    ? data.map((a) => ({
-        id: asStr(a?.id ?? a?.idAcao),
-        titulo: asStr(a?.titulo ?? a?.nome ?? a?.acao),
-        descricao: typeof a?.descricao === 'string' ? a.descricao : undefined,
-        status: typeof a?.status === 'string' ? a.status : undefined,
-        data: asStr(a?.data ?? a?.dataCriacao),
-      })).filter((a) => a.titulo)
+    ? data
+        .map((a) => ({
+          id: asStr(a?.id ?? a?.idAcao),
+          titulo: asStr(a?.titulo ?? a?.nome ?? a?.acao),
+          descricao: typeof a?.descricao === 'string' ? a.descricao : undefined,
+          status: typeof a?.status === 'string' ? a.status : undefined,
+          data: asStr(a?.data ?? a?.dataCriacao),
+        }))
+        .filter((a) => a.titulo)
     : [];
 }
 
@@ -230,15 +229,17 @@ export async function getPersonalMapping(idPessoa?: string): Promise<PersonalMap
     `/Pessoa/PegarPersonalMapping/${encodeURIComponent(target)}`,
   );
   return Array.isArray(data)
-    ? data.map((p) => ({
-        idTitulo: asStr(p?.idTitulo ?? p?.id),
-        titulo: asStr(p?.titulo),
-        itens: Array.isArray(p?.itens)
-          ? p.itens.map((it: any) => ({
-              idItem: typeof it?.idItem === 'string' ? it.idItem : undefined,
-              nomeItem: asStr(it?.nomeItem ?? it),
-            }))
-          : [],
-      })).filter((p) => p.titulo)
+    ? data
+        .map((p) => ({
+          idTitulo: asStr(p?.idTitulo ?? p?.id),
+          titulo: asStr(p?.titulo),
+          itens: Array.isArray(p?.itens)
+            ? p.itens.map((it: any) => ({
+                idItem: typeof it?.idItem === 'string' ? it.idItem : undefined,
+                nomeItem: asStr(it?.nomeItem ?? it),
+              }))
+            : [],
+        }))
+        .filter((p) => p.titulo)
     : [];
 }

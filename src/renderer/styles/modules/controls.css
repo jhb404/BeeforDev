@@ -1,0 +1,296 @@
+/* === Modern toggle switch (replaces native checkbox in settings) === */
+.switch {
+  --switch-w: 38px;
+  --switch-h: 22px;
+  --switch-pad: 2px;
+  position: relative;
+  display: inline-block;
+  width: var(--switch-w);
+  height: var(--switch-h);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+.switch__track {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  pointer-events: none;
+}
+.switch__thumb {
+  position: absolute;
+  top: var(--switch-pad);
+  left: var(--switch-pad);
+  width: calc(var(--switch-h) - 2 * var(--switch-pad) - 2px);
+  height: calc(var(--switch-h) - 2 * var(--switch-pad) - 2px);
+  background: var(--text);
+  border-radius: 999px;
+  transition: transform 0.2s ease, background 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+.switch input:checked ~ .switch__track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.switch input:checked ~ .switch__thumb {
+  transform: translateX(calc(var(--switch-w) - var(--switch-h)));
+  background: #fff;
+}
+.switch input:disabled ~ .switch__track {
+  opacity: 0.45;
+}
+.switch input:disabled ~ .switch__thumb {
+  opacity: 0.45;
+}
+.switch input:focus-visible ~ .switch__track {
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.switch-row label {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Card divider (used in credentials card) */
+.card-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 14px -16px;
+}
+.card-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 10px;
+}
+
+.settings-security__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.settings-security__list li {
+  padding: 10px 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-left: var(--selectable-left-width) solid var(--selectable-active-border);
+  border-radius: var(--radius);
+}
+
+.settings-security code {
+  padding: 1px 5px;
+  color: var(--warm);
+  background: var(--accent-2-soft);
+  border: 1px solid var(--tab-active-border);
+  border-radius: var(--radius);
+}
+
+.log-panel {
+  height: 200px;
+  overflow: auto;
+  background: var(--log-bg);
+  border: 1px solid var(--log-border);
+  border-radius: var(--radius);
+  padding: 10px;
+  color: var(--log-text);
+  font-family: "Cascadia Code", "JetBrains Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.log-line.warn { color: var(--log-warn); }
+.log-line.error { color: var(--log-error); }
+.log-line.debug { color: var(--log-debug); }
+
+@keyframes spin {
+  from { transform: rotate(0); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1180px) {
+  .home-commandbar {
+    grid-template-columns: 1fr;
+  }
+
+  .timesheet-panel {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 1120px) {
+  .timesheet-panel {
+    overflow: visible;
+  }
+
+  .ts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .ts-grid-head {
+    display: none;
+  }
+
+  .ts-grid-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--row-left, transparent);
+    border-radius: var(--radius);
+  }
+
+  .date-cell {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mobile-label {
+    display: block;
+  }
+
+  .comment-cell,
+  .row-action {
+    grid-column: 1 / -1;
+  }
+
+  .row-action {
+    align-items: end;
+    justify-content: space-between;
+  }
+
+  .row-action button {
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 760px) {
+  .content {
+    padding: 10px;
+  }
+
+  .home-topbar,
+  .ts-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    align-items: stretch;
+    justify-content: space-between;
+  }
+
+  .mood-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .mood-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summary-strip {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+  }
+
+  .modal-card {
+    max-height: calc(100vh - 24px);
+    border-radius: 12px;
+  }
+
+  .batch-preview-row {
+    grid-template-columns: 1fr;
+  }
+
+  .batch-preview-row span:last-child:nth-child(4) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar-actions {
+    flex-direction: column;
+  }
+
+  .tabs,
+  .theme-switch,
+  .field-inline,
+  .ts-actions,
+  .ts-actions button,
+  .command-group button {
+    width: 100%;
+  }
+
+  .tabs button {
+    flex: 1;
+  }
+
+  .home-status,
+  .command-group,
+  .ts-filters,
+  .ts-actions {
+    width: 100%;
+  }
+
+  .ts-grid-row {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-strip {
+    grid-template-columns: 1fr;
+  }
+}
+

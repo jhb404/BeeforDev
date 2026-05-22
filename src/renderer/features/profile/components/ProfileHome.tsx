@@ -96,7 +96,7 @@ export function ProfileHome({
               <MotivadoresBlock motivadores={motivadores} onReorder={reorderMotivadores} />
             </PfxCard>
 
-            <PfxCard title="🗺️ Personal mapping">
+            <PfxCard title="🗺️ Personal mapping" wide>
               <MappingBlock
                 mapping={mapping}
                 onAdd={addMapping}
