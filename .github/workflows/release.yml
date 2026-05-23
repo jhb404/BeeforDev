@@ -79,7 +79,7 @@ jobs:
           cache: npm
 
       - name: Cache Playwright (Windows)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~\AppData\Local\ms-playwright
           key: playwright-win-${{ hashFiles('package-lock.json') }}
@@ -109,7 +109,7 @@ jobs:
           cache: npm
 
       - name: Cache Playwright (macOS)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/Library/Caches/ms-playwright
           key: playwright-mac-${{ hashFiles('package-lock.json') }}
