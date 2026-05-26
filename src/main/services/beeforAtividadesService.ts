@@ -90,7 +90,6 @@ function mapAtividade(raw: any): BeeforAtividade {
   // DEBUG temporario: loga as chaves reais do 1o item p/ achar idTime/idQuadro corretos
   if (!_loggedRaw && raw && typeof raw === 'object') {
     _loggedRaw = true;
-    // eslint-disable-next-line no-console
     console.log('[ATIV-RAW] keys:', Object.keys(raw), 'sample:', raw);
   }
   const idTime = pickStr(raw, 'idTime', 'idTimeQuadro', 'idTimeBoard', 'time');
@@ -220,10 +219,7 @@ export async function adicionarComentario(idCard: string, texto: string): Promis
   return beeforHttp.post('/Quadro/AdicionarComentario', body);
 }
 
-export async function editarComentario(
-  idComentario: string,
-  texto: string,
-): Promise<unknown> {
+export async function editarComentario(idComentario: string, texto: string): Promise<unknown> {
   return beeforHttp.put(`/Quadro/EditarComentario/${encodeURIComponent(idComentario)}`, {
     IdComentario: idComentario,
     Texto: texto,
@@ -235,9 +231,7 @@ export async function removerComentario(idComentario: string): Promise<unknown> 
 }
 
 export async function listarLogsCard(idCard: string): Promise<CardLog[]> {
-  const data = await beeforHttp.get<any[]>(
-    `/Quadro/ListarLogsCard/${encodeURIComponent(idCard)}`,
-  );
+  const data = await beeforHttp.get<any[]>(`/Quadro/ListarLogsCard/${encodeURIComponent(idCard)}`);
   return Array.isArray(data)
     ? data.map((l) => ({
         id: String(l?.id ?? ''),
@@ -259,9 +253,7 @@ export interface CardAnexo {
 }
 
 export async function listarAnexos(idCard: string): Promise<CardAnexo[]> {
-  const data = await beeforHttp.get<any[]>(
-    `/Quadro/PegarAnexos/${encodeURIComponent(idCard)}`,
-  );
+  const data = await beeforHttp.get<any[]>(`/Quadro/PegarAnexos/${encodeURIComponent(idCard)}`);
   return Array.isArray(data)
     ? data.map((x) => ({
         idAnexo: String(x?.idAnexo ?? x?.id ?? ''),
@@ -284,12 +276,16 @@ export async function adicionarAnexo(params: {
   fileBytes: ArrayBuffer;
 }): Promise<unknown> {
   const session = await getValidSession();
-  return beeforHttpUpload('/Quadro/AdicionarAnexo', {
-    IdCard: params.idCard,
-    IdTime: params.idTime,
-    IdPessoaResponsavel: session.idPessoa,
-    ProjetoEpico: 'false',
-  }, { name: params.fileName, type: params.fileType, bytes: params.fileBytes });
+  return beeforHttpUpload(
+    '/Quadro/AdicionarAnexo',
+    {
+      IdCard: params.idCard,
+      IdTime: params.idTime,
+      IdPessoaResponsavel: session.idPessoa,
+      ProjetoEpico: 'false',
+    },
+    { name: params.fileName, type: params.fileType, bytes: params.fileBytes },
+  );
 }
 
 export async function listarTodosQuadrosTime(idTime: string): Promise<unknown[]> {

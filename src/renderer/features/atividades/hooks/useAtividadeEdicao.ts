@@ -42,7 +42,9 @@ function mapOpcoes(raw: unknown, idKeys: string[], nomeKeys: string[]): Opcao[] 
     .map((item) => {
       if (!item || typeof item !== 'object') return null;
       const o = item as Record<string, unknown>;
-      const id = idKeys.map((k) => o[k]).find((v) => typeof v === 'string' && v) as string | undefined;
+      const id = idKeys.map((k) => o[k]).find((v) => typeof v === 'string' && v) as
+        | string
+        | undefined;
       const nome = nomeKeys.map((k) => o[k]).find((v) => typeof v === 'string' && v) as
         | string
         | undefined;
@@ -119,11 +121,11 @@ export function useAtividadeEdicao(
           window.beeforHttp.atividades.projetos(idTime).catch(() => null),
         ]);
         if (cancelled) return;
-        if (colRes?.ok) setColunas(mapOpcoes(colRes.data, ['id', 'idColuna'], ['nome', 'nomeColuna']));
+        if (colRes?.ok)
+          setColunas(mapOpcoes(colRes.data, ['id', 'idColuna'], ['nome', 'nomeColuna']));
         if (respRes?.ok)
           setResponsaveis(mapOpcoes(respRes.data, ['idPessoa', 'id'], ['nomeMembro', 'nome']));
-        if (iterRes?.ok)
-          setIteracoes(mapOpcoes(iterRes.data, ['idIteracao', 'id'], ['nome']));
+        if (iterRes?.ok) setIteracoes(mapOpcoes(iterRes.data, ['idIteracao', 'id'], ['nome']));
         if (projRes?.ok) setProjetos(mapOpcoes(projRes.data, ['idProjeto', 'id'], ['nome']));
       } finally {
         if (!cancelled) setLoadingListas(false);
@@ -133,6 +135,7 @@ export function useAtividadeEdicao(
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [atividade?.id, atividade?.idQuadro, atividade?.idTime]);
 
   const setCampo = useCallback(
@@ -193,8 +196,7 @@ export function useAtividadeEdicao(
         // Campos que o backend exige mas nao editamos aqui — preserva do raw
         cardEtiquetas,
         idCardHistoria: form.idCardHistoria,
-        quantidadeVagas:
-          rawCard?.quantidadeVagas != null ? rawCard.quantidadeVagas : null,
+        quantidadeVagas: rawCard?.quantidadeVagas != null ? rawCard.quantidadeVagas : null,
       });
       if (!res.ok) {
         setErro(res.error || 'Falha ao salvar.');

@@ -153,7 +153,7 @@ function mapCard(raw: any): Partial<AtividadeDetalhes> {
   const responsavel =
     respArr.length > 0
       ? nameOf(respArr[0], 'nomeMembro', 'nome', 'nomePessoa')
-      : nameOf(raw.responsavel, 'nomeMembro', 'nome') ?? asString(raw.nomeResponsavel);
+      : (nameOf(raw.responsavel, 'nomeMembro', 'nome') ?? asString(raw.nomeResponsavel));
 
   const etiquetasArr: any[] = Array.isArray(raw.cardEtiqueta)
     ? raw.cardEtiqueta
@@ -167,8 +167,7 @@ function mapCard(raw: any): Partial<AtividadeDetalhes> {
       respArr.length > 0 ? idOf(respArr[0], 'idPessoa', 'id') : idOf(raw.idResponsavel),
     idProjeto: idOf(raw.projeto, 'idProjeto', 'id') ?? idOf(raw.idProjeto),
     idEpico: idOf(raw.epico, 'idEpico', 'id') ?? idOf(raw.idEpico),
-    idIteracao:
-      idOf(raw.iteracao, 'idIteracao', 'id') ?? idOf(raw.idIteracao),
+    idIteracao: idOf(raw.iteracao, 'idIteracao', 'id') ?? idOf(raw.idIteracao),
     nomeIteracao: nameOf(raw.iteracao, 'nome'),
     idCardHistoria: idOf(raw.cardHistoria, 'id', 'idCard') ?? idOf(raw.idCardHistoria),
     tipo: toNum(raw.tipo),
@@ -185,10 +184,7 @@ function mapCard(raw: any): Partial<AtividadeDetalhes> {
       nameOf(raw.cardHistoria, 'nome') ??
       nameOf(raw.historia, 'nome') ??
       asString(raw.nomeHistoria),
-    sprint:
-      nameOf(raw.iteracao, 'nome') ??
-      asString(raw.sprint) ??
-      asString(raw.nomeIteracao),
+    sprint: nameOf(raw.iteracao, 'nome') ?? asString(raw.sprint) ?? asString(raw.nomeIteracao),
     esforcoHoras: parseEsforco(raw.esforco) ?? toNum(raw.esforcoHoras),
     pontosEstimados: toNum(raw.pontuacao) ?? toNum(raw.pontosEstimados) ?? toNum(raw.pontos),
     dataInicio: asString(raw.dataInicio),
@@ -204,7 +200,7 @@ function mapCard(raw: any): Partial<AtividadeDetalhes> {
       .map((e: any) =>
         typeof e === 'string'
           ? e
-          : asString(e?.nomeEtiqueta) ?? asString(e?.nome) ?? asString(e?.titulo) ?? '',
+          : (asString(e?.nomeEtiqueta) ?? asString(e?.nome) ?? asString(e?.titulo) ?? ''),
       )
       .filter(Boolean),
   };
@@ -271,7 +267,9 @@ export function useAtividadeDetalhes(
         }
         const sessionRes = await window.beeforHttp.sessionInfo();
         const idOrg =
-          sessionRes.ok && sessionRes.data ? sessionRes.data.idOrganizacao ?? undefined : undefined;
+          sessionRes.ok && sessionRes.data
+            ? (sessionRes.data.idOrganizacao ?? undefined)
+            : undefined;
 
         const idOrganizacao = atividade.idOrganizacao ?? idOrg;
 
@@ -336,8 +334,7 @@ export function useAtividadeDetalhes(
         setDetalhes(base);
 
         // Card cru p/ montar o body completo do EditarCard (prioriza detail)
-        const rawDetail =
-          detailRes && detailRes.ok && detailRes.data ? detailRes.data : null;
+        const rawDetail = detailRes && detailRes.ok && detailRes.data ? detailRes.data : null;
         setRawCard(rawDetail ?? cardFromBundle ?? colunaFromBundle ?? null);
         setIdTimeResolved(idTime);
 
@@ -357,6 +354,7 @@ export function useAtividadeDetalhes(
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [atividade?.id]);
 
   return { detalhes, loading, error, rawCard, idTimeResolved };
