@@ -46,6 +46,11 @@ import {
   pegarIteracoesBacklog,
   pegarEtiquetas,
   pegarColunas,
+  arquivarCard,
+  listarLogsCard,
+  listarAnexos,
+  removerAnexo,
+  adicionarAnexo,
 } from '../../services/beeforAtividadesService';
 import { BrowserWindow } from 'electron';
 import { connectHub, disconnectHub, onHubEvent } from '../../services/beeforSignalR';
@@ -116,12 +121,47 @@ const sendKudoSchema = z.object({
 const editCardSchema = z.object({
   idCard: z.string().min(1).max(64),
   body: z.object({
-    Nome: z.string().optional(),
-    Descricao: z.string().optional(),
-    Tipo: z.number().int().optional(),
-    IdResponsavel: z.string().optional(),
-    DataConclusao: z.string().nullable().optional(),
+    nome: z.string().optional(),
+    descricao: z.string().optional(),
+    idProjeto: z.string().nullable().optional(),
+    idEpico: z.string().nullable().optional(),
+    idIteracao: z.string().nullable().optional(),
+    nomeIteracao: z.string().nullable().optional(),
+    idColuna: z.string().nullable().optional(),
+    pontuacao: z.union([z.number(), z.string()]).nullable().optional(),
+    bloqueado: z.boolean().optional(),
+    motivoBloqueio: z.string().nullable().optional(),
+    idsResponsaveisCard: z.array(z.string()).optional(),
+    cardEtiquetas: z
+      .array(
+        z.object({
+          idEtiqueta: z.string(),
+          nomeEtiqueta: z.string(),
+          corEtiqueta: z.string(),
+        }),
+      )
+      .optional(),
+    esforco: z.string().nullable().optional(),
+    quantidadeVagas: z.union([z.number(), z.string()]).nullable().optional(),
+    dataPrevistaEntrega: z.string().nullable().optional(),
+    tipo: z.number().int().optional(),
+    idCardHistoria: z.string().nullable().optional(),
+    dataInicio: z.string().nullable().optional(),
   }),
+});
+
+const arquivarCardSchema = z.object({
+  idCard: z.string().min(1).max(64),
+  arquivado: z.boolean(),
+  idQuadro: z.string().max(64).optional(),
+});
+
+const anexoAddSchema = z.object({
+  idCard: z.string().min(1).max(64),
+  idTime: z.string().min(1).max(64),
+  fileName: z.string().min(1).max(260),
+  fileType: z.string().max(200),
+  fileBytes: z.instanceof(ArrayBuffer),
 });
 
 const addCommentSchema = z.object({
@@ -382,6 +422,41 @@ export function registerBeeforApiHandlers(): void {
     schema: stringIdSchema,
     errorMessage: 'Atividade colunas failed',
     run: async ({ data }) => ok(await pegarColunas(data)),
+  });
+
+  defineHandler({
+    channel: IPC.API_ATIV_ARQUIVAR,
+    schema: arquivarCardSchema,
+    errorMessage: 'Atividade arquivar failed',
+    run: async ({ data }) => ok(await arquivarCard(data.idCard, data.arquivado, data.idQuadro)),
+  });
+
+  defineHandler({
+    channel: IPC.API_ATIV_LOGS,
+    schema: stringIdSchema,
+    errorMessage: 'Atividade logs failed',
+    run: async ({ data }) => ok(await listarLogsCard(data)),
+  });
+
+  defineHandler({
+    channel: IPC.API_ATIV_ANEXOS,
+    schema: stringIdSchema,
+    errorMessage: 'Atividade anexos failed',
+    run: async ({ data }) => ok(await listarAnexos(data)),
+  });
+
+  defineHandler({
+    channel: IPC.API_ATIV_ANEXO_DEL,
+    schema: stringIdSchema,
+    errorMessage: 'Atividade anexo del failed',
+    run: async ({ data }) => ok(await removerAnexo(data)),
+  });
+
+  defineHandler({
+    channel: IPC.API_ATIV_ANEXO_ADD,
+    schema: anexoAddSchema,
+    errorMessage: 'Atividade anexo add failed',
+    run: async ({ data }) => ok(await adicionarAnexo(data)),
   });
 
   // ─── Env toggle ────────────────────────────────────────

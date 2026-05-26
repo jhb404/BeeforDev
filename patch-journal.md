@@ -2,8 +2,16 @@
 
 Gente, mó felicidade, me deram acesso a api do beefor...sinceramente não sei nem como kk
 
+Bom, com esse poder em minhas maos, da pra eu fazer muita coisa...Tipo, eu tava pensando em uma home com varias opções, configuravel pra todos os gostos sabe!? Bom, ideia né...
+
+Pra quem quer saber oq mudou, TA NO TITULO! (A principal mudança kk, graças a Deus demos adeus ao Playwrite...descanse em paz) 
+
+Alem de eu adicionar mais corzinhas KSKSKS, e tbm ajustar temas, e a qualidade do app, e tbm adicionar features novas como atividades, melhora no kudo, perfilzinho com edição...e coisas a mais ai.
 
 
+https://media1.tenor.com/m/_jYQGEQQiY8AAAAd/cat-67.gif
+https://media1.tenor.com/m/k2v7leuqezQAAAAd/cat-dancing-celebrate.gif
+https://media.tenor.com/-qBsG1HwR4oAAAAM/cat-dance-dancing-cat.gif
 OBS: sinceramente já desisti de tentar identificar se o video é real ou ia...pra mim esse gif é 100% REAL
 
 ---
