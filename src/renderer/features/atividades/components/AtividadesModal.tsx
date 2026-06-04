@@ -178,7 +178,11 @@ export function AtividadesModal({ open, onClose }: Props) {
                   role="separator"
                   aria-orientation="vertical"
                 />
-                <AtividadeDrawer atividade={selected} onClose={() => setSelected(null)} />
+                <AtividadeDrawer
+                  atividade={selected}
+                  onClose={() => setSelected(null)}
+                  onChanged={doFetch}
+                />
               </>
             )}
           </>

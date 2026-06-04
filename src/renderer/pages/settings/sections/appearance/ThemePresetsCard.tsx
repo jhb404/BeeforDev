@@ -1,4 +1,5 @@
-import { useGamification } from '../../../../features/gamification';
+import { useState } from 'react';
+import { UnlockCodeModal, useGamification } from '../../../../features/gamification';
 import type { ThemePreset } from '../../../../features/gamification';
 import { useSettings } from '../../../../app/providers/SettingsProvider';
 import type { AppearanceCardProps } from './types';
@@ -6,6 +7,7 @@ import type { AppearanceCardProps } from './types';
 export function ThemePresetsCard({ settings, onUpdate }: AppearanceCardProps) {
   const { themePresets, isThemePresetUnlocked } = useGamification();
   const { previewThemeId, startThemePreview, stopThemePreview } = useSettings();
+  const [codeModalPreset, setCodeModalPreset] = useState<ThemePreset | null>(null);
 
   const handleCardClick = (preset: ThemePreset) => {
     if (isThemePresetUnlocked(preset.id)) {
@@ -23,7 +25,8 @@ export function ThemePresetsCard({ settings, onUpdate }: AppearanceCardProps) {
       <h2>Temas</h2>
 
       <p className="theme-presets-hint">
-        Clique para visualizar os temas que você não tem desbloqueado.
+        Clique para visualizar os temas que você não tem desbloqueado. Duplo clique pra inserir
+        código.
       </p>
 
       <div className="theme-presets-grid">
@@ -37,10 +40,16 @@ export function ThemePresetsCard({ settings, onUpdate }: AppearanceCardProps) {
               type="button"
               className={`theme-preset ${active ? 'theme-preset--active' : ''} ${unlocked ? '' : 'theme-preset--locked'} ${previewing ? 'theme-preset--previewing' : ''}`}
               onClick={() => handleCardClick(preset)}
+              onDoubleClick={() => {
+                if (!unlocked) {
+                  stopThemePreview();
+                  setCodeModalPreset(preset);
+                }
+              }}
               data-tooltip={
                 unlocked
                   ? `Aplicar ${preset.name}`
-                  : `Clique pra pré-visualizar (conquista: ${preset.requires})`
+                  : `Clique pra pré-visualizar · 2x pra inserir código (conquista: ${preset.requires})`
               }
               data-sound="click"
             >
@@ -60,6 +69,21 @@ export function ThemePresetsCard({ settings, onUpdate }: AppearanceCardProps) {
           );
         })}
       </div>
+
+      <UnlockCodeModal
+        open={!!codeModalPreset}
+        onClose={() => setCodeModalPreset(null)}
+        kind="theme"
+        targetId={codeModalPreset?.id ?? ''}
+        targetName={codeModalPreset?.name ?? ''}
+        requiresAchievement={codeModalPreset?.requires}
+        onUnlocked={() => {
+          if (codeModalPreset) {
+            stopThemePreview();
+            onUpdate('themePresetId', codeModalPreset.id);
+          }
+        }}
+      />
     </div>
   );
 }

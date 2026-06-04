@@ -173,6 +173,217 @@ const api = {
     ipcRenderer.invoke(IPC.COIN2U_VERIFY),
 };
 
+const httpApi = {
+  // Auth
+  login: (usuario: string, senha: string): Promise<ActionResult> =>
+    ipcRenderer.invoke(IPC.API_LOGIN, { usuario, senha }),
+  logout: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_LOGOUT),
+  sessionInfo: (): Promise<
+    ActionResult<{
+      idPessoa: string;
+      idOrganizacao: string | null;
+      nome?: string;
+      email?: string;
+    } | null>
+  > => ipcRenderer.invoke(IPC.API_SESSION_INFO),
+
+  // Env
+  getEnv: (): Promise<ActionResult<'local' | 'prod'>> => ipcRenderer.invoke(IPC.API_ENV_GET),
+  setEnv: (env: 'local' | 'prod'): Promise<ActionResult<{ env: 'local' | 'prod' }>> =>
+    ipcRenderer.invoke(IPC.API_ENV_SET, env),
+
+  // Mood
+  mood: {
+    get: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_MOOD_GET),
+    add: (mood: Mood): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_MOOD_ADD, mood),
+    edit: (idSentimentoPessoa: string, mood: Mood): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_MOOD_EDIT, { idSentimentoPessoa, mood }),
+    streakOrg: (dataInicio?: string, dataFim?: string, topN: number = 30): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_MOOD_STREAK_ORG, { dataInicio, dataFim, topN }),
+  },
+
+  // KudoCard
+  kudo: {
+    send: (req: {
+      idDestinatario: string;
+      tipoDestinatario: 1 | 2;
+      cardType: string;
+      mensagem: string;
+      idTime?: string;
+    }): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_KUDO_SEND, req),
+    counts: (): Promise<ActionResult<KudoCardCounts>> => ipcRenderer.invoke(IPC.API_KUDO_COUNTS),
+    lists: (): Promise<ActionResult<KudoCardLists>> => ipcRenderer.invoke(IPC.API_KUDO_LISTS),
+    detail: (id: string): Promise<ActionResult<KudoCardDetail>> =>
+      ipcRenderer.invoke(IPC.API_KUDO_DETAIL, id),
+    recipients: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_KUDO_RECIPIENTS),
+  },
+
+  // Pessoa / Organizacao
+  pessoa: {
+    search: (query: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PESSOA_SEARCH, query),
+    searchTimes: (query: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_TIME_SEARCH, query),
+  },
+  org: {
+    list: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_ORG_LIST),
+    select: (idOrganizacao: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ORG_SELECT, idOrganizacao),
+  },
+
+  // Timesheet
+  timesheet: {
+    month: (year: number, month: number): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_TS_MONTH, year, month),
+    post: (dia: unknown): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_TS_POST, dia),
+    auto: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_TS_AUTO),
+    totais: (year: number, month: number): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_TS_TOTAIS, year, month),
+  },
+
+  // SignalR Hub
+  hub: {
+    connect: (): Promise<ActionResult<{ connected: boolean }>> =>
+      ipcRenderer.invoke(IPC.API_HUB_CONNECT),
+    disconnect: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_HUB_DISCONNECT),
+    onEvent: (cb: (e: { type: string; payload: unknown }) => void): (() => void) => {
+      const listener = (_e: unknown, msg: { type: string; payload: unknown }) => cb(msg);
+      ipcRenderer.on(IPC.EVT_HUB, listener);
+      return () => ipcRenderer.removeListener(IPC.EVT_HUB, listener);
+    },
+  },
+
+  // Perfil
+  perfil: {
+    get: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_GET, idPessoa),
+    habilidades: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_HABILIDADES, idPessoa),
+    habilidadesCombo: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_HABILIDADES_COMBO, idPessoa),
+    addHabilidade: (nome: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_ADD_HABILIDADE, nome),
+    removeHabilidade: (idHabilidade: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_REMOVE_HABILIDADE, idHabilidade),
+    motivadores: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MOTIVADORES, idPessoa),
+    addMotivadores: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_PERFIL_MOTIVADORES_ADD),
+    editMotivadores: (ordenados: Array<{ idMotivador: string }>): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MOTIVADORES_EDIT, ordenados),
+    acoes: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_ACOES, idPessoa),
+    mapping: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MAPPING, idPessoa),
+    addMapping: (titulo: string, itens: string[]): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MAPPING_ADD, { titulo, itens }),
+    editMapping: (
+      idTitulo: string,
+      titulo: string,
+      itens: Array<{ IdItem?: string; NomeItem: string }>,
+    ): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MAPPING_EDIT, { idTitulo, titulo, itens }),
+    delMapping: (idMapping: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_MAPPING_DEL, idMapping),
+    editGet: (idPessoa?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_PERFIL_EDIT_GET, idPessoa),
+    editSave: (patch: {
+      nome?: string;
+      email?: string;
+      miniBio?: string;
+      funcaoPrincipal?: string;
+      telefone?: string;
+      idGestor?: string | null;
+      idioma?: number;
+      foto?: string;
+    }): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_PERFIL_EDIT_SAVE, patch),
+    gestores: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_PERFIL_GESTORES),
+  },
+
+  // Notificações
+  notif: {
+    unread: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_NOTIF_UNREAD),
+    all: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_NOTIF_ALL),
+    markRead: (id: string): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_NOTIF_READ, id),
+    markAllRead: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_NOTIF_READ_ALL),
+    novidades: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_NOTIF_NOVIDADES),
+    novidadesUser: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_NOTIF_NOVIDADES_USER),
+    novidadesTotal: (): Promise<ActionResult<number>> =>
+      ipcRenderer.invoke(IPC.API_NOTIF_NOVIDADES_TOTAL),
+    novidadeMarkRead: (id: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_NOTIF_NOVIDADE_READ, id),
+    novidadesMarkAllRead: (): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_NOTIF_NOVIDADES_READ_ALL),
+  },
+
+  // Atividades
+  atividades: {
+    minhas: (): Promise<ActionResult<BeeforAtividade[]>> => ipcRenderer.invoke(IPC.API_ATIV_MINHAS),
+    detail: (idCard: string, idTime: string, idOrganizacao?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_DETAIL, { idCard, idTime, idOrganizacao }),
+    edit: (
+      idCard: string,
+      body: Partial<{
+        nome: string;
+        descricao: string;
+        idProjeto: string | null;
+        idEpico: string | null;
+        idIteracao: string | null;
+        nomeIteracao: string | null;
+        idColuna: string | null;
+        pontuacao: number | string | null;
+        bloqueado: boolean;
+        motivoBloqueio: string | null;
+        idsResponsaveisCard: string[];
+        cardEtiquetas: Array<{ idEtiqueta: string; nomeEtiqueta: string; corEtiqueta: string }>;
+        esforco: string | null;
+        quantidadeVagas: number | string | null;
+        dataPrevistaEntrega: string | null;
+        tipo: number;
+        idCardHistoria: string | null;
+        dataInicio: string | null;
+      }>,
+    ): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_ATIV_EDIT, { idCard, body }),
+    arquivar: (
+      idCard: string,
+      arquivado: boolean,
+      idQuadro?: string,
+    ): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_ARQUIVAR, { idCard, arquivado, idQuadro }),
+    logs: (idCard: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_LOGS, idCard),
+    anexos: (idCard: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_ANEXOS, idCard),
+    removerAnexo: (idAnexo: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_ANEXO_DEL, idAnexo),
+    adicionarAnexo: (params: {
+      idCard: string;
+      idTime: string;
+      fileName: string;
+      fileType: string;
+      fileBytes: ArrayBuffer;
+    }): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_ATIV_ANEXO_ADD, params),
+    comments: (idCard: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_COMMENTS, idCard),
+    addComment: (idCard: string, texto: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_ADD_COMMENT, { idCard, texto }),
+    /** Bundle paralelo: card resumo + coluna + comentários (igual front goobeeteams abrindo modal). */
+    resumo: (idCard: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_RESUMO, idCard),
+    responsaveis: (idTime: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_RESPONSAVEIS, idTime),
+    projetos: (idTime?: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_PROJETOS, idTime),
+    iteracoes: (idTime: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_ITERACOES, idTime),
+    etiquetas: (idQuadro: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_ETIQUETAS, idQuadro),
+    colunas: (idQuadro: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_ATIV_COLUNAS, idQuadro),
+  },
+};
+
 contextBridge.exposeInMainWorld('beefor', api);
+contextBridge.exposeInMainWorld('beeforHttp', httpApi);
 
 export type BeeforApi = typeof api;
+export type BeeforHttpApi = typeof httpApi;

@@ -1,11 +1,31 @@
-export const BEEFOR_URL = 'https://app.beefor.io';
-export const BEEFOR_API_BASE = 'https://apiteams.goobee.com.br';
-export const BEEFOR_TIMESHEET_API = `${BEEFOR_API_BASE}/timesheet-beefor/api/apontamento`;
-export const BEEFOR_KUDO_API = `${BEEFOR_API_BASE}/api/KudoCard`;
-export const BEEFOR_PESSOA_API = `${BEEFOR_API_BASE}/api/Pessoa`;
-export const BEEFOR_HOME_API = `${BEEFOR_API_BASE}/api/Home`;
-export const BEEFOR_LOGIN_URL = `${BEEFOR_URL}/login`;
-export const BEEFOR_TIMESHEET_URL = `${BEEFOR_URL}/time-sheet-beefor/lancamentos`;
+import { getApiBases } from './env';
+
+export const BEEFOR_URL = (() => getApiBases().appUrl)();
+
+/** API base getters — read env dynamically so env switch takes effect at runtime. */
+export const getBeeforApiBase = (): string => getApiBases().teams;
+export const getBeeforTimesheetApiBase = (): string => getApiBases().timesheet;
+export const getBeeforAppUrl = (): string => getApiBases().appUrl;
+
+export const getBeeforTimesheetApi = (): string =>
+  `${getApiBases().timesheet}/apontamento`;
+export const getBeeforKudoApi = (): string => `${getApiBases().teams}/KudoCard`;
+export const getBeeforPessoaApi = (): string => `${getApiBases().teams}/Pessoa`;
+export const getBeeforHomeApi = (): string => `${getApiBases().teams}/Home`;
+export const getBeeforTokenApi = (): string => `${getApiBases().teams}/Token`;
+export const getBeeforOrganizacaoApi = (): string =>
+  `${getApiBases().teams}/Organizacao`;
+export const getBeeforQuadroApi = (): string => `${getApiBases().teams}/Quadro`;
+
+/** Legacy named exports kept for callers that imported strings directly.
+ *  These resolve at module load against current env; for env-aware code prefer the getters above. */
+export const BEEFOR_API_BASE = getBeeforApiBase();
+export const BEEFOR_TIMESHEET_API = getBeeforTimesheetApi();
+export const BEEFOR_KUDO_API = getBeeforKudoApi();
+export const BEEFOR_PESSOA_API = getBeeforPessoaApi();
+export const BEEFOR_HOME_API = getBeeforHomeApi();
+export const BEEFOR_LOGIN_URL = `${getBeeforAppUrl()}/login`;
+export const BEEFOR_TIMESHEET_URL = `${getBeeforAppUrl()}/time-sheet-beefor/lancamentos`;
 
 export const KEYTAR_SERVICE = 'beefor-dev';
 export const KEYTAR_ACCOUNT_EMAIL = 'beefor-email';

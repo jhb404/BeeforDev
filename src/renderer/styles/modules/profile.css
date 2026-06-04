@@ -1,0 +1,2005 @@
+/* Profile modal */
+.profile-modal {
+  max-width: 560px;
+  /* destaque do perfil = cor de acento do tema (não cor própria) */
+  --pfx-blue: var(--warm);
+  --pfx-blue-soft: var(--accent-2-soft);
+}
+.profile-modal--large {
+  max-width: 960px;
+  width: min(960px, calc(100vw - 24px));
+  height: min(800px, calc(100vh - 32px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+}
+.profile-modal--large .profile-modal__body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  padding: 14px 18px 18px;
+}
+.profile-modal__subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ════════════════════════════════════════════════
+   PERFIL — card único estilo dashboard (segue tema)
+   ════════════════════════════════════════════════ */
+@keyframes pfx-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Container externo: dá espaço à esquerda p/ o hexágono transbordar */
+.pfx-hero {
+  position: relative;
+  margin: 30px 0 0;
+  padding: 20px 22px 22px;
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  animation: pfx-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pfx-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: -30px;
+  width: 128px;
+  height: 150px;
+  background: var(--panel-bg);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Linha superior: coluna esquerda (identidade + bio) | coluna direita (stats + skills) */
+.pfx-hero__top {
+  display: flex;
+  align-items: stretch;
+  gap: 18px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Coluna esquerda: identidade em cima, mini bio preenchendo o resto */
+.pfx-hero__left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+/* Identidade + sociais — único bloco recuado p/ o hexágono não cobrir o nome */
+.pfx-hero__id {
+  display: flex;
+  gap: 18px;
+  padding-left: 156px;
+}
+
+/* Coluna direita: stats (3 cards) + habilidades logo abaixo */
+.pfx-hero__right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 292px; /* 92*3 + gap 8*2 */
+  flex-shrink: 0;
+}
+/* habilidades preenche a altura restante da coluna (acompanha a mini bio) */
+.pfx-hero__skills {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+/* mini bio: início no padrão (sob o hexágono), preenche a coluna esquerda */
+.pfx-hero__bio {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Hexágono — transborda e recorta o canto sup-esquerdo do card */
+.pfx-hex {
+  --hex-clip: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  position: absolute;
+  top: -20px;
+  left: 2px;
+  z-index: 3;
+  width: 160px;
+  height: 180px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+button.pfx-hex:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+/* anel hexagonal atrás: recorta o card (cor do fundo) e vira glow azul no hover */
+.pfx-hex::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  background: var(--panel-bg);
+  clip-path: var(--hex-clip);
+  z-index: -1;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+}
+button.pfx-hex:hover:not(:disabled)::before {
+  background: var(--panel-bg);
+  box-shadow: none;
+}
+.pfx-hex__shape {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-3);
+  clip-path: var(--hex-clip);
+  overflow: hidden;
+  transition: background 0.2s;
+}
+/* neutraliza efeitos de ícone (logo-fx-*) no botão quadrado — o glow seguiria a
+   caixa retangular e apareceria como quadrado atrás do hexágono */
+.pfx-hero .pfx-hex {
+  filter: none;
+  animation: none;
+  color: var(--text);
+}
+.pfx-hex__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pfx-hex__lv {
+  position: absolute;
+  bottom: 10px;
+  left: 76%;
+  transform: translateX(-50%);
+  background: var(--pfx-blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 3px 12px;
+  border-radius: var(--radius);
+  border: 2px solid var(--bg-2);
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+/* Bloco central identidade */
+.pfx-hero__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-left: 14px;
+  border-left: 2px solid var(--pfx-blue);
+}
+.pfx-hero__name {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.pfx-hero__meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.pfx-hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pfx-tag,
+.pfx-hability-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pfx-blue);
+  background: var(--pfx-blue-soft);
+  border: 1px solid color-mix(in srgb, var(--pfx-blue) 38%, transparent);
+  border-radius: var(--radius);
+  padding: 4px 11px;
+  max-width: 100%;
+}
+/* tag de Habilidade — clique remove; hover fica vermelho com risco */
+.pfx-hability-tag {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.3;
+  /* reset de <button> p/ ficar idêntico à pílula Beta tester */
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  min-height: unset;
+  transition:
+    background 0.16s,
+    border-color 0.16s,
+    color 0.16s,
+    transform 0.1s;
+}
+.pfx-hability-tag__txt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  transition: text-decoration-color 0.16s;
+}
+button.pfx-hability-tag:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--err) 16%, transparent);
+  border-color: color-mix(in srgb, var(--err) 50%, transparent);
+  color: var(--err);
+}
+button.pfx-hability-tag:hover:not(:disabled) .pfx-hability-tag__txt {
+  text-decoration: line-through;
+}
+.pfx-hability-tag:active {
+  transform: scale(0.96);
+}
+
+/* XP */
+.pfx-xp {
+  margin-top: 3px;
+  max-width: none;
+  width: 100%;
+}
+/* estende o XP até o fim do ícone do Discord (gap 18 + social 34 = 52) */
+.pfx-hero__main .pfx-xp {
+  width: calc(100% + 52px);
+}
+.pfx-xp__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+.pfx-xp__label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+.pfx-xp__bar {
+  height: 14px;
+  border-radius: 999px;
+  background: var(--bg-1);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.pfx-xp__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--warm);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pfx-xp__txt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.pfx-xp__help {
+  width: 22px;
+  height: 22px;
+  min-height: unset;
+  padding: 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-1);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  line-height: 1;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+button.pfx-xp__help:hover:not(:disabled) {
+  background: var(--selectable-hover-bg);
+  border-color: var(--pfx-blue);
+  color: var(--pfx-blue);
+}
+
+/* Sociais verticais */
+.pfx-hero__social {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.pfx-social-ico {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease;
+}
+.pfx-social-ico svg {
+  width: 18px;
+  height: 18px;
+}
+.pfx-social-ico:hover {
+  transform: translateY(-1px);
+  border-color: var(--warm);
+  background: var(--accent-2-soft);
+  color: var(--warm);
+}
+.pfx-social-ico--discord {
+  color: var(--accent);
+}
+.pfx-social-ico--linkedin {
+  color: var(--warm);
+}
+
+/* Mini-cards de stats */
+.pfx-hero__stats {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.pfx-stat {
+  width: 92px;
+  height: 104px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-left-width: var(--selectable-left-width);
+  border-radius: var(--radius);
+  text-align: center;
+  transition:
+    transform 0.16s,
+    border-color 0.16s,
+    box-shadow 0.16s,
+    background 0.16s;
+}
+button.pfx-stat:hover:not(:disabled),
+.pfx-stat:hover {
+  transform: translateY(-1px);
+  background: var(--selectable-hover-bg);
+  border-color: var(--accent);
+  box-shadow: none;
+}
+button.pfx-stat {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.pfx-stat__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+}
+.pfx-stat__icon svg {
+  width: 20px;
+  height: 20px;
+}
+.pfx-stat__icon--trophy {
+  background: var(--accent-2-soft);
+  color: var(--warm);
+}
+.pfx-stat__icon--check {
+  background: var(--accent-2-soft);
+  color: var(--warm);
+}
+.pfx-stat__icon--action {
+  background: var(--accent-2-soft);
+  color: var(--warm);
+}
+.pfx-stat__icon--sentiment {
+  background: var(--accent-2-soft);
+  color: var(--warm);
+}
+.pfx-stat__num {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.pfx-stat__num--sm {
+  font-size: 16px;
+  color: var(--pfx-blue);
+}
+.pfx-stat__lbl {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+/* Painéis bio + habilidades dentro do card — altura fixa */
+.pfx-hero__bio,
+.pfx-hero__skills {
+  min-width: 0;
+}
+.pfx-hero__bio .pfx-card,
+.pfx-hero__skills .pfx-card {
+  background: var(--bg-1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* o scroll fica no corpo, não no card */
+}
+/* bio preenche a coluna esquerda; habilidades preenche a coluna direita */
+.pfx-hero__bio .pfx-card {
+  height: 100%;
+}
+.pfx-hero__skills .pfx-card {
+  height: 100%;
+  flex: 1;
+}
+.pfx-hero__bio .pfx-card:hover,
+.pfx-hero__skills .pfx-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border);
+}
+/* corpo do card rola internamente */
+.pfx-hero__bio .pfx-card__body,
+.pfx-hero__skills .pfx-card__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+/* bloco de chips das habilidades: cresce e rola, input fixo embaixo */
+.pfx-hero__skills .pfx-card__body {
+  display: flex;
+  flex-direction: column;
+}
+.pfx-hero__skills .pfx-chips {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  align-content: flex-start;
+  margin-bottom: 8px;
+  scrollbar-width: thin;
+}
+
+/* Responsivo */
+@media (max-width: 800px) {
+  /* empilha identidade → sociais → stats; nada espreme o nome */
+  .pfx-hero__top {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .pfx-hero__name {
+    font-size: 22px;
+  }
+  .pfx-hero__main {
+    width: 100%;
+  }
+  /* empilhado: XP volta à largura do main */
+  .pfx-hero__main .pfx-xp {
+    width: 100%;
+  }
+  .pfx-hero__social {
+    flex-direction: row;
+  }
+  .pfx-hero__stats {
+    width: 100%;
+  }
+  .pfx-hero__stats .pfx-stat {
+    flex: 1;
+    width: auto;
+  }
+  /* coluna direita ocupa a largura toda quando empilha */
+  .pfx-hero__right {
+    width: 100%;
+  }
+  /* bio acompanha o conteúdo em vez de virar um bloco vazio alto */
+  .pfx-hero__bio .pfx-card {
+    height: auto;
+    min-height: 120px;
+  }
+  .pfx-hero__skills .pfx-card {
+    height: 240px;
+  }
+  .pfx-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 540px) {
+  .pfx-hero {
+    margin-left: 0;
+    padding-top: 64px;
+  }
+  .pfx-hero::before {
+    left: 50%;
+    top: -38px;
+    transform: translateX(-50%);
+  }
+  .pfx-hero__id {
+    flex-direction: column;
+    align-items: center;
+    padding-left: 0;
+  }
+  .pfx-hex {
+    left: 50%;
+    top: -28px;
+    transform: translateX(-50%);
+  }
+  button.pfx-hex:hover:not(:disabled) {
+    transform: translateX(-50%) translateY(-1px);
+  }
+  .pfx-hero__main {
+    border-left: none;
+    border-top: 2px solid var(--pfx-blue);
+    padding-left: 0;
+    padding-top: 12px;
+  }
+  .pfx-hero__stats {
+    flex-wrap: wrap;
+  }
+}
+
+/* área abaixo do hero: reserva espaço p/ não pular no loading→conteúdo */
+.pfx-below {
+  min-height: 260px;
+  /* puxa p/ cima — encosta nos motivadores no card geral (compensa gap do flex pai) */
+  margin-top: -8px;
+}
+.pfx-below > * {
+  animation: pfx-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Grid de cards (Steam showcase) ── */
+.pfx-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.pfx-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  transition:
+    transform 0.18s,
+    border-color 0.18s,
+    box-shadow 0.18s;
+}
+.pfx-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  box-shadow: none;
+}
+/* cards Motivadores / Personal mapping não reagem ao hover do container */
+.pfx-grid > .pfx-card:hover {
+  transform: none;
+  border-color: var(--border);
+  box-shadow: none;
+}
+.pfx-card--wide {
+  grid-column: 1 / -1;
+}
+@media (max-width: 820px) {
+  .pfx-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.pfx-card__title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.pfx-card__sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.pfx-bignum {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.pfx-bio {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+}
+.pfx-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.pfx-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 8px 0;
+}
+.pfx-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+/* (estilos de .pfx-chip removidos — Habilidades usa .pfx-tag + .pfx-chip__x) */
+.pfx-add {
+  display: flex;
+  gap: 8px;
+}
+.pfx-add input {
+  flex: 1;
+}
+.pfx-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.pfx-suggest__chip {
+  background: var(--bg-1);
+  border: 1px dashed var(--border-strong);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  min-height: unset;
+  transition:
+    background 0.12s,
+    color 0.12s,
+    border-color 0.12s;
+}
+button.pfx-suggest__chip:hover:not(:disabled) {
+  background: var(--selectable-hover-bg);
+  color: var(--text);
+  border-color: var(--accent);
+}
+.pfx-motiv__hint {
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+/* tooltip dos motivadores (pódio + grid) quebra linha (descrição longa) */
+.pfx-motiv-pod[data-tooltip]::after,
+.pfx-motiv-card[data-tooltip]::after {
+  white-space: normal;
+  width: 200px;
+  text-align: center;
+  line-height: 1.35;
+}
+
+/* ── Pódio: top 3 (ordem visual 2º · 1º · 3º) ── */
+.pfx-motiv-podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 22px 2px 8px;
+  overflow: visible;
+}
+.pfx-motiv-pod {
+  flex: 0 0 auto;
+  width: 104px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 18px 10px 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  position: relative;
+  cursor: grab;
+  transition:
+    border-color 0.16s,
+    background 0.16s,
+    opacity 0.16s,
+    transform 0.16s,
+    box-shadow 0.16s;
+}
+.pfx-motiv-pod:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--selectable-hover-shadow);
+}
+.pfx-motiv-pod:active {
+  cursor: grabbing;
+}
+.pfx-motiv-pod--dragging {
+  opacity: 0.45;
+  border-style: dashed;
+}
+.pfx-motiv-pod--over {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+/* 1º — ouro, maior e elevado */
+.pfx-motiv-pod--p1 {
+  width: 124px;
+  padding-top: 24px;
+  border-color: #f0b429;
+  background: color-mix(in srgb, #f0b429 9%, var(--bg-1));
+  box-shadow:
+    0 0 0 1px rgba(240, 180, 41, 0.45),
+    0 10px 26px rgba(240, 180, 41, 0.18);
+}
+.pfx-motiv-pod--p1:hover {
+  box-shadow:
+    0 0 0 1px rgba(240, 180, 41, 0.6),
+    0 14px 30px rgba(240, 180, 41, 0.26);
+}
+/* 2º — prata */
+.pfx-motiv-pod--p2 {
+  border-color: #aab2bf;
+  background: color-mix(in srgb, #aab2bf 7%, var(--bg-1));
+  box-shadow: 0 0 0 1px rgba(170, 178, 191, 0.4);
+}
+/* 3º — bronze */
+.pfx-motiv-pod--p3 {
+  border-color: #cd7f3f;
+  background: color-mix(in srgb, #cd7f3f 8%, var(--bg-1));
+  box-shadow: 0 0 0 1px rgba(205, 127, 63, 0.4);
+}
+.pfx-motiv-pod__medal {
+  position: absolute;
+  top: -14px;
+  font-size: 22px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+}
+.pfx-motiv-pod .pfx-motiv-card__emoji {
+  width: 46px;
+  height: 46px;
+}
+.pfx-motiv-pod--p1 .pfx-motiv-card__emoji {
+  width: 54px;
+  height: 54px;
+  font-size: 27px;
+}
+
+/* ── Grid: do 4º ao 10º ── */
+.pfx-motiv-grid {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 12px 2px 4px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 104px));
+  justify-content: center;
+  gap: 10px;
+  overflow: visible;
+}
+.pfx-motiv-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 15px 8px 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-left-width: var(--selectable-left-width);
+  border-radius: var(--radius);
+  cursor: grab;
+  position: relative;
+  transition:
+    border-color 0.14s,
+    background 0.14s,
+    opacity 0.14s,
+    transform 0.14s,
+    box-shadow 0.14s;
+}
+.pfx-motiv-card:hover {
+  border-color: var(--accent);
+  background: var(--selectable-hover-bg);
+  transform: translateY(-2px);
+  box-shadow: var(--selectable-hover-shadow);
+}
+.pfx-motiv-card:active {
+  cursor: grabbing;
+}
+.pfx-motiv-card--dragging {
+  opacity: 0.45;
+  border-style: dashed;
+}
+.pfx-motiv-card--over {
+  border-color: var(--warm);
+  background: var(--bg-3);
+}
+.pfx-motiv-card__rank {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--warm);
+  color: var(--text-on-warm);
+  font-weight: 800;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.pfx-motiv-card__emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-2-soft);
+  font-size: 24px;
+  line-height: 1;
+  margin-top: 4px;
+}
+.pfx-motiv-card__nome {
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.25;
+  color: var(--text);
+}
+.pfx-acoes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pfx-acao {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.pfx-acao__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.pfx-acao p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.pfx-acao__status {
+  font-size: 11px;
+  color: var(--warm);
+}
+.pfx-mapping {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.pfx-mapping__card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-left-width: var(--selectable-left-width);
+  border-radius: var(--radius);
+  padding: 14px;
+  animation: pfx-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition:
+    transform 0.16s,
+    border-color 0.16s,
+    background 0.16s,
+    box-shadow 0.16s;
+}
+.pfx-mapping__card:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: var(--selectable-hover-bg);
+  box-shadow: var(--selectable-hover-shadow);
+}
+/* card vira button quando clicável — reset visual; conteúdo colado no topo */
+.pfx-mapping__card--clickable {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  min-height: unset;
+  font: inherit;
+  color: inherit;
+}
+button.pfx-mapping__card--clickable:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--selectable-hover-bg);
+  box-shadow: var(--selectable-hover-shadow);
+}
+.pfx-mapping__card--editing {
+  border-color: var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pfx-mapping__edit-title {
+  font-weight: 700;
+  font-size: 13px;
+}
+.pfx-mapping__edit-itens {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pfx-mapping__edit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius);
+  transition: opacity 0.14s, background 0.14s, box-shadow 0.14s;
+}
+.pfx-mapping__edit-row--dragging {
+  opacity: 0.45;
+}
+.pfx-mapping__edit-row--over {
+  background: var(--selectable-hover-bg);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.pfx-mapping__edit-handle {
+  flex-shrink: 0;
+  cursor: grab;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  user-select: none;
+}
+.pfx-mapping__edit-handle:active {
+  cursor: grabbing;
+}
+.pfx-mapping__edit-row input {
+  flex: 1;
+  min-height: var(--control-height);
+  font-size: 13px;
+  padding: 8px var(--control-pad-x);
+}
+.pfx-mapping__edit-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--warm);
+  flex-shrink: 0;
+}
+.pfx-mapping__edit-additem {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  min-height: unset;
+  transition:
+    border-color 0.12s,
+    color 0.12s,
+    background 0.12s;
+}
+button.pfx-mapping__edit-additem:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--selectable-hover-bg);
+}
+.pfx-mapping__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+/* tile de ícone — segue o padrão do settings-sidebar__icon */
+.pfx-mapping__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background: var(--accent-2-soft);
+  font-size: 16px;
+  line-height: 1;
+}
+.pfx-mapping__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* badge de contagem de itens */
+.pfx-mapping__count {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--accent-2-soft);
+  color: var(--warm);
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  animation: mapping-count-pop 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes mapping-count-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  55% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.pfx-mapping__del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+button.pfx-mapping__del:hover:not(:disabled),
+.pfx-mapping__del:hover {
+  background: var(--err);
+  border-color: var(--err);
+  color: #fff;
+}
+.pfx-mapping__card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pfx-mapping__card ul li {
+  position: relative;
+  padding-left: 14px;
+  line-height: 1.35;
+}
+.pfx-mapping__card ul li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--warm);
+}
+.pfx-mapping__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+.pfx-mapping__form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.pfx-mapping__addbtn {
+  width: 100%;
+}
+/* empty state convidativo — carta fantasma tracejada */
+.pfx-mapping__ghost {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 26px 16px;
+  background: transparent;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  min-height: unset;
+  text-align: center;
+  transition:
+    border-color 0.16s,
+    background 0.16s,
+    color 0.16s,
+    transform 0.16s;
+}
+button.pfx-mapping__ghost:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: var(--selectable-hover-bg);
+  color: var(--text);
+}
+.pfx-mapping__ghost-icon {
+  font-size: 30px;
+  line-height: 1;
+}
+.pfx-mapping__ghost strong {
+  font-size: 14px;
+  color: var(--text);
+}
+.pfx-mapping__ghost span {
+  font-size: 12px;
+}
+
+.profile-modal__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.profile-modal__role {
+  font-size: 13px;
+  opacity: 0.85;
+}
+.profile-modal__header-actions {
+  margin-left: auto;
+}
+.profile-modal__trophy-btn {
+  background: var(--surface-2, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius);
+  font-size: 22px;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    background 0.15s;
+}
+button.profile-modal__trophy-btn:hover:not(:disabled) {
+  transform: scale(1.1) rotate(-6deg);
+  background: var(--accent-soft, rgba(255, 170, 60, 0.18));
+}
+.profile-modal__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.profile-section {
+  background: var(--surface-2, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.profile-section__title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.profile-section__bio {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+.profile-section__empty {
+  font-size: 12px;
+  opacity: 0.6;
+}
+.profile-section--stats {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.profile-mini-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.profile-mini-stat__icon {
+  font-size: 20px;
+}
+.profile-mini-stat__value {
+  font-weight: 700;
+  font-size: 16px;
+}
+.profile-mini-stat__label {
+  font-size: 11px;
+  opacity: 0.6;
+}
+.profile-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.profile-skill-chip {
+  background: var(--accent-soft, rgba(255, 170, 60, 0.16));
+  border: 1px solid var(--accent, rgba(255, 170, 60, 0.4));
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.profile-skills__add {
+  display: flex;
+  gap: 8px;
+}
+.profile-skills__add input {
+  flex: 1;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  min-height: var(--control-height);
+  padding: 8px var(--control-pad-x);
+  color: inherit;
+  font-size: 13px;
+}
+.profile-motivadores {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.profile-motivador {
+  display: grid;
+  grid-template-columns: 28px 1fr 120px 28px;
+  align-items: center;
+  gap: 10px;
+}
+.profile-motivador__emoji {
+  font-size: 18px;
+}
+.profile-motivador__nome {
+  font-size: 13px;
+}
+.profile-motivador__bar {
+  background: var(--surface, rgba(0, 0, 0, 0.25));
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+.profile-motivador__fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent, #ffaa3c), var(--accent-hover, #ff7a00));
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+.profile-motivador__val {
+  text-align: right;
+  font-size: 13px;
+}
+.profile-acoes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.profile-acao {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.profile-acao__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent, #ffaa3c);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.profile-acao p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  opacity: 0.75;
+}
+.profile-acao__status {
+  font-size: 11px;
+  opacity: 0.6;
+}
+.profile-mapping {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.profile-mapping__card {
+  background: var(--surface, rgba(0, 0, 0, 0.15));
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+.profile-mapping__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.profile-mapping__item {
+  background: var(--surface-2, rgba(255, 255, 255, 0.06));
+  border-radius: var(--radius);
+  padding: 3px 9px;
+  font-size: 11px;
+}
+.profile-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 22px 18px 18px;
+}
+.profile-modal__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.profile-modal__avatar {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 35%, var(--bg-2)),
+    color-mix(in srgb, var(--warm) 25%, var(--bg-2))
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.8rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.profile-modal__avatar-overlay {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  font-size: 22px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+.profile-modal__level-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: var(--warm);
+  color: var(--text-on-warm);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 2px solid var(--bg-1);
+}
+.profile-modal__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.profile-modal__name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.profile-modal__email {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.profile-modal__xp {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.profile-modal__xp-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.profile-modal__xp-bar {
+  height: 10px;
+  background: var(--bg-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.profile-modal__xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #fbbf24);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+.profile-modal__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+.profile-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  background: var(--bg-2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.profile-stat__icon {
+  font-size: 1.4rem;
+}
+.profile-stat__value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.profile-stat__label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.profile-modal__section-title {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+/* ════════════════════════════════════════════════════════════
+   EM BREVE — placeholder da tela de variantes de ícone
+   ════════════════════════════════════════════════════════════ */
+.coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  padding: 32px 24px;
+  min-height: 320px;
+}
+.coming-soon__media {
+  width: 220px;
+  height: 220px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.coming-soon__gif {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.coming-soon__badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.coming-soon__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.coming-soon__text {
+  margin: 0;
+  max-width: 340px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ════════════════════════════════════════════════════════════
+   CONQUISTAS — grid por tier, raridade, progresso, recompensas
+   ════════════════════════════════════════════════════════════ */
+
+/* Cores de raridade por tier (1→6). Usadas como --rar local. */
+.ach-tier[data-tier='1'],
+.ach-card[data-tier='1'] {
+  --rar: #9aa4b2;
+}
+.ach-tier[data-tier='2'],
+.ach-card[data-tier='2'] {
+  --rar: #2ec27e;
+}
+.ach-tier[data-tier='3'],
+.ach-card[data-tier='3'] {
+  --rar: #3b82f6;
+}
+.ach-tier[data-tier='4'],
+.ach-card[data-tier='4'] {
+  --rar: #a855f7;
+}
+.ach-tier[data-tier='5'],
+.ach-card[data-tier='5'] {
+  --rar: #f59e0b;
+}
+.ach-tier[data-tier='6'],
+.ach-card[data-tier='6'] {
+  --rar: #06b6d4;
+}
+
+.ach-view {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 2px 6px 2px 0;
+}
+
+/* ── Cabeçalho de progresso ─────────────────────────────── */
+.ach-summary {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(6px);
+}
+.ach-summary__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.ach-summary__count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.ach-summary__count strong {
+  font-size: 1.1rem;
+  color: var(--text);
+}
+.ach-summary__pct {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+.ach-summary__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-3, rgba(127, 127, 127, 0.18));
+  overflow: hidden;
+}
+.ach-summary__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #fff));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Seção de tier ──────────────────────────────────────── */
+.ach-tier__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.ach-tier__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rar);
+  box-shadow: 0 0 8px var(--rar);
+  flex: none;
+}
+.ach-tier__name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.ach-tier__rarity {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rar);
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rar) 16%, transparent);
+}
+.ach-tier__progress {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.ach-tier__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+/* ── Card de conquista ──────────────────────────────────── */
+.ach-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  overflow: hidden;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.2s ease;
+}
+/* Faixa de raridade na borda esquerda */
+.ach-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--rar);
+}
+.ach-card--unlocked {
+  border-color: color-mix(in srgb, var(--rar) 45%, var(--border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--rar) 9%, var(--bg-2)),
+    var(--bg-2) 60%
+  );
+}
+.ach-card--unlocked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--rar) 28%, transparent);
+}
+.ach-card--locked {
+  opacity: 0.62;
+}
+.ach-card--locked::before {
+  background: var(--border-strong);
+}
+.ach-card--locked:hover {
+  opacity: 0.85;
+  border-color: var(--border-strong);
+}
+
+.ach-card__icon-wrap {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--rar) 14%, transparent);
+}
+.ach-card--locked .ach-card__icon-wrap {
+  background: rgba(127, 127, 127, 0.12);
+}
+.ach-card__icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+.ach-card--unlocked .ach-card__icon {
+  filter: drop-shadow(0 1px 4px color-mix(in srgb, var(--rar) 60%, transparent));
+}
+
+.ach-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.ach-card__label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+.ach-card__desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.ach-card__rewards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.ach-reward {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.ach-reward--theme {
+  color: #a855f7;
+  background: color-mix(in srgb, #a855f7 14%, transparent);
+}
+.ach-reward--icon {
+  color: #06b6d4;
+  background: color-mix(in srgb, #06b6d4 14%, transparent);
+}
+.ach-reward--xp {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.ach-card--locked .ach-reward {
+  filter: grayscale(0.5);
+  opacity: 0.85;
+}
+
+/* Selo ✓ no canto, só desbloqueado */
+.ach-card__check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: #fff;
+  background: var(--rar);
+  border-radius: 50%;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--rar) 70%, transparent);
+}
+.profile-modal__hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  opacity: 0.8;
+}
+
+/* ── Edição inline do perfil ─────────────────────────────── */
+
+/* Botão editar: âncora no canto sup. direito do card, fora do fluxo dos stats */
+.pfx-hero__edit-btn {
+  position: absolute;
+  top: -15px;
+  right: -10px;
+  z-index: 4;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0;
+  border-radius: var(--radius);
+  background: var(--pfx-blue-soft);
+  border: 1px solid var(--border);
+  color: var(--pfx-blue);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+.pfx-hero__edit-btn:hover {
+  background: color-mix(in srgb, var(--pfx-blue) 22%, transparent);
+  border-color: var(--pfx-blue);
+  transform: translateY(-1px);
+}
+
+/* Foto em edição: overlay com a cor do tema + lápis centralizado */
+.pfx-hex__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--pfx-blue) 55%, transparent);
+  opacity: 0.92;
+  transition: opacity 0.15s ease;
+  /* Acompanha o recorte hexagonal do avatar (mesma var do __shape) */
+  clip-path: var(--hex-clip);
+}
+.pfx-hex--editing:hover .pfx-hex__overlay {
+  opacity: 1;
+}
+.pfx-hex__overlay-pencil {
+  font-size: 22px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+}
+
+/* Inputs inline herdam a tipografia dos rótulos que substituem */
+.pfx-hero__name-input {
+  width: 100%;
+  background: var(--bg-1, var(--bg-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 4px 8px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.pfx-hero__name-input:focus,
+.pfx-bio-input:focus,
+.pfx-edit-field input:focus,
+.pfx-edit-field select:focus {
+  outline: none;
+  border-color: var(--pfx-blue);
+}
+.pfx-hero__foto-erro {
+  font-size: 11px;
+  color: var(--danger, #e5484d);
+}
+
+/* Casa a tipografia/tamanho do .pfx-bio (<p>) — não cresce o card em edição */
+.pfx-bio-input {
+  width: 100%;
+  resize: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 4px 6px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  font-family: inherit;
+}
+
+/* Em edição: bio mantém posição/altura normais — preenche toda a coluna esquerda,
+   acompanhando o form à direita. Textarea enche o corpo do card. */
+.pfx-hero--editing .pfx-hero__bio .pfx-bio-input {
+  height: 100%;
+  min-height: 0;
+}
+/* recua a bio p/ não ficar sob o hexágono (alinha com a identidade) */
+.pfx-hero--editing .pfx-hero__bio {
+  padding-top: 70px;
+}
+
+/* Form de campos (coluna direita em modo edição) */
+.pfx-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pfx-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pfx-edit-field > span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.pfx-edit-field input,
+.pfx-edit-field select {
+  width: 100%;
+  background: var(--bg-1, var(--bg-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 7px 9px;
+  font: inherit;
+}
+
+.pfx-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+.pfx-btn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.pfx-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.pfx-btn--primary {
+  background: var(--pfx-blue);
+  border: 1px solid var(--pfx-blue);
+  color: #fff;
+}
+.pfx-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}

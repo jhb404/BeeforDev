@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useGamification } from '../useGamification';
 import { StreakRankingModal } from './StreakRankingModal';
+import { useRealMoodStreak } from '../hooks/useRealMoodStreak';
 
 interface Props {
   /** Renders inline (default) or as floating chip. */
@@ -8,14 +8,14 @@ interface Props {
 }
 
 /**
- * Mostra a streak de mood com chama animada. Clique → abre leaderboard mock.
+ * Mostra a streak REAL de mood (via /Home/MoodStreakOrganizacao, cache SWR).
+ * Clique → abre ranking org.
  */
 export function MoodStreakBadge({ variant = 'inline' }: Props) {
-  const { stats } = useGamification();
-  const streak = stats.moodStreak;
+  const { streak, loading } = useRealMoodStreak();
   const [rankingOpen, setRankingOpen] = useState(false);
 
-  if (streak <= 0) return null;
+  if (loading || streak <= 0) return null;
 
   const heat = streak >= 30 ? 'inferno' : streak >= 14 ? 'hot' : streak >= 7 ? 'warm' : 'spark';
 

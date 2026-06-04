@@ -1,21 +1,14 @@
+// Espelha enum TipoColunaCard do backend: Tarefa=0, Historia=1, Bug=2
 export const TIPO_LABEL: Record<number, string> = {
-  0: 'Outro',
-  1: 'Tarefa',
+  0: 'Tarefa',
+  1: 'História',
   2: 'Bug',
-  3: 'História',
-  4: 'Epic',
-  5: 'Melhoria',
-  6: 'Suporte',
 };
 
 export const TIPO_ICON: Record<number, string> = {
-  0: '📌',
-  1: '✅',
+  0: '✅',
+  1: '📖',
   2: '🐛',
-  3: '📖',
-  4: '🗂️',
-  5: '⬆️',
-  6: '🎧',
 };
 
 const FIBONACCI = [1, 2, 3, 5, 8, 13, 20, 40, 100];

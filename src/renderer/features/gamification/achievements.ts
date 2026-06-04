@@ -24,6 +24,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '⚡',
     label: 'Primeiro lançamento',
     description: 'Bata seu primeiro ponto.',
+    tier: 1,
     check: (s) => s.totalLancamentos >= 1,
   },
   {
@@ -31,6 +32,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🙂',
     label: 'Como você tá?',
     description: 'Registre seu primeiro mood.',
+    tier: 1,
     check: (s) => s.moodStreak >= 1,
   },
   {
@@ -38,6 +40,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '👋',
     label: 'Primeira gentileza',
     description: 'Envie seu primeiro KudoCard.',
+    tier: 1,
     check: (s) => s.totalKudos >= 1,
   },
   {
@@ -45,6 +48,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🤖',
     label: 'Automatizou!',
     description: 'Rode auto lançamento pela primeira vez.',
+    tier: 1,
     check: (s) => s.totalAutoLancamentos >= 1,
   },
 
@@ -54,6 +58,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🧭',
     label: 'Explorador',
     description: 'Alcance o nível 3.',
+    tier: 2,
     check: (s) => s.level >= 3,
     rewards: { themePreset: 'ocean', xpBonus: 50 },
   },
@@ -62,6 +67,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🪙',
     label: 'Primeiras moedas',
     description: 'Acumule 100 coins.',
+    tier: 2,
     check: (s) => s.coinsGanhos >= 100,
   },
   {
@@ -69,6 +75,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '😊',
     label: 'Três diazinhos',
     description: 'Mood marcado 3 dias seguidos.',
+    tier: 2,
     check: (s) => s.moodStreak >= 3,
   },
   {
@@ -76,6 +83,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '👊',
     label: 'Consistência',
     description: 'Bata ponto 3 dias seguidos.',
+    tier: 2,
     check: (s) => s.punchStreak >= 3,
   },
 
@@ -85,6 +93,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '😄',
     label: 'Semana feliz',
     description: 'Mood preenchido 7 dias seguidos.',
+    tier: 3,
     check: (s) => s.moodStreak >= 7,
     rewards: { themePreset: 'mint', xpBonus: 100 },
   },
@@ -93,6 +102,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '⏱️',
     label: 'Pontualidade',
     description: 'Ponto batido 7 dias seguidos.',
+    tier: 3,
     check: (s) => s.punchStreak >= 7,
     rewards: { themePreset: 'lavender', xpBonus: 100 },
   },
@@ -101,6 +111,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🎖️',
     label: 'Nível 5',
     description: 'Alcance o nível 5.',
+    tier: 3,
     check: (s) => s.level >= 5,
     rewards: { themePreset: 'sakura', xpBonus: 100 },
   },
@@ -109,6 +120,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🌟',
     label: 'Pessoa do bem',
     description: 'Envie 5 KudoCards.',
+    tier: 3,
     check: (s) => s.totalKudos >= 5,
     rewards: { themePreset: 'forest', xpBonus: 150 },
   },
@@ -117,6 +129,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '⚙️',
     label: 'Time saver',
     description: 'Auto lançamento 3 vezes.',
+    tier: 3,
     check: (s) => s.totalAutoLancamentos >= 3,
     rewards: { themePreset: 'sunset', xpBonus: 100 },
   },
@@ -127,6 +140,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '😎',
     label: 'Quinzena de mood',
     description: '14 dias seguidos de mood.',
+    tier: 4,
     check: (s) => s.moodStreak >= 14,
     rewards: { themePreset: 'mocha', xpBonus: 200 },
   },
@@ -135,6 +149,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '📅',
     label: 'Mês completo',
     description: '22 lançamentos no total (1 mês útil).',
+    tier: 4,
     check: (s) => s.totalLancamentos >= 22,
     rewards: { iconVariant: 'galaxy', xpBonus: 200 },
   },
@@ -143,6 +158,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🌟',
     label: 'Nível 10',
     description: 'Alcance o nível 10.',
+    tier: 4,
     check: (s) => s.level >= 10,
     rewards: { themePreset: 'cyber', xpBonus: 300 },
   },
@@ -151,6 +167,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🎁',
     label: 'Generoso',
     description: 'Envie 10 KudoCards (~5 meses).',
+    tier: 4,
     check: (s) => s.totalKudos >= 10,
     rewards: { themePreset: 'royal', iconVariant: 'crowned', xpBonus: 300 },
   },
@@ -159,6 +176,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '💰',
     label: 'Poupador',
     description: 'Acumule 500 coins.',
+    tier: 4,
     check: (s) => s.coinsGanhos >= 500,
     rewards: { xpBonus: 200 },
   },
@@ -169,6 +187,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🔥',
     label: 'Streak de fogo',
     description: '30 dias seguidos de mood.',
+    tier: 5,
     check: (s) => s.moodStreak >= 30,
     rewards: { themePreset: 'inferno', iconVariant: 'flame', xpBonus: 500 },
   },
@@ -177,6 +196,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '⌚',
     label: 'Pontual mensal',
     description: '30 dias seguidos de ponto.',
+    tier: 5,
     check: (s) => s.punchStreak >= 30,
     rewards: { iconVariant: 'trophy', xpBonus: 400 },
   },
@@ -185,6 +205,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '💎',
     label: 'Cofrinho cheio',
     description: 'Acumule 1.000 coins.',
+    tier: 5,
     check: (s) => s.coinsGanhos >= 1000,
     rewards: { themePreset: 'diamond', xpBonus: 400 },
   },
@@ -193,6 +214,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '👑',
     label: 'Rei dos Kudos',
     description: 'Envie 25 KudoCards (~1 ano).',
+    tier: 5,
     check: (s) => s.totalKudos >= 25,
     rewards: { themePreset: 'gold', iconVariant: 'diamond', xpBonus: 600 },
   },
@@ -201,6 +223,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🌠',
     label: 'Nível 20',
     description: 'Alcance o nível 20.',
+    tier: 5,
     check: (s) => s.level >= 20,
     rewards: { themePreset: 'galaxy', xpBonus: 500 },
   },
@@ -211,6 +234,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🌋',
     label: 'Vulcão',
     description: '60 dias seguidos de mood.',
+    tier: 6,
     check: (s) => s.moodStreak >= 60,
     rewards: { xpBonus: 1000 },
   },
@@ -219,6 +243,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '☄️',
     label: 'Nível 30',
     description: 'Alcance o nível 30 — você joga há tempo.',
+    tier: 6,
     check: (s) => s.level >= 30,
     rewards: { xpBonus: 1500 },
   },
@@ -227,9 +252,26 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: '🐝',
     label: 'Beefor Master',
     description: 'Desbloqueie as outras 25 conquistas. Platinum.',
+    tier: 6,
     check: (s) => s.unlockedAchievementIds.length >= 25,
     rewards: { themePreset: 'master', iconVariant: 'master', xpBonus: 5000 },
   },
+];
+
+/** Metadados de cada tier — nome + raridade pra UI. Ordem = progressão. */
+export interface TierMeta {
+  tier: 1 | 2 | 3 | 4 | 5 | 6;
+  name: string;
+  rarity: string;
+}
+
+export const TIERS: TierMeta[] = [
+  { tier: 1, name: 'Onboarding', rarity: 'Comum' },
+  { tier: 2, name: 'Exploração', rarity: 'Incomum' },
+  { tier: 3, name: 'Hábitos', rarity: 'Raro' },
+  { tier: 4, name: 'Dedicação', rarity: 'Épico' },
+  { tier: 5, name: 'Maestria', rarity: 'Lendário' },
+  { tier: 6, name: 'Endgame', rarity: 'Platina' },
 ];
 
 export function achievementById(id: string): Achievement | undefined {

@@ -1,4 +1,22 @@
+- v0.2.0: HOLY MOLY, TEMOS API E COISINHAS NOVAAAAAS ✨🔥
+
+Gente, mó felicidade, me deram acesso a api do beefor...sinceramente não sei nem como kk
+
+Bom, com esse poder em minhas maos, da pra eu fazer muita coisa...Tipo, eu tava pensando em uma home com varias opções, configuravel pra todos os gostos sabe!? Bom, ideia né...
+
+Pra quem quer saber oq mudou, TA NO TITULO! (A principal mudança kk, graças a Deus demos adeus ao Playwrite...descanse em paz) 
+
+Alem de eu adicionar mais corzinhas KSKSKS, e tbm ajustar temas, e a qualidade do app, e tbm adicionar features novas como atividades, melhora no kudo, perfilzinho com edição...e coisas a mais ai.
+
+
+https://media1.tenor.com/m/_jYQGEQQiY8AAAAd/cat-67.gif
+OBS: sinceramente já desisti de tentar identificar se o video é real ou ia...pra mim esse gif é 100% REAL
+
+---
+
 - v0.1.11: APPLEEEEE 🍎✨
+
+GENTE GENTE GENTE -> AINDA N DA PRA USAR PQ TEM Q PAGAR $99 POR CONTA DE UM CERTIFICADO...JAJA RESOLVO ISSO :D
 
 Eu ouvi voce, Ó USUÁRIO DE MAC bem parcelado em 12x...
 

@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
-import {
-  KUDO_CARD_EMOJI,
-  KUDO_CARD_LABELS,
-  KUDO_CARD_TYPE_BY_TIPO,
-} from '@shared/types/index';
+import { KUDO_CARD_EMOJI, KUDO_CARD_LABELS, KUDO_CARD_TYPE_BY_TIPO } from '@shared/types/index';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
 import { useSlowHint } from '../../../hooks/useSlowHint';
 import { useKudoHistory } from '../hooks/useKudoHistory';
@@ -40,16 +36,8 @@ function labelOf(tipo: number): string {
 
 export function KudoCardHistoryModal({ open, onClose }: Props) {
   const [tab, setTab] = useState<Tab>('recebidos');
-  const {
-    counts,
-    lists,
-    loading,
-    errMsg,
-    selected,
-    setSelected,
-    detail,
-    loadingDetail,
-  } = useKudoHistory(open);
+  const { counts, lists, loading, errMsg, selected, setSelected, detail, loadingDetail } =
+    useKudoHistory(open);
 
   const slowHint = useSlowHint(loading);
   const slowDetailHint = useSlowHint(loadingDetail);
@@ -57,7 +45,12 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
   const items = lists ? lists[tab] : [];
 
   return (
-    <ModalShell open={open} onClose={onClose} className="kudo-history-modal" labelledBy="kudo-history-title">
+    <ModalShell
+      open={open}
+      onClose={onClose}
+      className="kudo-history-modal"
+      labelledBy="kudo-history-title"
+    >
       <div className="modal-head">
         <div>
           <p className="eyebrow">Histórico</p>
@@ -136,15 +129,11 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
 
             <div className="kudo-history-detail">
               {!selected ? (
-                <div className="kudo-history-empty">
-                  Selecione um card para ver detalhes.
-                </div>
+                <div className="kudo-history-empty">Selecione um card para ver detalhes.</div>
               ) : (
                 <>
                   <div className="kudo-detail-head">
-                    <span className="kudo-detail-emoji">
-                      {emojiOf(selected.tipoKudoCard)}
-                    </span>
+                    <span className="kudo-detail-emoji">{emojiOf(selected.tipoKudoCard)}</span>
                     <div>
                       <strong>{labelOf(selected.tipoKudoCard)}</strong>
                       <span>{selected.mensagemKudoCard}</span>
@@ -156,8 +145,8 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
                     </span>
                     <strong>
                       {tab === 'enviados'
-                        ? detail?.destinatario ?? selected.destinatario ?? '—'
-                        : detail?.remetente ?? selected.remetente ?? '—'}
+                        ? (detail?.destinatario ?? selected.destinatario ?? '—')
+                        : (detail?.remetente ?? selected.remetente ?? '—')}
                     </strong>
                   </div>
                   <div className="kudo-detail-row">
@@ -173,9 +162,7 @@ export function KudoCardHistoryModal({ open, onClose }: Props) {
                       Mensagem
                       {loadingDetail && (
                         <span className="kudo-detail-loading">
-                          {slowDetailHint
-                            ? ` · ${slowDetailHint}`
-                            : ' · carregando...'}
+                          {slowDetailHint ? ` · ${slowDetailHint}` : ' · carregando...'}
                         </span>
                       )}
                     </span>

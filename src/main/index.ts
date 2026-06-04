@@ -5,7 +5,6 @@ import { registerIpcHandlers } from './ipc';
 import { bindLoggerWindow, logger } from './logger';
 import { loadSettings } from './sessionStore';
 import { setAutoStart } from './autoStart';
-import { BeeforClient } from '../automation/beefor/beeforClient';
 import { ensureSession, startWatchdog, stopWatchdog } from './sessionManager';
 import { startScheduler, stopScheduler } from './scheduler/index';
 import { initCoin2u } from './coin2u';
@@ -113,7 +112,6 @@ app.on('before-quit', () => {
 app.on('window-all-closed', async () => {
   stopWatchdog();
   stopScheduler();
-  await BeeforClient.instance().close();
   if (process.platform !== 'darwin') app.quit();
 });
 

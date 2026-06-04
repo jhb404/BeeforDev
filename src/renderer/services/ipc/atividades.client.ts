@@ -1,11 +1,20 @@
 import type { ActionResult, BeeforAtividade } from '@shared/types/index';
-import type { BeeforApi } from '../../../main/preload';
+import type { BeeforHttpApi } from '../../../main/preload';
 
-export function createAtividadesClient(api: BeeforApi) {
+function requireHttp(http?: BeeforHttpApi): BeeforHttpApi {
+  if (!http) throw new Error('API HTTP indisponível — reinicie o app.');
+  return http;
+}
+
+export function createAtividadesClient(http?: BeeforHttpApi) {
   return {
-    fetch: (): Promise<ActionResult<BeeforAtividade[]>> => api.fetchAtividades(),
+    fetch: async (): Promise<ActionResult<BeeforAtividade[]>> => {
+      return requireHttp(http).atividades.minhas();
+    },
   };
 }
 
-export const atividadesClient = createAtividadesClient(window.beefor);
+export const atividadesClient = createAtividadesClient(
+  typeof window !== 'undefined' ? window.beeforHttp : undefined,
+);
 export type AtividadesClient = ReturnType<typeof createAtividadesClient>;
