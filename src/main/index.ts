@@ -115,7 +115,20 @@ app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-bootstrap().catch((err) => {
-  logger.error('Bootstrap failed', err);
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
   app.quit();
-});
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+
+  bootstrap().catch((err) => {
+    logger.error('Bootstrap failed', err);
+    app.quit();
+  });
+}
