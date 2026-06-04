@@ -5,7 +5,9 @@
       "Bash(npm run *)",
       "Bash(ls \"c:\\\\Users\\\\Joao Batista\\\\Desktop\\\\BeeforDev\\\\build\\\\\" 2>&1; ls \"c:\\\\Users\\\\Joao Batista\\\\Desktop\\\\BeeforDev\\\\src\\\\renderer\\\\public\\\\\" 2>&1; ls \"c:\\\\Users\\\\Joao Batista\\\\Desktop\\\\BeeforDev\\\\\" | head -20)",
       "Read(//c/Users/Joao Batista/Desktop/**)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(node -e \"require\\('node-forge'\\); console.log\\('ok'\\)\")",
+      "Bash(findstr forge *)"
     ]
   }
 }

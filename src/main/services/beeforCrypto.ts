@@ -52,6 +52,11 @@ function rsaEncryptKey(key16: string): string {
   return encrypted.toString('base64');
 }
 
+/** RSA-encripta string com a chave pública do backend (replica _rsaService.criptografar do front). */
+export function rsaEncrypt(value: string): string {
+  return rsaEncryptKey(value);
+}
+
 export interface EncryptedRequest {
   body: string;
   headers: Record<string, string>;
