@@ -96,7 +96,7 @@
       "target": "dmg",
       "category": "public.app-category.developer-tools",
       "icon": "build/icon.icns",
-      "identity": "-",
+      "identity": null,
       "hardenedRuntime": false,
       "gatekeeperAssess": false
     },
