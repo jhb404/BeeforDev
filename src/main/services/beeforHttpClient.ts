@@ -76,12 +76,12 @@ export function clearCachedSession(): void {
 }
 
 export async function loginHttp(usuario: string, senha: string): Promise<BeeforSession> {
-  const body: LoginRequest = { usuario, senha };
   const url = `${getBeeforTokenApi()}`;
-  logger.info(`HTTP login → ${url}`);
+  logger.info(`HTTP login → ${url} usuario=${usuario}`);
 
-  // /Token está sob baseUrl + tem body → passa pelo crypto interceptor do front.
-  const { encryptBeeforBody } = await import('./beeforCrypto');
+  // Replica o front: RSA-encripta usuario+senha individualmente, depois AES-encripta o body.
+  const { encryptBeeforBody, rsaEncrypt } = await import('./beeforCrypto');
+  const body: LoginRequest = { usuario: rsaEncrypt(usuario), senha: rsaEncrypt(senha) };
   const enc = encryptBeeforBody(body);
 
   const response = await fetchKeepAlive(url, {
@@ -107,10 +107,16 @@ export async function loginHttp(usuario: string, senha: string): Promise<BeeforS
   }
 
   const data = (await response.json()) as Record<string, unknown>;
+  logger.info(`Login response keys: ${Object.keys(data).join(', ')}`);
+  logger.info(
+    `Login response token=${JSON.stringify(data?.token)} idPessoa=${JSON.stringify(data?.idPessoa)}`,
+  );
   const token = String(data?.token ?? '');
   const idPessoa = String(data?.idPessoa ?? '');
-  if (!token || !idPessoa) {
-    throw new BeeforAuthError('Resposta de login sem token/idPessoa.');
+  const NULL_UUID = '00000000-0000-0000-0000-000000000000';
+  if (!token || !idPessoa || idPessoa === NULL_UUID) {
+    logger.warn(`Login rejeitado: token vazio=${!token} idPessoa=${idPessoa}`);
+    throw new BeeforAuthError('Credenciais inválidas ou conta sem acesso.');
   }
 
   const session: BeeforSession = {
@@ -131,6 +137,9 @@ async function loadCredentialsFromKeychain(): Promise<{ usuario: string; senha: 
     // Lazy import — evita ciclo de dependência (secureStorage usa keytar).
     const { getCredentials } = await import('../secureStorage');
     const creds = await getCredentials();
+    logger.info(
+      `Keychain pw-check: first3=${creds?.password?.slice(0, 3) ?? 'null'} len=${creds?.password?.length ?? 0} last1=${creds?.password?.slice(-1) ?? 'null'}`,
+    );
     if (creds?.email && creds?.password) {
       return { usuario: creds.email, senha: creds.password };
     }
