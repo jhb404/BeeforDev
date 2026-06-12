@@ -17,7 +17,9 @@ import { SummaryStrip } from './home/components/SummaryStrip';
 import { TimesheetToolbar } from './home/components/TimesheetToolbar';
 import { TimesheetGrid } from './home/components/TimesheetGrid';
 import { BatchConfirmModal } from './home/components/BatchConfirmModal';
+import { ImportarMesModal } from './home/components/ImportarMesModal';
 import { HomeTopbar } from './home/components/HomeTopbar';
+import { logger } from '../services/logger';
 import { AtividadesModal } from '../features/atividades/components/AtividadesModal';
 import { APP_EVENTS, onAppEvent } from '../app/events';
 import { useMoodFlow } from './home/hooks/useMoodFlow';
@@ -47,6 +49,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const showToast = useToast();
   const [showBatchModal, setShowBatchModal] = useState(false);
+  const [importarMes, setImportarMes] = useState<{ fileName: string } | null>(null);
   const [showKudoModal, setShowKudoModal] = useState(false);
   const [showKudoHistory, setShowKudoHistory] = useState(false);
   const [showAtividades, setShowAtividades] = useState(false);
@@ -170,7 +173,6 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
     });
   };
 
-
   const hoursPerDayMin = (settings?.hoursPerDay ?? 8) * 60;
 
   const summary = useMemo(() => {
@@ -267,6 +269,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
           onYearChange={setYear}
           onMonthChange={setMonth}
           onAutoLancamento={() => void autoLancamento()}
+          onImportarMes={() => setImportarMes({ fileName: '' })}
         />
 
         <SummaryStrip summary={summary} compact={settings?.viewMode === 'minimal'} />
@@ -312,6 +315,19 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
         onClose={() => setShowBatchModal(false)}
         onConfirm={() => void confirmLancarMes()}
       />
+
+      {importarMes && (
+        <ImportarMesModal
+          fileName={importarMes.fileName}
+          year={year}
+          month={month}
+          onClose={() => setImportarMes(null)}
+          onEnviar={(rows) => {
+            logger.warn('[importar-mes] enviar (mock)', rows.length, 'linhas');
+            setImportarMes(null);
+          }}
+        />
+      )}
 
       <KudoCardModal
         open={showKudoModal}

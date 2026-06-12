@@ -1,4 +1,6 @@
 ﻿import { app, BrowserWindow, session } from 'electron';
+import { execSync } from 'node:child_process';
+import path from 'node:path';
 import { createMainWindow, getBuildIconPath } from './window';
 import { installCsp } from './csp';
 import { registerIpcHandlers } from './ipc';
@@ -48,8 +50,20 @@ function showMainWindow() {
   mainWindow.focus();
 }
 
+function removeMacQuarantine(): void {
+  if (process.platform !== 'darwin' || !app.isPackaged) return;
+  try {
+    // process.execPath = <bundle>.app/Contents/MacOS/<bin> — go up 3 levels to get .app
+    const appBundle = path.dirname(path.dirname(path.dirname(process.execPath)));
+    execSync(`xattr -cr "${appBundle.replace(/"/g, '\\"')}"`, { timeout: 5000 });
+  } catch {
+    // non-fatal
+  }
+}
+
 async function bootstrap() {
   await app.whenReady();
+  removeMacQuarantine();
   app.setName('Beefor U');
   if (process.platform === 'win32') {
     app.setAppUserModelId('io.beefor.dev');
@@ -115,7 +129,20 @@ app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-bootstrap().catch((err) => {
-  logger.error('Bootstrap failed', err);
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
   app.quit();
-});
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+
+  bootstrap().catch((err) => {
+    logger.error('Bootstrap failed', err);
+    app.quit();
+  });
+}

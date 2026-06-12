@@ -1,5 +1,7 @@
 import { MONTHS_PT } from '../../../utils/dates';
 
+const STORAGE_KEY = 'beefor_hkr_unlocked';
+
 interface TimesheetToolbarProps {
   year: number;
   month: number;
@@ -9,6 +11,7 @@ interface TimesheetToolbarProps {
   onYearChange: (year: number) => void;
   onMonthChange: (month: number) => void;
   onAutoLancamento: () => void;
+  onImportarMes?: () => void;
 }
 
 export function TimesheetToolbar({
@@ -20,7 +23,10 @@ export function TimesheetToolbar({
   onYearChange,
   onMonthChange,
   onAutoLancamento,
+  onImportarMes,
 }: TimesheetToolbarProps) {
+  const hackerUnlocked = localStorage.getItem(STORAGE_KEY) === '1';
+
   return (
     <div className="ts-toolbar">
       <div className="ts-filters">
@@ -54,9 +60,12 @@ export function TimesheetToolbar({
         >
           Auto lançamento
         </button>
-        <button className="secondary" disabled title="Em breve">
-          Lançar mês
-        </button>
+
+        {hackerUnlocked && onImportarMes && (
+          <button className="ts-importar-mes" disabled={busy || !ready} onClick={onImportarMes}>
+            ⚡ Importar mês
+          </button>
+        )}
       </div>
     </div>
   );

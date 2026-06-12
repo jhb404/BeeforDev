@@ -16,7 +16,7 @@ OBS: sinceramente já desisti de tentar identificar se o video é real ou ia...p
 
 - v0.1.11: APPLEEEEE 🍎✨
 
-GENTE GENTE GENTE -> AINDA N DA PRA USAR PQ TEM Q PAGAR $99 POR CONTA DE UM CERTIFICADO...JAJA RESOLVO ISSO :D
+OBS IMPORTANTISSIMO -> Para usar no MAC após baixar, tu vai abrir o terminal e rodar o seguinte comando: xattr -cr "/Applications/Beefor Dev.app"
 
 Eu ouvi voce, Ó USUÁRIO DE MAC bem parcelado em 12x...
 
