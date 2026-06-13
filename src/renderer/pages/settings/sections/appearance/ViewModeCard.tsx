@@ -19,23 +19,7 @@ export function ViewModeCard({ settings, onUpdate, onChangeViewMode }: ViewModeC
       <div className="view-mode-row">
         <button
           type="button"
-          className={`view-mode-opt ${(settings.viewMode ?? 'classic') === 'classic' ? 'active' : ''}`}
-          onClick={() => onChangeViewMode('classic')}
-        >
-          <svg className="vm-preview" viewBox="0 0 120 70" aria-hidden="true">
-            <rect x="4" y="4" width="112" height="10" rx="2" fill="var(--bg-3)" />
-            <rect x="4" y="18" width="112" height="6" rx="1" fill="var(--accent-soft)" />
-            <rect x="4" y="28" width="112" height="6" rx="1" fill="var(--bg-3)" />
-            <rect x="4" y="38" width="112" height="6" rx="1" fill="var(--bg-3)" />
-            <rect x="4" y="48" width="112" height="6" rx="1" fill="var(--bg-3)" />
-            <rect x="4" y="58" width="112" height="6" rx="1" fill="var(--bg-3)" />
-          </svg>
-          <strong>Clássica</strong>
-          <span>Tabela linha-a-linha com todos os dias</span>
-        </button>
-        <button
-          type="button"
-          className={`view-mode-opt ${settings.viewMode === 'minimal' ? 'active' : ''}`}
+          className={`view-mode-opt ${(settings.viewMode ?? 'minimal') === 'minimal' ? 'active' : ''}`}
           onClick={() => onChangeViewMode('minimal')}
         >
           <svg className="vm-preview" viewBox="0 0 120 70" aria-hidden="true">
@@ -62,6 +46,22 @@ export function ViewModeCard({ settings, onUpdate, onChangeViewMode }: ViewModeC
           </svg>
           <strong>Minimalista</strong>
           <span>Calendário + dia selecionado</span>
+        </button>
+        <button
+          type="button"
+          className={`view-mode-opt ${(settings.viewMode ?? 'minimal') === 'classic' ? 'active' : ''}`}
+          onClick={() => onChangeViewMode('classic')}
+        >
+          <svg className="vm-preview" viewBox="0 0 120 70" aria-hidden="true">
+            <rect x="4" y="4" width="112" height="10" rx="2" fill="var(--bg-3)" />
+            <rect x="4" y="18" width="112" height="6" rx="1" fill="var(--accent-soft)" />
+            <rect x="4" y="28" width="112" height="6" rx="1" fill="var(--bg-3)" />
+            <rect x="4" y="38" width="112" height="6" rx="1" fill="var(--bg-3)" />
+            <rect x="4" y="48" width="112" height="6" rx="1" fill="var(--bg-3)" />
+            <rect x="4" y="58" width="112" height="6" rx="1" fill="var(--bg-3)" />
+          </svg>
+          <strong>Clássica</strong>
+          <span>Tabela linha-a-linha com todos os dias</span>
         </button>
       </div>
     </div>

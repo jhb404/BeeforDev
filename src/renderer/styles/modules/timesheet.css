@@ -37,6 +37,25 @@
   margin-top: 4px;
 }
 
+.mood-locked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.mood-locked__icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.mood-locked__text {
+  line-height: 1.3;
+}
+
 .timesheet-panel {
   overflow: hidden;
   box-shadow: var(--shadow);

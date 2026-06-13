@@ -5,6 +5,7 @@ const DEFAULT_PUNCH: AppSettings['punchTimes'] = ['09:00', '12:00', '13:00', '18
 export const SETTINGS_DEFAULTS: AppSettings = {
   autoStart: true,
   autoLoginOnLaunch: true,
+  viewMode: 'minimal',
   automatePunch: false,
   punchTimes: DEFAULT_PUNCH,
   punchDriftMinutes: 10,

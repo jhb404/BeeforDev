@@ -1,5 +1,5 @@
 ﻿import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
-import { IpcProvider } from './services/ipc';
+import { IpcProvider, useIpc } from './services/ipc';
 import { TitleBar } from './components/layout/TitleBar';
 import { StartupOverlay } from './components/layout/StartupOverlay';
 import { SettingsProvider, useSettings } from './app/providers/SettingsProvider';
@@ -27,6 +27,7 @@ import { APP_EVENTS, emitAppEvent } from './app/events';
 import { useLunchTimer } from './app/hooks/useLunchTimer';
 import { usePatchJournal } from './app/hooks/usePatchJournal';
 import { useTrayListeners } from './app/hooks/useTrayListeners';
+import { useProfileName } from './hooks/useProfileName';
 
 type Tab = 'home' | 'settings';
 
@@ -40,6 +41,18 @@ function AppShell() {
   const { settings: appSettings } = useSettings();
   const { theme, toggle: toggleTheme } = useTheme();
   const showToast = useToast();
+  const { timesheet: timesheetClient } = useIpc();
+
+  const handleOpenBeefor = useCallback(async () => {
+    const res = await timesheetClient.openBeefor();
+    if (!res.ok) {
+      showToast({
+        kind: 'err',
+        title: 'Não abriu o Beefor',
+        msg: res.error || 'falhou',
+      });
+    }
+  }, [timesheetClient, showToast]);
 
   const [tab, setTab] = useState<Tab>('home');
   const [teamModalOpen, setTeamModalOpen] = useState(false);
@@ -116,6 +129,7 @@ function AppShell() {
   });
 
   const { status: sessionStatus } = useBeefor();
+  const profileInitials = useProfileName(sessionStatus);
 
   const logoVariant = appSettings?.logoVariant ?? 'orange';
 
@@ -146,6 +160,8 @@ function AppShell() {
         lunchTimerActive={lunchTimerActive}
         lunchStartedAt={lunchStartedAt}
         onCancelLunchTimer={cancelLunchTimer}
+        profileInitials={profileInitials || undefined}
+        onOpenBeefor={() => void handleOpenBeefor()}
       />
 
       <main className="content">

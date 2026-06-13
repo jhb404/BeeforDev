@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import type { SessionStatus } from '@shared/types/index';
-import { Globe } from '../../../components/common/Icons';
 import { useClickOutside } from '../../../hooks/useClickOutside';
 
 interface HomeTopbarProps {
@@ -10,7 +9,6 @@ interface HomeTopbarProps {
   loadingTs: boolean;
   ready: boolean;
   onReload: () => void;
-  onOpenBeefor: () => void;
   onOpenKudo: () => void;
   onOpenKudoHistory: () => void;
   onOpenAtividades: () => void;
@@ -23,7 +21,6 @@ export function HomeTopbar({
   loadingTs,
   ready,
   onReload,
-  onOpenBeefor,
   onOpenKudo,
   onOpenKudoHistory,
   onOpenAtividades,
@@ -35,33 +32,22 @@ export function HomeTopbar({
 
   return (
     <section className="home-topbar">
-      <div>
-        <p className="eyebrow">Beefor U</p>
-        <h1>Lançamento de horas</h1>
-      </div>
-      <div className="home-status">
+      <div className="home-topbar__left">
+        <div>
+          <h1>Meu Board</h1>
+        </div>
         {showReload && (
           <button
             className="secondary compact"
             disabled={busy || loadingTs || loadingMood}
             onClick={onReload}
+            title="Tentar reconectar"
           >
-            Recarregar
+            ↺ Reconectar
           </button>
         )}
-
-        {/* Abrir Beefor — ícone */}
-        <button
-          className="secondary compact topbar-icon-btn"
-          onClick={onOpenBeefor}
-          aria-label="Abrir Beefor no navegador"
-          data-tooltip="Abrir Beefor no navegador"
-          data-sound="click"
-        >
-          <Globe size={15} />
-        </button>
-
-        {/* Atividades */}
+      </div>
+      <div className="home-status">
         <button
           data-sound="activity-open"
           className="secondary compact"
@@ -71,7 +57,6 @@ export function HomeTopbar({
           Atividades
         </button>
 
-        {/* KudoCard — split button */}
         <div className="topbar-kudo-wrap" ref={kudoRef}>
           <div className="topbar-kudo-split">
             <button
@@ -123,7 +108,7 @@ export function HomeTopbar({
                   onOpenKudoHistory();
                 }}
               >
-                📋 Histórico de Kudos
+                Histórico de Kudos
               </button>
             </div>
           )}

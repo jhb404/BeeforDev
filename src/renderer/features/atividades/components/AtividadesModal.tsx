@@ -60,12 +60,9 @@ export function AtividadesModal({ open, onClose }: Props) {
     return matchSearch && matchTipo;
   });
 
-  const handleSelect = useCallback(
-    (atividade: BeeforAtividade) => {
-      setSelected((current) => (current?.id === atividade.id ? null : atividade));
-    },
-    [],
-  );
+  const handleSelect = useCallback((atividade: BeeforAtividade) => {
+    setSelected((current) => (current?.id === atividade.id ? null : atividade));
+  }, []);
 
   return (
     <ModalShell open={open} onClose={onClose} className="atividades-modal" labelledBy="ativ-title">
@@ -90,6 +87,11 @@ export function AtividadesModal({ open, onClose }: Props) {
             Fechar
           </button>
         </div>
+      </div>
+
+      <div className="atividades-dev-banner" role="alert">
+        🚧 Esta funcionalidade está em desenvolvimento. Alguns dados podem estar incompletos ou
+        mudar em breve.
       </div>
 
       <div className="atividades-modal__toolbar">

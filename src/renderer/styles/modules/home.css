@@ -139,6 +139,12 @@
   gap: 16px;
 }
 
+.home-topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .home-topbar h1 {
   margin: 2px 0 0;
   font-size: 22px;
@@ -257,5 +263,47 @@
 }
 .topbar-kudo-menu button:hover {
   background: var(--bg-2);
+}
+
+/* === Mood out-of-hours overlay === */
+.mood-panel {
+  position: relative;
+}
+.mood-panel--locked > .mood-panel__info,
+.mood-panel--locked .mood-grid,
+.mood-panel--locked .mood-picker {
+  filter: saturate(0.7);
+}
+.mood-panel__lock-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--bg-0) 60%, transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 5;
+  cursor: not-allowed;
+  animation: mood-lock-in 0.18s ease;
+}
+@keyframes mood-lock-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.mood-panel__lock-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: var(--shadow);
 }
 

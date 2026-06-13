@@ -19,6 +19,18 @@
   align-items: center;
 }
 
+.atividades-dev-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: color-mix(in srgb, var(--warn, #fbbf24) 14%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--warn, #fbbf24) 35%, transparent);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .atividades-modal__toolbar {
   display: flex;
   flex-direction: column;

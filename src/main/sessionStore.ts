@@ -28,6 +28,7 @@ async function readPatchJournal(): Promise<string> {
 const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
   autoLoginOnLaunch: true,
+  viewMode: 'minimal',
 
   beeforEnv: 'prod',
 
