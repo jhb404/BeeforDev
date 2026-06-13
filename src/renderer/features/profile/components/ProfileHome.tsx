@@ -18,6 +18,7 @@ interface Props {
   achTotal: number;
   onOpenXpInfo: () => void;
   onOpenIcons: () => void;
+  onOpenAparencia: () => void;
   onOpenConquistas: () => void;
 }
 
@@ -34,6 +35,7 @@ export function ProfileHome({
   achTotal,
   onOpenXpInfo,
   onOpenIcons,
+  onOpenAparencia,
   onOpenConquistas,
 }: Props) {
   const {
@@ -93,6 +95,7 @@ export function ProfileHome({
         gestores={gestores}
         onLoadEditData={loadEditData}
         onOpenIcons={onOpenIcons}
+        onOpenAparencia={onOpenAparencia}
         onOpenXpInfo={onOpenXpInfo}
         onOpenConquistas={onOpenConquistas}
       />

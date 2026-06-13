@@ -4,7 +4,6 @@ import { useIpc } from '../services/ipc';
 import type { AppSettings } from '@shared/types/index';
 import { SETTINGS_DEFAULTS } from './settings/defaults';
 import { AdminBanner } from './settings/sections/AdminBanner';
-import { AppearanceSection } from './settings/sections/AppearanceSection';
 import { CredentialsCard } from './settings/sections/CredentialsCard';
 import { GeneralCard } from './settings/sections/GeneralCard';
 // import { JornadaCard } from './settings/sections/JornadaCard';
@@ -20,12 +19,11 @@ interface SettingsProps {
   onSettingsChanged?: () => void;
 }
 
-type SettingsCategory = 'geral' | 'alertas' | 'aparencia' | 'seguranca';
+type SettingsCategory = 'geral' | 'alertas' | 'seguranca';
 
 const CATEGORIES: Array<{ id: SettingsCategory; label: string; icon: string; hint: string }> = [
   { id: 'geral', label: 'Geral', icon: '⚙️', hint: 'Configuração geral, jornada, tray' },
   { id: 'alertas', label: 'Alertas', icon: '🔔', hint: 'Ponto, mood, almoço, KudoCard' },
-  { id: 'aparencia', label: 'Aparência', icon: '🎨', hint: 'Tema, densidade, layout' },
   { id: 'seguranca', label: 'Segurança', icon: '🔒', hint: 'Credenciais, Coin2U, sessão' },
 ];
 
@@ -151,15 +149,6 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
 
   const dismissAdminBanner = () => void update('adminBannerDismissed', true);
 
-  const changeViewMode = async (mode: 'classic' | 'minimal') => {
-    if ((settings.viewMode ?? 'classic') === mode) return;
-    const next = { ...settings, viewMode: mode };
-    setSettings(next);
-    await settingsClient.set(next);
-    showToast({ kind: 'ok', msg: 'Reiniciando para aplicar...' });
-    setTimeout(() => void systemClient.relaunchApp(), 400);
-  };
-
   const testNotif = async (kind: 'mood' | 'lunch' | 'kudocard' | 'punch') => {
     const res = await systemClient.testNotification(kind);
     if (!res.ok) showToast({ kind: 'err', msg: `Teste falhou: ${getError(res)}` });
@@ -262,14 +251,6 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
               onTest={() => void testNotif('kudocard')}
             />
           </div>
-        )}
-
-        {category === 'aparencia' && (
-          <AppearanceSection
-            settings={settings}
-            onUpdate={update}
-            onChangeViewMode={changeViewMode}
-          />
         )}
 
         {category === 'seguranca' && (

@@ -5,6 +5,7 @@ import { usePerfilData } from '../hooks/usePerfilData';
 import { ProfileHome } from './ProfileHome';
 import { XpInfoView } from './XpInfoView';
 import { ComingSoonView } from './ComingSoonView';
+import { AppearanceView } from './AppearanceView';
 import { ConquistasView } from './ConquistasView';
 
 interface Props {
@@ -14,15 +15,16 @@ interface Props {
   userEmail?: string;
 }
 
-type View = 'home' | 'xp-info' | 'icons' | 'conquistas';
+type View = 'home' | 'xp-info' | 'icons' | 'aparencia' | 'conquistas';
 
 const TITLES: Record<Exclude<View, 'home'>, string> = {
   'xp-info': 'Como funciona o XP',
   icons: '🚧 Em breve',
+  aparencia: '🖌️ Aparência',
   conquistas: '🏆 Conquistas',
 };
 
-/** Modal de perfil: alterna entre home (dashboard) e telas de XP, ícones e conquistas. */
+/** Modal de perfil: alterna entre home (dashboard) e telas auxiliares. */
 export function ProfileModal({ open, onClose, userName }: Props) {
   const { stats, isAchievementUnlocked } = useGamification();
   const [view, setView] = useState<View>('home');
@@ -90,11 +92,13 @@ export function ProfileModal({ open, onClose, userName }: Props) {
             achTotal={achTotal}
             onOpenXpInfo={() => setView('xp-info')}
             onOpenIcons={() => setView('icons')}
+            onOpenAparencia={() => setView('aparencia')}
             onOpenConquistas={() => setView('conquistas')}
           />
         )}
         {view === 'xp-info' && <XpInfoView />}
         {view === 'icons' && <ComingSoonView />}
+        {view === 'aparencia' && <AppearanceView />}
         {view === 'conquistas' && <ConquistasView isAchievementUnlocked={isAchievementUnlocked} />}
       </div>
     </ModalShell>
