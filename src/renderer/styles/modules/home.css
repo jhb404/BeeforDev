@@ -265,6 +265,22 @@
   background: var(--bg-2);
 }
 
+/* Home action buttons with leading icon (Atividades, KudoCard) */
+.home-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.home-action-btn svg {
+  display: block;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: color 0.12s;
+}
+.home-action-btn:hover:not(:disabled) svg {
+  color: var(--text);
+}
+
 /* === Mood out-of-hours overlay === */
 .mood-panel {
   position: relative;

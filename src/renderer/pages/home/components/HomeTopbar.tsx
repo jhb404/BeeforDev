@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import type { SessionStatus } from '@shared/types/index';
+import { Briefcase, Clock, Heart } from '../../../components/common/Icons';
 import { useClickOutside } from '../../../hooks/useClickOutside';
 
 interface HomeTopbarProps {
@@ -50,23 +51,25 @@ export function HomeTopbar({
       <div className="home-status">
         <button
           data-sound="activity-open"
-          className="secondary compact"
+          className="secondary compact home-action-btn"
           disabled={busy || !ready}
           onClick={onOpenAtividades}
         >
-          Atividades
+          <Briefcase size={15} />
+          <span>Atividades</span>
         </button>
 
         <div className="topbar-kudo-wrap" ref={kudoRef}>
           <div className="topbar-kudo-split">
             <button
               data-sound="kudo-open"
-              className="secondary compact topbar-kudo-main"
+              className="secondary compact topbar-kudo-main home-action-btn"
               disabled={busy || !ready}
               onClick={onOpenKudo}
               title="Enviar KudoCard"
             >
-              KudoCard
+              <Heart size={15} />
+              <span>KudoCard</span>
             </button>
             <button
               data-sound="tab-home"
@@ -108,7 +111,8 @@ export function HomeTopbar({
                   onOpenKudoHistory();
                 }}
               >
-                Histórico de Kudos
+                <Clock size={15} />
+                <span>Histórico de Kudos</span>
               </button>
             </div>
           )}
