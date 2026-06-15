@@ -1,4 +1,4 @@
-- v0.2.0: HOLY MOLY, TEMOS API E COISINHAS NOVAAAAAS ✨🔥
+- v0.2.0: HOLY MOLY, TEMOS API E COISINHAS NOVAAAAAS ✨🔥 
 
 Gente, mó felicidade, me deram acesso a api do beefor...sinceramente não sei nem como kk
 
