@@ -16,6 +16,7 @@ export {
   Check,
   Clock,
   Coffee,
+  Download,
   FileText,
   Flame,
   Globe,
