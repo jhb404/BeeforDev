@@ -1,40 +1,53 @@
+import { useState } from 'react';
+import { Download } from '../../components/common/Icons';
 import { useUpdater } from '../../hooks/useUpdater';
 
 export function UpdateBadge() {
   const { state, install } = useUpdater();
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   if (state.status === 'idle') return null;
 
   const ready = state.status === 'ready';
-  const title = ready
+
+  const handleClick = () => {
+    if (ready) {
+      install();
+    } else {
+      setPopoverOpen((v) => !v);
+    }
+  };
+
+  const label = ready
     ? `Atualização v${state.version} pronta — clique para instalar`
     : `Baixando atualização v${state.version}...`;
 
   return (
-    <button
-      type="button"
-      className={`update-badge ${ready ? 'update-badge--ready' : 'update-badge--downloading'}`}
-      title={title}
-      onClick={ready ? install : undefined}
-      disabled={!ready}
-      aria-label={title}
-    >
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
+    <div className="update-badge-wrap">
+      <button
+        type="button"
+        className={`update-badge ${ready ? 'update-badge--ready' : 'update-badge--downloading'}`}
+        title={label}
+        onClick={handleClick}
+        aria-label={label}
+        aria-expanded={!ready ? popoverOpen : undefined}
       >
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="7 10 12 15 17 10" />
-        <line x1="12" y1="15" x2="12" y2="3" />
-      </svg>
-      {ready && <span className="update-badge__dot" aria-hidden="true" />}
-    </button>
+        <Download size={15} />
+        {ready && <span className="update-badge__dot" aria-hidden="true" />}
+      </button>
+
+      {popoverOpen && !ready && (
+        <div className="update-badge-popover" role="status">
+          <div className="update-badge-popover__header">
+            <Download size={14} />
+            <span>Baixando atualização</span>
+          </div>
+          <p className="update-badge-popover__version">v{state.version}</p>
+          <p className="update-badge-popover__hint">
+            O app vai reiniciar automaticamente quando o download terminar.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
