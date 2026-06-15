@@ -58,6 +58,12 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
     void settingsClient.get().then(setSettings);
   }, [settingsClient]);
 
+  useEffect(() => {
+    return onAppEvent(APP_EVENTS.SETTINGS_CHANGED, () => {
+      void settingsClient.get().then(setSettings);
+    });
+  }, [settingsClient]);
+
   const { currentMood, loadingMood, moodLoaded, refreshMood, selectMood } = useMoodFlow({
     ready,
     moodClient,
@@ -236,16 +242,6 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
         loadingTs={loadingTs}
         ready={ready}
         onReload={() => void refreshAll()}
-        onOpenBeefor={async () => {
-          const res = await timesheetClient.openBeefor();
-          if (!res.ok) {
-            showToast({
-              kind: 'err',
-              title: 'Não abriu o Beefor',
-              msg: (res.ok ? '' : res.error) || 'falhou',
-            });
-          }
-        }}
         onOpenKudo={() => setShowKudoModal(true)}
         onOpenKudoHistory={() => setShowKudoHistory(true)}
         onOpenAtividades={() => setShowAtividades(true)}

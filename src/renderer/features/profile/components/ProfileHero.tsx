@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { BeeforLogo } from '../../../components/common/BeeforLogo';
+import { AlertTriangle, Brush, Edit3, Wrench } from '../../../components/common/Icons';
 import type { IconVariant } from '../../gamification';
+import type { ProfileView } from './ProfileModal';
 import type { GestorItem, PerfilData, ProfilePatch } from '../hooks/usePerfilData';
 import { fileToDataUri, MAX_IMAGE_BYTES } from '../utils/fileToDataUri';
 import { XPBar } from './XPBar';
@@ -40,9 +42,7 @@ interface Props {
   editData: PerfilData['editData'];
   gestores: GestorItem[];
   onLoadEditData: () => Promise<void>;
-  onOpenIcons: () => void;
-  onOpenXpInfo: () => void;
-  onOpenConquistas: () => void;
+  onNavigate: (view: ProfileView) => void;
 }
 
 /** Card-dashboard do topo: avatar hexagonal, identidade, XP, sociais, stats, bio e habilidades. */
@@ -70,9 +70,7 @@ export function ProfileHero({
   editData,
   gestores,
   onLoadEditData,
-  onOpenIcons,
-  onOpenXpInfo,
-  onOpenConquistas,
+  onNavigate,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draftNome, setDraftNome] = useState(nome);
@@ -154,23 +152,35 @@ export function ProfileHero({
 
   return (
     <div className={`pfx-hero${editing ? ' pfx-hero--editing' : ''}`}>
-      {/* Botão de edição: absolute no canto sup. direito, não atrapalha os stats */}
+      {/* Ações no canto sup. direito: aparência (pincel) + editar (lápis). */}
       {!editing && (
-        <button
-          type="button"
-          className="pfx-hero__edit-btn"
-          onClick={entrarEdicao}
-          title="Editar perfil"
-          aria-label="Editar perfil"
-        >
-          ✏️
-        </button>
+        <div className="pfx-hero__top-actions">
+          <button
+            type="button"
+            className="pfx-hero__icon-btn"
+            onClick={() => onNavigate('aparencia')}
+            title="Aparência"
+            aria-label="Aparência"
+            data-sound="click"
+          >
+            <Brush size={16} />
+          </button>
+          <button
+            type="button"
+            className="pfx-hero__edit-btn"
+            onClick={entrarEdicao}
+            title="Editar perfil"
+            aria-label="Editar perfil"
+          >
+            <Edit3 size={16} />
+          </button>
+        </div>
       )}
 
       <button
         type="button"
         className={`pfx-hex${editing ? ' pfx-hex--editing' : ''}`}
-        onClick={editing ? () => fileInputRef.current?.click() : onOpenIcons}
+        onClick={editing ? () => fileInputRef.current?.click() : () => onNavigate('icons')}
         title={editing ? 'Trocar foto' : 'Trocar moldura/ícone'}
         aria-label={editing ? 'Trocar foto do perfil' : 'Trocar variante de ícone'}
       >
@@ -183,7 +193,9 @@ export function ProfileHero({
         </span>
         {editing && (
           <span className="pfx-hex__overlay" aria-hidden="true">
-            <span className="pfx-hex__overlay-pencil">✏️</span>
+            <span className="pfx-hex__overlay-pencil">
+              <Edit3 size={22} />
+            </span>
           </span>
         )}
         {!editing && <span className="pfx-hex__lv">LVL {level}</span>}
@@ -204,7 +216,11 @@ export function ProfileHero({
                     placeholder="Seu nome"
                     maxLength={200}
                   />
-                  {fotoErro && <span className="pfx-hero__foto-erro">⚠️ {fotoErro}</span>}
+                  {fotoErro && (
+                    <span className="pfx-hero__foto-erro">
+                      <AlertTriangle size={13} /> {fotoErro}
+                    </span>
+                  )}
                 </>
               ) : (
                 <>
@@ -219,7 +235,9 @@ export function ProfileHero({
                 </div>
               )}
 
-              {!editing && <XPBar xp={xp} xpNext={xpNext} pct={xpPct} onHelp={onOpenXpInfo} />}
+              {!editing && (
+                <XPBar xp={xp} xpNext={xpNext} pct={xpPct} onHelp={() => onNavigate('xp-info')} />
+              )}
             </div>
 
             <SocialLinks />
@@ -234,7 +252,13 @@ export function ProfileHero({
         {/* coluna direita: em modo normal = stats + habilidades; em edição = form de campos */}
         <div className="pfx-hero__right">
           {editing ? (
-            <PfxCard title="✏️ Editar dados">
+            <PfxCard
+              title={
+                <>
+                  <Edit3 size={16} /> Editar dados
+                </>
+              }
+            >
               {/* Form sempre montado; campos preenchem quando editData chega (sem tela de loading) */}
               <div className="pfx-edit-form">
                 <label className="pfx-edit-field">
@@ -317,14 +341,20 @@ export function ProfileHero({
                   iconKind="trophy"
                   value={`${achUnlocked}/${achTotal}`}
                   label="Conquistas"
-                  onClick={onOpenConquistas}
+                  onClick={() => onNavigate('conquistas')}
                 />
                 <StatsCard iconKind="check" value={checkpoints} label="Checkpoints" />
                 <StatsCard iconKind="action" value={acoesCount} label="Ações" />
               </div>
 
               <div className="pfx-hero__skills">
-                <PfxCard title="🛠️ Habilidades">
+                <PfxCard
+                  title={
+                    <>
+                      <Wrench size={16} /> Habilidades
+                    </>
+                  }
+                >
                   <HabilidadesBlock
                     habilidades={habilidades}
                     combo={habilidadesCombo}

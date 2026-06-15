@@ -1,4 +1,4 @@
-import type { AppearanceCardProps } from './types';
+import type { AppearanceCardProps } from '../types';
 
 export function DensityCard({ settings, onUpdate }: AppearanceCardProps) {
   return (
@@ -13,11 +13,9 @@ export function DensityCard({ settings, onUpdate }: AppearanceCardProps) {
             onClick={() => onUpdate('uiDensity', d)}
           >
             <span className="density-bars">
-              {Array.from({ length: d === 'compact' ? 5 : d === 'normal' ? 3 : 2 }).map(
-                (_, i) => (
-                  <i key={i} />
-                ),
-              )}
+              {Array.from({ length: d === 'compact' ? 5 : d === 'normal' ? 3 : 2 }).map((_, i) => (
+                <i key={i} />
+              ))}
             </span>
             <strong>
               {d === 'compact' ? 'Compacto' : d === 'normal' ? 'Normal' : 'Confortável'}

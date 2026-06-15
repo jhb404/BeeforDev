@@ -400,11 +400,16 @@ button.profile-modal__xp-help:hover:not(:disabled) {
   line-height: 1.2;
 }
 .theme-preview-banner__text small {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 2px;
   line-height: 1.3;
+}
+.theme-preview-banner__text small svg {
+  flex-shrink: 0;
 }
 .theme-preview-banner__timer {
   font-weight: 600;

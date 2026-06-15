@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { BeeforAtividade } from '@shared/types/index';
+import { logger } from '../../../services/logger';
 
 export interface AtividadeDetalhes {
   responsavel: string | null;
@@ -300,9 +301,7 @@ export function useAtividadeDetalhes(
 
         if (cancelled) return;
 
-        // DEBUG temporario: capturar shapes reais (remover apos validar)
-        // eslint-disable-next-line no-console
-        console.log('[CARD-DEBUG]', {
+        logger.debug('[CARD-DEBUG]', {
           idTime,
           idOrganizacao,
           resumoOk: bundleRes.ok,
