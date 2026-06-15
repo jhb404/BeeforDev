@@ -1,5 +1,5 @@
-import { Switch } from '../../Switch';
-import type { ViewModeCardProps } from './types';
+import { Switch } from '../../../pages/settings/Switch';
+import type { ViewModeCardProps } from '../types';
 
 export function ViewModeCard({ settings, onUpdate, onChangeViewMode }: ViewModeCardProps) {
   return (

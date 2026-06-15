@@ -696,7 +696,13 @@ button.ativ-drawer__tab:hover:not(:disabled):not(.active) {
   flex: 1;
   text-align: center;
 }
-.ativ-drawer__empty-state span { font-size: 28px; }
+.ativ-drawer__empty-state span {
+  font-size: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
 
 .ativ-drawer__coming-soon {
   font-size: 11px;
@@ -704,6 +710,11 @@ button.ativ-drawer__tab:hover:not(:disabled):not(.active) {
   opacity: 0.5;
   margin: 8px 0 0;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: center;
+  width: 100%;
 }
 
 /* Comments */

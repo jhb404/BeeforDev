@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useRef, useState } from 'react';
 import { Bell, Globe, Moon, Newspaper, Settings, Sun } from '../../components/common/Icons';
 import { TeamButton } from '../../features/team/components/TeamButton';
 import type { AppSettings, SessionStatus, TodayAlert } from '@shared/types/index';
@@ -7,6 +7,7 @@ import { LunchTimerWidget } from './LunchTimerWidget';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { UpdateBadge } from './UpdateBadge';
 import { BeeforLogo } from '../../components/common/BeeforLogo';
+import { useClickOutside } from '../../hooks/useClickOutside';
 
 const Coin2uBadge = lazy(() =>
   import('../../features/coin2u/components/Coin2uBadge').then((m) => ({ default: m.Coin2uBadge })),
@@ -68,27 +69,8 @@ export function TopBar({
   const [gearOpen, setGearOpen] = useState(false);
   const gearRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!bellOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
-        setBellOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [bellOpen]);
-
-  useEffect(() => {
-    if (!gearOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (gearRef.current && !gearRef.current.contains(e.target as Node)) {
-        setGearOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [gearOpen]);
+  useClickOutside(bellRef, () => setBellOpen(false));
+  useClickOutside(gearRef, () => setGearOpen(false));
 
   const onSettings = tab === 'settings';
 

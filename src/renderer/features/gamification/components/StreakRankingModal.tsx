@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
+import { AlertTriangle, Flame } from '../../../components/common/Icons';
 
 interface Props {
   open: boolean;
@@ -75,8 +76,7 @@ export function StreakRankingModal({ open, onClose, currentUserStreak }: Props) 
           return;
         }
         const sessionRes = await window.beeforHttp.sessionInfo();
-        const currentId =
-          sessionRes.ok && sessionRes.data ? sessionRes.data.idPessoa : null;
+        const currentId = sessionRes.ok && sessionRes.data ? sessionRes.data.idPessoa : null;
 
         const res = await window.beeforHttp.mood.streakOrg(undefined, undefined, 30);
         if (cancelled) return;
@@ -163,10 +163,10 @@ export function StreakRankingModal({ open, onClose, currentUserStreak }: Props) 
       <div className="modal-head">
         <div>
           <p className="eyebrow">Comunidade</p>
-          <h2 id="streak-ranking-title">🔥 Ranking de streak</h2>
-          <p className="streak-ranking__subtitle">
-            Quem mantém o mood vivo há mais tempo no time
-          </p>
+          <h2 id="streak-ranking-title" className="streak-ranking__heading">
+            <Flame size={20} /> Ranking de streak
+          </h2>
+          <p className="streak-ranking__subtitle">Quem mantém o mood vivo há mais tempo no time</p>
         </div>
         <button type="button" className="secondary compact" onClick={onClose} data-sound="close">
           Fechar
@@ -175,7 +175,11 @@ export function StreakRankingModal({ open, onClose, currentUserStreak }: Props) 
 
       <div className="streak-ranking__body">
         {loading && <p className="streak-ranking__hint">Carregando ranking…</p>}
-        {error && !loading && <p className="streak-ranking__hint">⚠️ {error}</p>}
+        {error && !loading && (
+          <p className="streak-ranking__hint">
+            <AlertTriangle size={14} /> {error}
+          </p>
+        )}
 
         {!loading && !error && data.length === 0 && (
           <p className="streak-ranking__hint">
@@ -214,9 +218,7 @@ export function StreakRankingModal({ open, onClose, currentUserStreak }: Props) 
                     </span>
                     <span className="streak-ranking__name">
                       {entry.name}
-                      {entry.isCurrentUser && (
-                        <span className="streak-ranking__me-tag">você</span>
-                      )}
+                      {entry.isCurrentUser && <span className="streak-ranking__me-tag">você</span>}
                     </span>
                     <span className="streak-ranking__streak">
                       <span className="streak-ranking__flame" aria-hidden="true">

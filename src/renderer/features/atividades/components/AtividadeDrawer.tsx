@@ -1,16 +1,27 @@
 import { useState } from 'react';
-import type { ChangeEvent, ReactNode } from 'react';
 import type { BeeforAtividade } from '@shared/types/index';
 import { useAtividadeDetalhes } from '../hooks/useAtividadeDetalhes';
-import { useAtividadeEdicao, PONTOS_FIBONACCI, TIPOS_CARD } from '../hooks/useAtividadeEdicao';
+import { useAtividadeEdicao, TIPOS_CARD } from '../hooks/useAtividadeEdicao';
 import { useCardInteracoes } from '../hooks/useCardInteracoes';
-import {
-  formatDate,
-  formatDateLong,
-  getMomentoClass,
-} from '../utils/atividadeDisplay';
+import { AlertTriangle } from '../../../components/common/Icons';
+import { getMomentoClass } from '../utils/atividadeDisplay';
+import { InfoTab } from './drawer/tabs/InfoTab';
+import { DescricaoTab } from './drawer/tabs/DescricaoTab';
+import { ComentariosTab } from './drawer/tabs/ComentariosTab';
+import { AnexosTab } from './drawer/tabs/AnexosTab';
+import { HistoricoTab } from './drawer/tabs/HistoricoTab';
 
 type DrawerTab = 'info' | 'descricao' | 'comentarios' | 'historico' | 'anexos';
+
+const TAB_LABELS: Record<DrawerTab, string> = {
+  info: 'Informações',
+  descricao: 'Descrição',
+  comentarios: 'Comentários',
+  anexos: 'Anexos',
+  historico: 'Histórico',
+};
+
+const TAB_ORDER: DrawerTab[] = ['info', 'descricao', 'comentarios', 'anexos', 'historico'];
 
 interface DrawerProps {
   atividade: BeeforAtividade;
@@ -25,18 +36,6 @@ export function AtividadeDrawer({ atividade: a, onClose, onChanged }: DrawerProp
   const { form, setCampo } = edicao;
   const interacoes = useCardInteracoes(a, info.comentarios);
   const [tab, setTab] = useState<DrawerTab>('info');
-  const [novoComentario, setNovoComentario] = useState('');
-
-  const handleEnviarComentario = async () => {
-    const okc = await interacoes.adicionarComentario(novoComentario);
-    if (okc) setNovoComentario('');
-  };
-
-  const handleAnexar = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) await interacoes.adicionarAnexo(file);
-    e.target.value = '';
-  };
 
   const handleSalvar = async () => {
     const ok = await edicao.salvar();
@@ -60,7 +59,6 @@ export function AtividadeDrawer({ atividade: a, onClose, onChanged }: DrawerProp
         <div className="ativ-drawer__badges">
           <span className="atividade-card__numero">{a.numeroCard}</span>
 
-          {/* Status (coluna) editavel */}
           <select
             className={`ativ-drawer__select-native ${getMomentoClass(a.momento)}`}
             value={form.idColuna ?? ''}
@@ -76,11 +74,12 @@ export function AtividadeDrawer({ atividade: a, onClose, onChanged }: DrawerProp
             ))}
           </select>
 
-          {/* Tipo editavel */}
           <select
             className="ativ-drawer__select-native"
             value={form.tipo ?? ''}
-            onChange={(e) => setCampo('tipo', e.target.value === '' ? null : Number(e.target.value))}
+            onChange={(e) =>
+              setCampo('tipo', e.target.value === '' ? null : Number(e.target.value))
+            }
             aria-label="Tipo"
           >
             {TIPOS_CARD.map((t) => (
@@ -180,15 +179,15 @@ export function AtividadeDrawer({ atividade: a, onClose, onChanged }: DrawerProp
 
       <div className="ativ-drawer__divider" />
 
-      {loading && (
-        <p className="ativ-drawer__coming-soon">Carregando detalhes do card…</p>
-      )}
+      {loading && <p className="ativ-drawer__coming-soon">Carregando detalhes do card…</p>}
       {error && !loading && (
-        <p className="ativ-drawer__coming-soon">⚠️ {error}</p>
+        <p className="ativ-drawer__coming-soon">
+          <AlertTriangle size={14} /> {error}
+        </p>
       )}
 
       <div className="ativ-drawer__tabs" role="tablist">
-        {(['info', 'descricao', 'comentarios', 'anexos', 'historico'] as DrawerTab[]).map((t) => (
+        {TAB_ORDER.map((t) => (
           <button
             key={t}
             type="button"
@@ -198,242 +197,21 @@ export function AtividadeDrawer({ atividade: a, onClose, onChanged }: DrawerProp
             onClick={() => setTab(t)}
             data-sound="tab-home"
           >
-            {t === 'info' && 'Informações'}
-            {t === 'descricao' && 'Descrição'}
-            {t === 'comentarios' && 'Comentários'}
-            {t === 'historico' && 'Histórico'}
-            {t === 'anexos' && 'Anexos'}
+            {TAB_LABELS[t]}
           </button>
         ))}
       </div>
 
-      {tab === 'info' && (
-        <div className="ativ-drawer__section">
-          <div className="ativ-drawer__fields">
-            {/* Responsável (select) */}
-            <EditRow label="Responsável">
-              <select
-                className="ativ-drawer__input"
-                value={form.idResponsavel ?? ''}
-                onChange={(e) => setCampo('idResponsavel', e.target.value || null)}
-                disabled={edicao.loadingListas}
-              >
-                <option value="">—</option>
-                {edicao.responsaveis.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.nome}
-                  </option>
-                ))}
-              </select>
-            </EditRow>
-
-            {/* Projeto (select) */}
-            <EditRow label="Projeto">
-              <select
-                className="ativ-drawer__input"
-                value={form.idProjeto ?? ''}
-                onChange={(e) => setCampo('idProjeto', e.target.value || null)}
-                disabled={edicao.loadingListas}
-              >
-                <option value="">Sem projeto</option>
-                {edicao.projetos.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nome}
-                  </option>
-                ))}
-              </select>
-            </EditRow>
-
-            <DrawerField label="Épico" value={info.epico} placeholder="—" />
-            <DrawerField label="História" value={info.historia} placeholder="—" />
-
-            {/* Sprint / Iteração (select) */}
-            <EditRow label="Sprint / Iteração">
-              <select
-                className="ativ-drawer__input"
-                value={form.idIteracao ?? ''}
-                onChange={(e) => setCampo('idIteracao', e.target.value || null)}
-                disabled={edicao.loadingListas}
-              >
-                <option value="">—</option>
-                {edicao.iteracoes.map((i) => (
-                  <option key={i.id} value={i.id}>
-                    {i.nome}
-                  </option>
-                ))}
-              </select>
-            </EditRow>
-
-            {/* Esforço (h:m) */}
-            <EditRow label="Esforço">
-              <EsforcoInput
-                value={form.esforco}
-                onChange={(v) => setCampo('esforco', v)}
-              />
-            </EditRow>
-
-            {/* Pontos (Fibonacci) */}
-            <EditRow label="Pontos (Fibonacci)">
-              <select
-                className="ativ-drawer__input"
-                value={form.pontos ?? ''}
-                onChange={(e) => setCampo('pontos', e.target.value === '' ? null : Number(e.target.value))}
-              >
-                <option value="">—</option>
-                {PONTOS_FIBONACCI.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </EditRow>
-
-            {/* Data de início */}
-            <EditRow label="Data de início">
-              <input
-                className="ativ-drawer__input"
-                type="date"
-                value={form.dataInicio ?? ''}
-                onChange={(e) => setCampo('dataInicio', e.target.value || null)}
-              />
-            </EditRow>
-
-            {/* Data de entrega (somente leitura — definida ao concluir) */}
-            <DrawerField label="Data de entrega" value={info.dataEntrega} placeholder="—/—/—" />
-
-            {/* Prev. entrega */}
-            <EditRow label="Prev. entrega">
-              <input
-                className="ativ-drawer__input"
-                type="date"
-                value={form.dataPrevistaEntrega ?? ''}
-                onChange={(e) => setCampo('dataPrevistaEntrega', e.target.value || null)}
-              />
-            </EditRow>
-
-            <DrawerField label="Criado em" value={formatDateLong(a.dataCriacao)} />
-          </div>
-        </div>
-      )}
-
-      {tab === 'descricao' && (
-        <div className="ativ-drawer__section ativ-drawer__tab-content">
-          <textarea
-            className="ativ-drawer__textarea"
-            value={form.descricao}
-            onChange={(e) => setCampo('descricao', e.target.value)}
-            placeholder="Descrição do card…"
-            rows={10}
-          />
-        </div>
-      )}
-
-      {tab === 'comentarios' && (
-        <div className="ativ-drawer__section ativ-drawer__tab-content">
-          <div className="ativ-drawer__comment-add">
-            <textarea
-              className="ativ-drawer__textarea"
-              value={novoComentario}
-              onChange={(e) => setNovoComentario(e.target.value)}
-              placeholder="Escrever um comentário…"
-              rows={3}
-            />
-            <button
-              type="button"
-              className="primary compact"
-              onClick={handleEnviarComentario}
-              disabled={interacoes.enviandoComentario || !novoComentario.trim()}
-              data-sound="confirm"
-            >
-              {interacoes.enviandoComentario ? 'Enviando…' : 'Comentar'}
-            </button>
-          </div>
-
-          {interacoes.comentarios.length > 0 ? (
-            <div className="ativ-drawer__comments">
-              {interacoes.comentarios.map((c, i) => (
-                <div key={i} className="ativ-drawer__comment">
-                  <div className="ativ-drawer__comment-header">
-                    <strong data-inicial={(c.autor || '?').charAt(0)}>{c.autor}</strong>
-                    <span>{c.data ? formatDate(c.data) : ''}</span>
-                  </div>
-                  <p>{c.texto}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState icon="💬" text="Nenhum comentário ainda." />
-          )}
-        </div>
-      )}
-
-      {tab === 'anexos' && (
-        <div className="ativ-drawer__section ativ-drawer__tab-content">
-          <label className="ativ-drawer__upload secondary compact">
-            {interacoes.enviandoAnexo ? 'Enviando…' : '+ Adicionar anexo'}
-            <input
-              type="file"
-              hidden
-              onChange={handleAnexar}
-              disabled={interacoes.enviandoAnexo}
-            />
-          </label>
-
-          {interacoes.anexos.length > 0 ? (
-            <div className="ativ-drawer__attachments">
-              {interacoes.anexos.map((f) => (
-                <div key={f.idAnexo} className="ativ-drawer__attachment">
-                  <span>📎</span>
-                  {f.url ? (
-                    <a href={f.url} target="_blank" rel="noreferrer">
-                      {f.nome}
-                    </a>
-                  ) : (
-                    <span>{f.nome}</span>
-                  )}
-                  <button
-                    type="button"
-                    className="ativ-drawer__attachment-del"
-                    title="Remover anexo"
-                    onClick={() => interacoes.removerAnexo(f.idAnexo)}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            !interacoes.loadingAnexos && <EmptyState icon="📎" text="Nenhum anexo encontrado." />
-          )}
-        </div>
-      )}
-
-      {tab === 'historico' && (
-        <div className="ativ-drawer__section ativ-drawer__tab-content">
-          {interacoes.logs.length > 0 ? (
-            <div className="ativ-drawer__history">
-              {interacoes.logs.map((h, i) => (
-                <div key={i} className="ativ-drawer__history-item">
-                  <span className="ativ-drawer__history-dot" />
-                  <div>
-                    <span className="ativ-drawer__history-action">{h.acao}</span>
-                    <span className="ativ-drawer__history-meta">
-                      {h.usuario}
-                      {h.usuario && h.data ? ' · ' : ''}
-                      {h.data ? formatDate(h.data) : ''}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            !interacoes.loadingLogs && <EmptyState icon="📋" text="Nenhuma atividade registrada." />
-          )}
-        </div>
-      )}
+      {tab === 'info' && <InfoTab atividade={a} info={info} edicao={edicao} />}
+      {tab === 'descricao' && <DescricaoTab edicao={edicao} />}
+      {tab === 'comentarios' && <ComentariosTab interacoes={interacoes} />}
+      {tab === 'anexos' && <AnexosTab interacoes={interacoes} />}
+      {tab === 'historico' && <HistoricoTab interacoes={interacoes} />}
 
       {(edicao.erro || interacoes.erro) && (
-        <p className="ativ-drawer__coming-soon">⚠️ {edicao.erro || interacoes.erro}</p>
+        <p className="ativ-drawer__coming-soon">
+          <AlertTriangle size={14} /> {edicao.erro || interacoes.erro}
+        </p>
       )}
 
       <div className="ativ-drawer__footer">
@@ -450,92 +228,6 @@ export function AtividadeDrawer({ atividade: a, onClose, onChanged }: DrawerProp
           {edicao.salvando ? 'Salvando…' : 'Confirmar'}
         </button>
       </div>
-    </div>
-  );
-}
-
-function EditRow({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="ativ-drawer__field">
-      <span className="ativ-drawer__field-label">{label}</span>
-      {children}
-    </div>
-  );
-}
-
-/** Input de esforço no formato h:m, serializado como "H:MM". */
-function EsforcoInput({
-  value,
-  onChange,
-}: {
-  value: string | null;
-  onChange: (v: string | null) => void;
-}) {
-  const [h, m] = (value ?? '').split(':');
-  const horas = h ?? '';
-  const minutos = m ?? '';
-
-  const emit = (nh: string, nm: string) => {
-    const hh = nh.trim();
-    const mm = nm.trim();
-    if (!hh && !mm) {
-      onChange(null);
-      return;
-    }
-    onChange(`${hh || '0'}:${(mm || '0').padStart(2, '0')}`);
-  };
-
-  return (
-    <span className="ativ-drawer__esforco">
-      <input
-        className="ativ-drawer__input ativ-drawer__input--xs"
-        type="number"
-        min={0}
-        max={999}
-        placeholder="h"
-        value={horas}
-        onChange={(e) => emit(e.target.value, minutos)}
-      />
-      <span>:</span>
-      <input
-        className="ativ-drawer__input ativ-drawer__input--xs"
-        type="number"
-        min={0}
-        max={59}
-        placeholder="m"
-        value={minutos}
-        onChange={(e) => emit(horas, e.target.value)}
-      />
-    </span>
-  );
-}
-
-function EmptyState({ icon, text }: { icon: string; text: string }) {
-  return (
-    <div className="ativ-drawer__empty-state">
-      <span>{icon}</span>
-      <p>{text}</p>
-    </div>
-  );
-}
-
-function DrawerField({
-  label,
-  value,
-  placeholder,
-}: {
-  label: string;
-  value: string | null | undefined;
-  placeholder?: string;
-}) {
-  return (
-    <div className="ativ-drawer__field">
-      <span className="ativ-drawer__field-label">{label}</span>
-      <span
-        className={`ativ-drawer__field-value ${!value ? 'ativ-drawer__field-value--empty' : ''}`}
-      >
-        {value ?? placeholder ?? '—'}
-      </span>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
+import { Users } from '../../../components/common/Icons';
 import {
   KUDO_CARD_EMOJI,
   KUDO_CARD_LABELS,
@@ -37,7 +38,13 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
   }, [open]);
 
   return (
-    <ModalShell open={open} onClose={handleClose} className="kudo-modal" labelledBy="kudo-modal-title" disableEsc={send.submitting}>
+    <ModalShell
+      open={open}
+      onClose={handleClose}
+      className="kudo-modal"
+      labelledBy="kudo-modal-title"
+      disableEsc={send.submitting}
+    >
       <div className="modal-head">
         <div>
           <p className="eyebrow">Reconhecimento</p>
@@ -53,7 +60,17 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
         </button>
       </div>
 
-      <div style={{ padding: '14px 18px 18px', display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', flex: 1, minHeight: 0 }}>
+      <div
+        style={{
+          padding: '14px 18px 18px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+          overflowY: 'auto',
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
         <div>
           <span className="label" style={{ marginBottom: 8, display: 'block' }}>
             Escolha o card
@@ -99,7 +116,9 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
               disabled={send.submitting}
               onClick={() => setRecipientType('team')}
             >
-              <span className="kudo-seg-icon">👥</span>
+              <span className="kudo-seg-icon">
+                <Users size={14} />
+              </span>
               Um time
             </button>
           </div>
@@ -166,7 +185,12 @@ export function KudoCardModal({ open, onClose, onSent, onError }: Props) {
         )}
 
         <div className="modal-actions">
-          <button data-sound="close" className="secondary" disabled={send.submitting} onClick={handleClose}>
+          <button
+            data-sound="close"
+            className="secondary"
+            disabled={send.submitting}
+            onClick={handleClose}
+          >
             Cancelar
           </button>
           <button

@@ -1,6 +1,8 @@
 import type { IconVariant } from '../../gamification';
 import type { PerfilData } from '../hooks/usePerfilData';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
+import { AlertTriangle, Bolt, Map } from '../../../components/common/Icons';
+import type { ProfileView } from './ProfileModal';
 import { ProfileHero } from './ProfileHero';
 import { PfxCard } from './PfxCard';
 import { MotivadoresBlock } from './MotivadoresBlock';
@@ -16,10 +18,7 @@ interface Props {
   data: PerfilData;
   achUnlocked: number;
   achTotal: number;
-  onOpenXpInfo: () => void;
-  onOpenIcons: () => void;
-  onOpenAparencia: () => void;
-  onOpenConquistas: () => void;
+  onNavigate: (view: ProfileView) => void;
 }
 
 /** Tela inicial do perfil: hero (identidade) + motivadores, ações e mapping. */
@@ -33,10 +32,7 @@ export function ProfileHome({
   data,
   achUnlocked,
   achTotal,
-  onOpenXpInfo,
-  onOpenIcons,
-  onOpenAparencia,
-  onOpenConquistas,
+  onNavigate,
 }: Props) {
   const {
     perfil,
@@ -94,23 +90,38 @@ export function ProfileHome({
         editData={editData}
         gestores={gestores}
         onLoadEditData={loadEditData}
-        onOpenIcons={onOpenIcons}
-        onOpenAparencia={onOpenAparencia}
-        onOpenXpInfo={onOpenXpInfo}
-        onOpenConquistas={onOpenConquistas}
+        onNavigate={onNavigate}
       />
 
       <div className="pfx-below">
         {loading && <FunnyLoader title="Carregando perfil" />}
-        {error && !loading && <p className="pfx-hint">⚠️ {error}</p>}
+        {error && !loading && (
+          <p className="pfx-hint pfx-hint--error">
+            <AlertTriangle size={14} /> {error}
+          </p>
+        )}
 
         {!loading && (
           <div className="pfx-grid">
-            <PfxCard title="⚡ Motivadores" wide>
+            <PfxCard
+              title={
+                <>
+                  <Bolt size={16} /> Motivadores
+                </>
+              }
+              wide
+            >
               <MotivadoresBlock motivadores={motivadores} onReorder={reorderMotivadores} />
             </PfxCard>
 
-            <PfxCard title="🗺️ Personal mapping" wide>
+            <PfxCard
+              title={
+                <>
+                  <Map size={16} /> Personal mapping
+                </>
+              }
+              wide
+            >
               <MappingBlock
                 mapping={mapping}
                 onAdd={addMapping}

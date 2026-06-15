@@ -2,11 +2,8 @@ import { useEffect, useState } from 'react';
 import type { AppSettings } from '@shared/types/index';
 import { useIpc } from '../../../services/ipc';
 import { useToast } from '../../../app/providers/ToastProvider';
-import { SETTINGS_DEFAULTS } from '../../../pages/settings/defaults';
-import { DensityCard } from '../../../pages/settings/sections/appearance/DensityCard';
-import { LogoCard } from '../../../pages/settings/sections/appearance/LogoCard';
-import { ThemePresetsCard } from '../../../pages/settings/sections/appearance/ThemePresetsCard';
-import { ViewModeCard } from '../../../pages/settings/sections/appearance/ViewModeCard';
+import { mergeSettings } from '../../../pages/settings/defaults';
+import { DensityCard, LogoCard, ThemePresetsCard, ViewModeCard } from '../../appearance';
 import { APP_EVENTS, emitAppEvent } from '../../../app/events';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
 
@@ -18,7 +15,7 @@ export function AppearanceView() {
 
   useEffect(() => {
     void settingsClient.get().then((s) => {
-      setSettings({ ...SETTINGS_DEFAULTS, ...s });
+      setSettings(mergeSettings(s));
     });
   }, [settingsClient]);
 
@@ -37,7 +34,7 @@ export function AppearanceView() {
     setSettings(next);
     await settingsClient.set(next);
     showToast({ kind: 'ok', msg: 'Reiniciando para aplicar...' });
-    setTimeout(() => void systemClient.relaunchApp(), 400);
+    await systemClient.relaunchApp();
   };
 
   if (!settings) {

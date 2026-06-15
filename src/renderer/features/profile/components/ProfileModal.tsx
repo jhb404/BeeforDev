@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
-import { ACHIEVEMENTS, ICON_VARIANTS, useGamification } from '../../gamification';
+import { ACHIEVEMENTS, useActiveIcon, useGamification } from '../../gamification';
 import { usePerfilData } from '../hooks/usePerfilData';
 import { ProfileHome } from './ProfileHome';
 import { XpInfoView } from './XpInfoView';
@@ -15,27 +15,25 @@ interface Props {
   userEmail?: string;
 }
 
-type View = 'home' | 'xp-info' | 'icons' | 'aparencia' | 'conquistas';
+export type ProfileView = 'home' | 'xp-info' | 'icons' | 'aparencia' | 'conquistas';
 
-const TITLES: Record<Exclude<View, 'home'>, string> = {
+const TITLES: Record<Exclude<ProfileView, 'home'>, string> = {
   'xp-info': 'Como funciona o XP',
-  icons: '🚧 Em breve',
-  aparencia: '🖌️ Aparência',
-  conquistas: '🏆 Conquistas',
+  icons: 'Em breve',
+  aparencia: 'Aparência',
+  conquistas: 'Conquistas',
 };
 
 /** Modal de perfil: alterna entre home (dashboard) e telas auxiliares. */
 export function ProfileModal({ open, onClose, userName }: Props) {
   const { stats, isAchievementUnlocked } = useGamification();
-  const [view, setView] = useState<View>('home');
+  const { variant: activeIcon } = useActiveIcon();
+  const [view, setView] = useState<ProfileView>('home');
   const data = usePerfilData(open);
 
   const xpPct = Math.min(100, Math.round((stats.xp / stats.xpNext) * 100));
   const achTotal = ACHIEVEMENTS.length;
   const achUnlocked = ACHIEVEMENTS.filter((a) => isAchievementUnlocked(a.id)).length;
-  const activeIconId =
-    stats.unlockedIconVariantIds[stats.unlockedIconVariantIds.length - 1] ?? 'orange';
-  const activeIcon = ICON_VARIANTS.find((v) => v.id === activeIconId) ?? ICON_VARIANTS[0];
 
   const handleClose = () => {
     setView('home');
@@ -90,10 +88,7 @@ export function ProfileModal({ open, onClose, userName }: Props) {
             data={data}
             achUnlocked={achUnlocked}
             achTotal={achTotal}
-            onOpenXpInfo={() => setView('xp-info')}
-            onOpenIcons={() => setView('icons')}
-            onOpenAparencia={() => setView('aparencia')}
-            onOpenConquistas={() => setView('conquistas')}
+            onNavigate={setView}
           />
         )}
         {view === 'xp-info' && <XpInfoView />}

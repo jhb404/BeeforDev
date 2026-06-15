@@ -1,4 +1,4 @@
-﻿import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+﻿import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { IpcProvider, useIpc } from './services/ipc';
 import { TitleBar } from './components/layout/TitleBar';
 import { StartupOverlay } from './components/layout/StartupOverlay';
@@ -21,7 +21,7 @@ import { ProfileModal } from './features/profile';
 import { useUpdater } from './hooks/useUpdater';
 import { useTeamPrefetch } from './app/hooks/useTeamPrefetch';
 import { useAppIconSync } from './hooks/useAppIconSync';
-import { useGamification } from './features/gamification';
+import { useActiveIcon } from './features/gamification';
 import { useBeefor } from './hooks/useBeefor';
 import { APP_EVENTS, emitAppEvent } from './app/events';
 import { useLunchTimer } from './app/hooks/useLunchTimer';
@@ -82,15 +82,16 @@ function AppShell() {
   useTeamPrefetch(startupComplete, homeBootReady);
 
   // Sync Windows taskbar/titlebar icon with active gamification variant.
-  const { stats } = useGamification();
-  const activeIconId =
-    stats.unlockedIconVariantIds[stats.unlockedIconVariantIds.length - 1] ?? 'orange';
+  const { id: activeIconId } = useActiveIcon();
   useAppIconSync(activeIconId);
 
   const { state: updateState, install: installUpdate } = useUpdater();
 
+  const notifiedUpdateVersion = useRef<string | null>(null);
   useEffect(() => {
     if (updateState.status !== 'ready') return;
+    if (notifiedUpdateVersion.current === updateState.version) return;
+    notifiedUpdateVersion.current = updateState.version;
     showToast(
       {
         kind: 'ok',
@@ -101,8 +102,7 @@ function AppShell() {
       },
       0,
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [updateState.status]);
+  }, [updateState, showToast, installUpdate]);
 
   const handleStartupComplete = useCallback(() => setStartupComplete(true), []);
 
@@ -182,7 +182,7 @@ function AppShell() {
           {tab === 'settings' && (
             <ErrorBoundary label="settings">
               <Suspense fallback={<div className="route-loader">Carregando...</div>}>
-                <SettingsPage onSettingsChanged={() => emitAppEvent(APP_EVENTS.SETTINGS_CHANGED)} />
+                <SettingsPage />
               </Suspense>
             </ErrorBoundary>
           )}

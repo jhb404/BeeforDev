@@ -1,5 +1,6 @@
 import type { Mood } from '@shared/types/index';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
+import { Moon } from '../../../components/common/Icons';
 import { MoodPicker } from './MoodPicker';
 import { MoodStreakBadge } from '../../../features/gamification/components/MoodStreakBadge';
 
@@ -53,7 +54,7 @@ export function MoodPanel({ loading, currentMood, busy, ready, onSelect }: MoodP
                 aria-label={`Mood disponível das ${MOOD_START_H}h às ${MOOD_END_H}h`}
               >
                 <span className="mood-panel__lock-pill">
-                  <span aria-hidden="true">🌙</span>
+                  <Moon size={14} aria-hidden="true" />
                   Mood disponível das {MOOD_START_H}h às {MOOD_END_H}h
                 </span>
               </div>

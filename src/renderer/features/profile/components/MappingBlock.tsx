@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { MappingItem } from '../hooks/usePerfilData';
+import { Map } from '../../../components/common/Icons';
 import { mappingEmoji } from '../utils/mappingEmoji';
 
 type EditItens = Array<{ IdItem?: string; NomeItem: string }>;
@@ -46,7 +47,9 @@ export function MappingBlock({ mapping, onAdd, onEdit, onDel }: Props) {
             onClick={() => setAdding(true)}
             data-sound="click"
           >
-            <span className="pfx-mapping__ghost-icon">🗺️</span>
+            <span className="pfx-mapping__ghost-icon">
+              <Map size={28} />
+            </span>
             <strong>Crie seu primeiro mapa</strong>
             <span>Conte curiosidades, família, hobbies…</span>
           </button>

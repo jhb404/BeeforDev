@@ -634,6 +634,14 @@ button.pfx-stat {
   margin: 0 0 12px;
   font-size: 14px;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.pfx-card__title svg {
+  display: block;
+  color: var(--text-muted);
+  flex-shrink: 0;
 }
 .pfx-card__sub {
   font-size: 11px;
@@ -660,6 +668,18 @@ button.pfx-stat {
   font-size: 12px;
   color: var(--text-muted);
   padding: 8px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.pfx-hint svg {
+  flex-shrink: 0;
+}
+.pfx-hint--error {
+  color: var(--err);
+}
+.pfx-hint--error svg {
+  color: var(--err);
 }
 .pfx-chips {
   display: flex;
@@ -1190,6 +1210,10 @@ button.pfx-mapping__ghost:hover:not(:disabled) {
   color: var(--text);
 }
 .pfx-mapping__ghost-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
   font-size: 30px;
   line-height: 1;
 }
@@ -1762,6 +1786,12 @@ button.profile-modal__trophy-btn:hover:not(:disabled) {
 .ach-card__icon {
   font-size: 1.4rem;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ach-card--locked .ach-card__icon {
+  color: var(--text-muted);
 }
 .ach-card--unlocked .ach-card__icon {
   filter: drop-shadow(0 1px 4px color-mix(in srgb, var(--rar) 60%, transparent));
@@ -1932,6 +1962,12 @@ button.profile-modal__trophy-btn:hover:not(:disabled) {
 .pfx-hero__foto-erro {
   font-size: 11px;
   color: var(--danger, #e5484d);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.pfx-hero__foto-erro svg {
+  flex-shrink: 0;
 }
 
 /* Casa a tipografia/tamanho do .pfx-bio (<p>) — não cresce o card em edição */

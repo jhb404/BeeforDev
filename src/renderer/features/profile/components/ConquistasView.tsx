@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ACHIEVEMENTS, ICON_VARIANTS, THEME_PRESETS, TIERS } from '../../gamification';
 import type { Achievement } from '../../gamification';
+import { Lock } from '../../../components/common/Icons';
 
 interface Props {
   isAchievementUnlocked: (id: string) => boolean;
@@ -92,7 +93,9 @@ export function ConquistasView({ isAchievementUnlocked }: Props) {
                     data-tier={a.tier}
                   >
                     <div className="ach-card__icon-wrap">
-                      <span className="ach-card__icon">{unlocked ? a.icon : '🔒'}</span>
+                      <span className="ach-card__icon">
+                        {unlocked ? a.icon : <Lock size={20} />}
+                      </span>
                     </div>
                     <div className="ach-card__body">
                       <strong className="ach-card__label">{a.label}</strong>
