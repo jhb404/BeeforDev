@@ -372,8 +372,6 @@
       </div>
 </main>
 
-<!-- iframe oculto: dispara o download sem sair da página -->
-<iframe id="dl-frame" style="display:none" title="download"></iframe>
 
 <!-- discord fab -->
 <button class="discord-fab" id="open-discord" aria-label="Contato no Discord">
@@ -523,7 +521,6 @@
   (async () => {
     const REPO = 'jhb404/BeeforDev';
     const winEl = document.getElementById('dl-win'), macEl = document.getElementById('dl-mac');
-    const frame = document.getElementById('dl-frame');
     const labelEl = document.getElementById('dl-version-label'), badgeEl = document.getElementById('badge-text');
     const fallback = `https://github.com/${REPO}/releases/latest`;
     const urls = { win: null, mac: null };   // preenchido pela API; null = sem asset
@@ -532,9 +529,13 @@
     function fire(url) {
       const isAsset = url && !url.includes('/releases/latest');
       if (isAsset) {
-        // asset com Content-Disposition: attachment → baixa sem trocar de página
-        if (frame) { frame.src = url; }
-        else { const a = document.createElement('a'); a.href = url; a.download = ''; document.body.appendChild(a); a.click(); a.remove(); }
+        // GitHub serve assets de objects.githubusercontent.com (cross-origin) com
+        // Content-Disposition: attachment. O atributo download é ignorado cross-origin,
+        // mas o header já força o download e o navegador NÃO troca de página.
+        // iframe quebra pra .exe no Chrome (bloqueia/navega) — usar <a> direto.
+        const a = document.createElement('a');
+        a.href = url; a.rel = 'noopener'; a.style.display = 'none';
+        document.body.appendChild(a); a.click(); a.remove();
       } else {
         // sem release publicada ainda → leva pra página de releases
         window.open(fallback, '_blank', 'noopener');
