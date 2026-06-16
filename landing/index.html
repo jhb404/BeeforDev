@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  Beefor Dev — landing page (estilo do app)                     ║
+  ║  café + console.log. oi 👋 vai um kudo aí?                     ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beefor Dev — Sua rotina de trabalho, turbinada.</title>
+  <meta name="description" content="App desktop pro seu time: ponto, mood, KudoCard e Coin2u. Windows & macOS. Mora na bandeja, nunca no seu caminho." />
+  <meta name="theme-color" content="#0a0d12" />
+  <meta property="og:title" content="Beefor Dev" />
+  <meta property="og:description" content="Ponto, mood, reconhecimento e recompensas — num app desktop silencioso e rápido." />
+  <meta property="og:type" content="website" />
+
+  <!-- FAVICON = logo completa do app (carinha + asas) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%201024'%20fill='none'%3E%3Cpath%20d='M662.093%20750.788H361.907V273.242H662.093V750.788ZM395.573%20695.058H627.493V622.994H395.573V695.058ZM395.573%20511.535V583.598H627.493V511.535H395.573ZM395.573%20472.139H627.493V400.075H395.573V472.139Z'%20fill='%23ff9400'/%3E%3Cpath%20d='M361.412%20750.818H662.588L512%20843.654L361.412%20750.818Z'%20fill='%23ff9400'/%3E%3Cpath%20d='M662.588%20273.836L361.412%20273.836L512%20181L662.588%20273.836Z'%20fill='%23ff9400'/%3E%3Cpath%20d='M977.303%20315.833V484.735L839.659%20568.226L702.016%20484.735V315.833L839.659%20232.34L977.303%20315.833Z'%20stroke='%23ff9400'%20stroke-width='44'/%3E%3Cpath%20d='M805.452%20629.812V696.823L751.903%20729.347L698.353%20696.823V629.812L751.903%20597.289L805.452%20629.812Z'%20stroke='%23ff9400'%20stroke-width='44'/%3E%3Cpath%20d='M46.6971%20315.833V484.735L184.341%20568.226L321.984%20484.735V315.833L184.341%20232.34L46.6971%20315.833Z'%20stroke='%23ff9400'%20stroke-width='44'/%3E%3Cpath%20d='M325.647%20629.812V696.823L272.097%20729.347L218.548%20696.823V629.812L272.097%20597.289L325.647%20629.812Z'%20stroke='%23ff9400'%20stroke-width='44'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* tokens 1:1 do app (base.css) — mesmas cores, mesmas bordas (--radius:8px) */
+    :root, :root[data-theme="dark"] {
+      --bg-0:#0a0d12; --bg-1:#111620; --bg-2:#181e2a; --bg-3:#1e2737;
+      --accent:#7c5cbf; --accent-hover:#6a4daa; --accent-soft:rgba(124,92,191,.14);
+      --warm:#ff9400; --warm-hover:#e07f00; --warm-soft:rgba(255,148,0,.12);
+      --text:#f0f4f8; --text-muted:#8a97a8; --text-faint:#5b6678; --ok:#27b899;
+      --border:#1e2737; --border-strong:#2e3d52; --panel-bg:#111620;
+      --topbar-bg:rgba(10,13,18,.72); --shadow:0 4px 24px rgba(0,0,0,.28);
+      --glow:rgba(255,148,0,.13); --hexes:.05; --radius:8px; --radius-lg:12px;
+      color-scheme:dark;
+    }
+    :root[data-theme="light"] {
+      --bg-0:#f7f8fb; --bg-1:#ffffff; --bg-2:#eef0f5; --bg-3:#e3e6ee;
+      --accent:#6d4ac9; --accent-hover:#5836b0; --accent-soft:rgba(109,74,201,.12);
+      --warm:#d9730d; --warm-hover:#b65f08; --warm-soft:rgba(217,115,13,.12);
+      --text:#14171f; --text-muted:#5a6172; --text-faint:#99a0b0; --ok:#0e9b7c;
+      --border:#dcdfe7; --border-strong:#c2c7d3; --panel-bg:#ffffff;
+      --topbar-bg:rgba(255,255,255,.78);
+      --shadow:0 2px 18px rgba(20,23,31,.08),0 1px 3px rgba(20,23,31,.06);
+      --glow:rgba(217,115,13,.10); --hexes:.06; color-scheme:light;
+    }
+
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'Inter',-apple-system,"Segoe UI",Arial,sans-serif;
+      background:var(--bg-0); color:var(--text); line-height:1.6;
+      -webkit-font-smoothing:antialiased; overflow-x:hidden;
+      min-height:100vh;
+      transition:background .32s ease,color .32s ease;
+    }
+    ::selection { background:var(--warm); color:#fff; }
+
+    /* ── FUNDO MELHORADO ───────────────────────────────────────────────
+       camadas: glows radiais (warm em cima, accent embaixo) + favo de mel
+       + grid drift do app + logo gigante animada (loading) por cima.       */
+    .bg { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; user-select:none; }
+    .bg-glows { position:absolute; inset:0;
+      background:
+        radial-gradient(60% 50% at 18% 8%, var(--glow) 0%, transparent 60%),
+        radial-gradient(55% 50% at 85% 100%, var(--accent-soft) 0%, transparent 60%);
+    }
+    .bg-hex { position:absolute; inset:0; opacity:var(--hexes);
+      background-image: radial-gradient(circle at 50% 50%, var(--warm) 1.5px, transparent 1.6px);
+      background-size:30px 30px;
+      -webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 28%,transparent 72%);
+      mask-image:radial-gradient(ellipse at 50% 30%,#000 28%,transparent 72%);
+    }
+    .bg-grid { position:absolute; inset:0; opacity:.4;
+      background:repeating-linear-gradient(0deg, color-mix(in srgb,var(--text) 2.4%,transparent) 0 1px, transparent 1px 13px);
+      -webkit-mask-image:radial-gradient(circle at 50% 35%,#000,transparent 70%);
+      mask-image:radial-gradient(circle at 50% 35%,#000,transparent 70%);
+      animation:grid-drift 4s linear infinite;
+    }
+    @keyframes grid-drift { to { transform:translateY(13px); } }
+    .bg-logo { position:absolute; inset:0; display:grid; place-items:center; }
+    .bg-logo svg { width:min(96vw,860px); height:auto; color:var(--warm); opacity:calc(var(--hexes) * .9); transform:translateY(-2%); filter:drop-shadow(0 0 60px var(--glow)); }
+    .bg-logo .wing { transform-box:fill-box; transform-origin:center; }
+    .bg-logo .wing.tl { animation:wtl 3.8s cubic-bezier(.22,.75,.2,1) infinite; }
+    .bg-logo .wing.tr { animation:wtr 3.8s cubic-bezier(.22,.75,.2,1) infinite; }
+    .bg-logo .wing.bl { animation:wbl 3.8s cubic-bezier(.22,.75,.2,1) .58s infinite; }
+    .bg-logo .wing.br { animation:wbr 3.8s cubic-bezier(.22,.75,.2,1) .58s infinite; }
+    .bg-logo .core { transform-box:fill-box; transform-origin:center; animation:corep 2.2s ease-in-out infinite; }
+    @keyframes wtl { 0%,100%{transform:rotate(0) translateX(0);opacity:.78} 48%,62%{transform:rotate(360deg) translateX(-10px);opacity:1} }
+    @keyframes wtr { 0%,100%{transform:rotate(0) translateX(0);opacity:.78} 48%,62%{transform:rotate(360deg) translateX(10px);opacity:1} }
+    @keyframes wbl { 0%,100%{transform:rotate(0) translateX(0);opacity:.72} 48%,62%{transform:rotate(360deg) translateX(-7px);opacity:1} }
+    @keyframes wbr { 0%,100%{transform:rotate(0) translateX(0);opacity:.72} 48%,62%{transform:rotate(360deg) translateX(7px);opacity:1} }
+    @keyframes corep { 0%,100%{transform:scale(1)} 50%{transform:scale(1.012)} }
+
+    nav, main, footer { position:relative; z-index:2; }
+
+    /* ── TOPBAR igual ao app ──────────────────────────────────────────── */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 1.25rem; height:56px;
+      background:var(--topbar-bg); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border); transition:background .32s,border-color .32s;
+    }
+    .nav-logo { display:flex; align-items:center; gap:.55rem; text-decoration:none; color:var(--text); font-size:1rem; font-weight:800; letter-spacing:-.01em; }
+    .nav-logo svg { color:var(--warm); }
+    .nav-logo .accent { color:var(--warm); }
+    .nav-right { display:flex; align-items:center; gap:.55rem; }
+    /* badge "Conectado" igual app */
+    .conn { display:inline-flex; align-items:center; gap:.45rem; background:var(--bg-2); border:1px solid var(--border); border-radius:999px; padding:.32rem .7rem; font-size:.74rem; font-weight:600; color:var(--text-muted); }
+    .conn .dot { width:7px; height:7px; border-radius:999px; background:var(--ok); animation:pulse 2s infinite; }
+    @keyframes pulse { 0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 70%,transparent)} 70%{box-shadow:0 0 0 6px transparent} 100%{box-shadow:0 0 0 0 transparent} }
+    /* coin badge igual app */
+    .coins { display:inline-flex; align-items:center; gap:.5rem; background:var(--bg-2); border:1px solid var(--border); border-radius:999px; padding:.3rem .7rem; font-size:.78rem; font-weight:800; }
+    .coins .c { display:inline-flex; align-items:center; gap:.3rem; }
+    .coins .o { width:14px; height:14px; border-radius:999px; background:var(--warm); }
+    .coins .p { width:14px; height:14px; border-radius:999px; background:var(--accent); }
+    .coins .o-v { color:var(--warm); } .coins .p-v { color:var(--accent); }
+    .icon-btn {
+      display:grid; place-items:center; width:34px; height:34px; border-radius:var(--radius);
+      background:var(--bg-2); border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:.95rem;
+      transition:background .15s,transform .3s,border-color .15s;
+    }
+    .icon-btn:hover { background:var(--bg-3); border-color:var(--border-strong); }
+    #theme-toggle:hover { transform:rotate(-12deg); }
+    @media (max-width:680px){ .conn, .coins { display:none; } }
+
+    /* ── CONTEÚDO (sem frame de janela — direto na página) ───────────── */
+    main { max-width:1080px; margin:0 auto; padding:6.5rem 1.25rem 3rem; animation:frame-in .5s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes frame-in { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+
+    /* mascote (carinha do app) no topo */
+    .hero-head { display:flex; align-items:center; gap:1.2rem; margin-bottom:2rem; flex-wrap:wrap; }
+    .mascot { position:relative; flex-shrink:0; filter:drop-shadow(0 0 14px var(--glow)) drop-shadow(0 12px 26px rgba(0,0,0,.4)); animation:bob 4s ease-in-out infinite; }
+    .mascot svg { display:block; color:var(--warm); }
+    @keyframes bob { 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-7px) rotate(1.5deg)} }
+    /* asas flutuando (mexe leve, SEM girar 360° como o fundo) */
+    .mascot .wing { transform-box:fill-box; transform-origin:center; }
+    .mascot .wing.tl { animation:m-wtl 2.2s ease-in-out infinite; }
+    .mascot .wing.tr { animation:m-wtr 2.2s ease-in-out infinite; }
+    .mascot .wing.bl { animation:m-wbl 2.4s ease-in-out infinite .25s; }
+    .mascot .wing.br { animation:m-wbr 2.4s ease-in-out infinite .25s; }
+    @keyframes m-wtl { 0%,100%{transform:rotate(0) translate(0,0)} 50%{transform:rotate(-13deg) translate(-3px,-2px)} }
+    @keyframes m-wtr { 0%,100%{transform:rotate(0) translate(0,0)} 50%{transform:rotate(13deg) translate(3px,-2px)} }
+    @keyframes m-wbl { 0%,100%{transform:rotate(0) translate(0,0)} 50%{transform:rotate(-8deg) translate(-2px,1px)} }
+    @keyframes m-wbr { 0%,100%{transform:rotate(0) translate(0,0)} 50%{transform:rotate(8deg) translate(2px,1px)} }
+    .mascot .ring { position:absolute; inset:-12px; border-radius:999px; border:1px solid color-mix(in srgb,var(--warm) 22%,transparent); box-shadow:0 0 24px color-mix(in srgb,var(--warm) 12%,transparent); animation:ring 2.4s ease-in-out infinite; pointer-events:none; }
+    @keyframes ring { 0%,100%{transform:scale(.94);opacity:.36} 50%{transform:scale(1.04);opacity:.9} }
+    .hero-head h1 { font-size:clamp(1.8rem,4.2vw,2.8rem); font-weight:900; line-height:1.05; letter-spacing:-.035em; }
+    .hero-head h1 .gradient { background:linear-gradient(120deg,var(--warm) 5%,var(--accent) 95%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+    .hero-head .sub { font-size:.92rem; color:var(--text-muted); margin-top:.3rem; }
+    .badge { display:inline-flex; align-items:center; gap:.45rem; background:var(--warm-soft); border:1px solid color-mix(in srgb,var(--warm) 35%,transparent); color:var(--warm); font-size:.68rem; font-weight:700; padding:.28rem .7rem; border-radius:999px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:.7rem; }
+    .badge .dot { width:6px; height:6px; border-radius:999px; background:var(--ok); animation:pulse 2s infinite; }
+
+    /* ── GRID 2 COLUNAS ──────────────────────────────────────────────── */
+    .cols { display:grid; grid-template-columns:1.1fr 1fr; gap:1.5rem; align-items:start; }
+
+    /* cabeçalho de seção igual app: LABEL + título */
+    .sec-label { font-size:.68rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--warm); margin-bottom:.35rem; }
+    .sec-title { font-size:1.25rem; font-weight:900; letter-spacing:-.02em; margin-bottom:.7rem; }
+    .lead { font-size:.92rem; color:var(--text-muted); line-height:1.65; margin-bottom:1.3rem; }
+    .lead strong { color:var(--text); }
+
+    /* mini stat cards (igual HORAS/DIAS do app) */
+    .minis { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+    .mini { display:flex; align-items:center; gap:.7rem; background:var(--panel-bg); border:1px solid var(--border); border-radius:var(--radius); padding:.85rem .9rem; transition:border-color .2s,transform .2s; }
+    .mini:hover { border-color:var(--border-strong); transform:translateY(-2px); }
+    .mini-ic { display:grid; place-items:center; width:36px; height:36px; border-radius:var(--radius); font-size:1.1rem; background:var(--warm-soft); border:1px solid color-mix(in srgb,var(--warm) 28%,transparent); flex-shrink:0; }
+    .mini-label { font-size:.62rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--text-faint); }
+    .mini-val { font-size:.95rem; font-weight:800; letter-spacing:-.01em; }
+
+    /* chips de recursos extras */
+    .chips { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1.1rem; }
+    .chip { display:inline-flex; align-items:center; gap:.4rem; background:var(--bg-2); border:1px solid var(--border); border-radius:999px; padding:.34rem .75rem; font-size:.76rem; font-weight:600; color:var(--text-muted); }
+    .chip b { color:var(--accent); font-weight:800; }
+
+    /* ── PAINEL DE DOWNLOAD (direita) ───────────────────────────────── */
+    .panel { background:var(--panel-bg); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.4rem; }
+    .panel + .panel { margin-top:1rem; }
+
+    .dl-cards { display:flex; flex-direction:column; gap:.7rem; margin-top:.2rem; }
+    .dl-card {
+      display:flex; align-items:center; gap:.9rem; width:100%;
+      background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius);
+      padding:.95rem 1.1rem; color:var(--text); cursor:pointer; text-align:left; font:inherit;
+      transition:all .2s; position:relative;
+    }
+    .dl-card:hover:not([disabled]) { border-color:var(--warm); background:var(--warm-soft); transform:translateY(-2px); }
+    .dl-card[disabled] { cursor:progress; opacity:.92; }
+    .dl-os { position:relative; display:grid; place-items:center; width:42px; height:42px; border-radius:var(--radius); font-size:1.5rem; background:var(--panel-bg); border:1px solid var(--border); flex-shrink:0; overflow:hidden; }
+    .dl-info { flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:1px; line-height:1.25; }
+    .dl-name { font-weight:800; font-size:.95rem; }
+    .dl-ext { font-size:.74rem; color:var(--text-muted); }
+    .dl-right { flex-shrink:0; display:grid; place-items:center; width:24px; height:24px; }
+    .dl-arrow { font-size:1.15rem; color:var(--warm); transition:transform .2s; line-height:1; }
+    .dl-card:hover:not([disabled]) .dl-arrow { transform:translateY(3px); }
+    /* spinner de loading no botão (lado direito) */
+    .spin { width:18px; height:18px; border-radius:999px; border:2px solid color-mix(in srgb,var(--warm) 30%,transparent); border-top-color:var(--warm); animation:spin .7s linear infinite; display:none; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .dl-card.loading .dl-arrow { display:none; }
+    .dl-card.loading .spin { display:block; }
+    .dl-card.done .dl-arrow { display:none; }
+    .dl-card.done .dl-check { display:block; }
+    .dl-check { display:none; color:var(--ok); font-size:1.1rem; font-weight:900; line-height:1; }
+
+    /* ── ANIMAÇÃO DE DOWNLOAD NO ÍCONE ──────────────────────────────────
+       seta baixando dentro do quadradinho do OS + barra de progresso.       */
+    .dl-dl { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:1.15rem; color:var(--warm); opacity:0; }
+    .dl-card.loading .dl-os { background:var(--warm-soft); border-color:color-mix(in srgb,var(--warm) 40%,transparent); }
+    .dl-card.loading .dl-emoji { opacity:0; }
+    .dl-card.loading .dl-dl { opacity:1; animation:dl-arrow-fall .9s ease-in-out infinite; }
+    @keyframes dl-arrow-fall {
+      0%   { transform:translate(-50%,-150%); opacity:0; }
+      35%  { opacity:1; }
+      70%  { transform:translate(-50%,-50%); opacity:1; }
+      100% { transform:translate(-50%,60%); opacity:0; }
+    }
+    .dl-emoji { transition:opacity .2s; }
+    .dl-card.done .dl-os { background:color-mix(in srgb,var(--ok) 14%,transparent); border-color:color-mix(in srgb,var(--ok) 40%,transparent); }
+    .dl-card.done .dl-emoji { opacity:0; }
+    .dl-card.done .dl-os::after { content:'✓'; position:absolute; inset:0; display:grid; place-items:center; color:var(--ok); font-size:1.3rem; font-weight:900; animation:pop-in .3s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes pop-in { from{transform:scale(.4);opacity:0} to{transform:scale(1);opacity:1} }
+    /* barra de progresso no rodapé do card */
+    .dl-prog { position:absolute; left:0; bottom:0; height:3px; width:0; background:linear-gradient(90deg,var(--warm),var(--accent)); border-radius:0 999px 999px 0; }
+    .dl-card.loading .dl-prog { animation:dl-prog 1.4s cubic-bezier(.4,0,.2,1) forwards; }
+    @keyframes dl-prog { 0%{width:0} 90%{width:96%} 100%{width:100%} }
+
+    .dl-version { margin-top:1rem; font-size:.74rem; color:var(--text-faint); text-align:center; }
+    .req { margin-top:.9rem; font-size:.72rem; color:var(--text-faint); line-height:1.7; text-align:center; }
+
+    /* mac note */
+    .mac-head { display:flex; align-items:center; gap:.5rem; font-weight:800; font-size:.84rem; margin-bottom:.5rem; }
+    .mac p { font-size:.78rem; color:var(--text-muted); margin:0 0 .65rem; line-height:1.55; }
+    .codebox { display:flex; align-items:center; gap:.5rem; background:var(--bg-0); border:1px solid var(--border-strong); border-radius:var(--radius); padding:.5rem .6rem; }
+    .codebox code { flex:1; font-family:ui-monospace,Menlo,monospace; font-size:.73rem; color:var(--text); overflow-x:auto; white-space:nowrap; }
+    .copy-btn { flex-shrink:0; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-size:.69rem; font-weight:700; padding:.4rem .65rem; cursor:pointer; transition:background .15s; }
+    .copy-btn:hover { background:var(--accent-hover); }
+
+    /* discord fab + modal */
+    .discord-fab { position:fixed; right:1.4rem; bottom:1.4rem; z-index:90; display:flex; align-items:center; gap:.55rem; background:#5865F2; color:#fff; border:none; cursor:pointer; font-family:inherit; font-weight:700; font-size:.9rem; padding:.8rem 1.2rem; border-radius:999px; box-shadow:0 8px 24px rgba(88,101,242,.45); transition:transform .2s, box-shadow .2s; }
+    .discord-fab:hover { transform:translateY(-3px); box-shadow:0 12px 30px rgba(88,101,242,.6); }
+    .discord-fab svg { width:22px; height:22px; }
+    @media (max-width:560px){ .discord-fab span { display:none; } .discord-fab { padding:.85rem; } }
+    .modal-back { position:fixed; inset:0; z-index:200; display:none; place-items:center; padding:1.5rem; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); }
+    .modal-back.open { display:grid; animation:fadeIn .2s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .modal { width:100%; max-width:380px; background:var(--panel-bg); border:1px solid var(--border-strong); border-radius:var(--radius-lg); box-shadow:var(--shadow); overflow:hidden; position:relative; animation:pop .26s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes pop { from{opacity:0;transform:scale(.94) translateY(8px)} to{opacity:1;transform:none} }
+    .modal-gif { width:100%; height:150px; object-fit:cover; display:block; background:var(--bg-2); border-bottom:1px solid var(--border); }
+    .modal-x { position:absolute; top:.6rem; right:.6rem; width:30px; height:30px; border-radius:999px; border:none; background:rgba(0,0,0,.45); color:#fff; cursor:pointer; font-size:1rem; display:grid; place-items:center; }
+    .modal-x:hover { background:rgba(0,0,0,.7); }
+    .modal-body { padding:1.3rem 1.4rem 1.5rem; }
+    .modal-name { display:flex; align-items:center; gap:.5rem; font-size:1.15rem; font-weight:900; letter-spacing:-.02em; }
+    .modal-name svg { width:20px; height:20px; color:#5865F2; }
+    .modal-desc { font-size:.85rem; color:var(--text-muted); margin:.4rem 0 1.1rem; }
+    .contact-row { display:flex; align-items:center; justify-content:space-between; gap:.8rem; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); padding:.7rem .85rem; margin-bottom:.6rem; }
+    .cr-label { font-size:.66rem; text-transform:uppercase; letter-spacing:.08em; font-weight:800; color:var(--text-faint); }
+    .cr-val { font-family:ui-monospace,Menlo,monospace; font-size:.86rem; color:var(--text); font-weight:600; }
+    .cr-copy { flex-shrink:0; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-size:.68rem; font-weight:700; padding:.38rem .65rem; cursor:pointer; transition:background .15s; }
+    .cr-copy:hover { background:var(--accent-hover); }
+
+    footer { text-align:center; padding:1.5rem; font-size:.72rem; color:var(--text-faint); }
+
+    @media (prefers-reduced-motion:reduce){ *,*::before,*::after{ animation:none!important; transition-duration:.01ms!important; } }
+    @media (max-width:780px){
+      .cols { grid-template-columns:1fr; }
+      main { padding:6rem 1rem 2.5rem; }
+      .hero-head h1 { font-size:clamp(1.7rem,7vw,2.4rem); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── FUNDO ───────────────────────────────────────────────────────────── -->
+<div class="bg" aria-hidden="true">
+  <div class="bg-glows"></div>
+  <div class="bg-hex"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-logo">
+    <svg viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path class="wing tl" d="M46.6971 315.833V484.735L184.341 568.226L321.984 484.735V315.833L184.341 232.34L46.6971 315.833Z" stroke="currentColor" stroke-width="44" fill="none"/>
+      <path class="wing bl" d="M325.647 629.812V696.823L272.097 729.347L218.548 696.823V629.812L272.097 597.289L325.647 629.812Z" stroke="currentColor" stroke-width="44" fill="none"/>
+      <path class="wing tr" d="M977.303 315.833V484.735L839.659 568.226L702.016 484.735V315.833L839.659 232.34L977.303 315.833Z" stroke="currentColor" stroke-width="44" fill="none"/>
+      <path class="wing br" d="M805.452 629.812V696.823L751.903 729.347L698.353 696.823V629.812L751.903 597.289L805.452 629.812Z" stroke="currentColor" stroke-width="44" fill="none"/>
+      <g class="core">
+        <path d="M662.093 750.788H361.907V273.242H662.093V750.788ZM395.573 695.058H627.493V622.994H395.573V695.058ZM395.573 511.535V583.598H627.493V511.535H395.573ZM395.573 472.139H627.493V400.075H395.573V472.139Z" fill="currentColor"/>
+        <path d="M361.412 750.818H662.588L512 843.654L361.412 750.818Z" fill="currentColor"/>
+        <path d="M662.588 273.836L361.412 273.836L512 181L662.588 273.836Z" fill="currentColor"/>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<!-- ── CONTEÚDO (direto na página, sem frame) ──────────────────────────── -->
+<main id="top">
+      <!-- carinha + título -->
+      <div class="hero-head">
+        <div class="mascot">
+          <span class="ring"></span>
+          <svg width="78" height="78" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path class="wing tr" d="M977.303 315.833V484.735L839.659 568.226L702.016 484.735V315.833L839.659 232.34L977.303 315.833Z" stroke="currentColor" stroke-width="44"/>
+            <path class="wing tl" d="M46.6971 315.833V484.735L184.341 568.226L321.984 484.735V315.833L184.341 232.34L46.6971 315.833Z" stroke="currentColor" stroke-width="44"/>
+            <path d="M662.093 750.788H361.907V273.242H662.093V750.788ZM395.573 695.058H627.493V622.994H395.573V695.058ZM395.573 511.535V583.598H627.493V511.535H395.573ZM395.573 472.139H627.493V400.075H395.573V472.139Z" fill="currentColor"/>
+            <path d="M361.412 750.818H662.588L512 843.654L361.412 750.818Z" fill="currentColor"/>
+            <path d="M662.588 273.836L361.412 273.836L512 181L662.588 273.836Z" fill="currentColor"/>
+            <path class="wing br" d="M805.452 629.812V696.823L751.903 729.347L698.353 696.823V629.812L751.903 597.289L805.452 629.812Z" stroke="currentColor" stroke-width="44"/>
+            <path class="wing bl" d="M325.647 629.812V696.823L272.097 729.347L218.548 696.823V629.812L272.097 597.289L325.647 629.812Z" stroke="currentColor" stroke-width="44"/>
+          </svg>
+        </div>
+        <div>
+          <div class="badge"><span class="dot"></span> <span id="badge-text">Desktop App · Windows &amp; macOS</span></div>
+          <h1>Sua rotina de trabalho, <span class="gradient">turbinada.</span></h1>
+          <p class="sub">Melhorando seu trabalho, sem complicações.</p>
+        </div>
+      </div>
+
+      <!-- 2 colunas: descrição ⬅ · download ➡ -->
+      <div class="cols">
+        <!-- ESQUERDA: sobre o app -->
+        <section>
+          <p class="sec-label">O app</p>
+          <h2 class="sec-title">Tudo que seu time precisa, num lugar só.</h2>
+          <p class="lead">
+            O <strong>Beefor Dev</strong> junta os 4 pilares do dia a dia — <strong>ponto, mood,
+            reconhecimento e recompensas</strong> — num app desktop silencioso e rápido. Sem mil abas,
+            sem ruído. Só o que importa, com a cara do seu time.
+          </p>
+
+          <div class="minis">
+            <div class="mini"><div class="mini-ic">⏱️</div><div><div class="mini-label">Ponto</div><div class="mini-val">Timesheet</div></div></div>
+            <div class="mini"><div class="mini-ic">😊</div><div><div class="mini-label">Sentimento</div><div class="mini-val">Mood</div></div></div>
+            <div class="mini"><div class="mini-ic">🏆</div><div><div class="mini-label">Reconhecer</div><div class="mini-val">KudoCard</div></div></div>
+            <div class="mini"><div class="mini-ic">🪙</div><div><div class="mini-label">Recompensa</div><div class="mini-val">Coin2u</div></div></div>
+          </div>
+
+          <div class="chips">
+            <span class="chip"><b>🎨</b> 20+ temas</span>
+            <span class="chip"><b>👥</b> Ver time</span>
+            <span class="chip"><b>🔔</b> Notificações</span>
+            <span class="chip"><b>⏰</b> Alarmes</span>
+            <span class="chip"><b>📋</b> Atividades</span>
+          </div>
+        </section>
+
+        <!-- DIREITA: download + mac -->
+        <aside>
+          <div class="panel">
+            <p class="sec-label">Download</p>
+            <h2 class="sec-title">Bora começar?</h2>
+            <div class="dl-cards">
+              <button class="dl-card" id="dl-win" type="button" data-os="win" data-sound="coin">
+                <span class="dl-os"><span class="dl-emoji">🪟</span><span class="dl-dl">↓</span></span>
+                <span class="dl-info"><span class="dl-name">Windows</span><span class="dl-ext">Instalador .exe · 64-bit</span></span>
+                <span class="dl-right"><span class="dl-arrow">↓</span><span class="spin"></span><span class="dl-check">✓</span></span>
+                <span class="dl-prog"></span>
+              </button>
+              <button class="dl-card" id="dl-mac" type="button" data-os="mac" data-sound="coin">
+                <span class="dl-os"><span class="dl-emoji">🍎</span><span class="dl-dl">↓</span></span>
+                <span class="dl-info"><span class="dl-name">macOS</span><span class="dl-ext">.dmg · Universal</span></span>
+                <span class="dl-right"><span class="dl-arrow">↓</span><span class="spin"></span><span class="dl-check">✓</span></span>
+                <span class="dl-prog"></span>
+              </button>
+            </div>
+            <p class="dl-version" id="dl-version-label">Verificando versão mais recente…</p>
+            <p class="req">Windows 10 (64-bit) · macOS 10.15+ · 200 MB livres</p>
+          </div>
+
+          <div class="panel mac">
+            <div class="mac-head">🍎 Tá no Mac? Lê isto antes</div>
+            <p>Depois de instalar e <strong>ANTES DE ABRIR</strong>, roda no Terminal...Apple sendo a Apple kk:</p>
+            <div class="codebox">
+              <code id="mac-cmd">xattr -cr "/Applications/Beefor Dev.app"</code>
+              <button class="copy-btn" id="copy-cmd" type="button" data-sound="success">Copiar</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+</main>
+
+<!-- iframe oculto: dispara o download sem sair da página -->
+<iframe id="dl-frame" style="display:none" title="download"></iframe>
+
+<!-- discord fab -->
+<button class="discord-fab" id="open-discord" aria-label="Contato no Discord">
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+  <span>Falar comigo</span>
+</button>
+
+<!-- modal contato -->
+<div class="modal-back" id="discord-modal" role="dialog" aria-modal="true" aria-label="Contato">
+  <div class="modal">
+    <button class="modal-x" id="close-discord" aria-label="Fechar">✕</button>
+    <img class="modal-gif" src="https://media.tenor.com/7cQ9-ELrjfYAAAAM/cat-typing-on-keyboard---i%27m-cooking.gif" alt="Gato digitando — I'm cooking" loading="lazy" />
+    <div class="modal-body">
+      <div class="modal-name">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+        João Henrique Batista (JB)
+      </div>
+      <p class="modal-desc">Oiiie, ta com duvida? Ta dodoi? Tem ideias? Me chama aqui ó 👇</p>
+      <div class="contact-row">
+        <span><span class="cr-label">Usuário</span><br><span class="cr-val" id="dc-user">jbatista404</span></span>
+        <button class="cr-copy" data-copy="dc-user" type="button">Copiar</button>
+      </div>
+      <div class="contact-row">
+        <span><span class="cr-label">ID</span><br><span class="cr-val" id="dc-id">914159605909712926</span></span>
+        <button class="cr-copy" data-copy="dc-id" type="button">Copiar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* sons — portados do app (alarm.ts). Web Audio, sem arquivos. */
+  /* localStorage seguro — file:// pode bloquear/lançar */
+  const LS = {
+    get(k){ try { return localStorage.getItem(k); } catch { return null; } },
+    set(k,v){ try { localStorage.setItem(k,v); } catch {} },
+  };
+
+  const Sound = (() => {
+    let ctx = null;
+    let on = LS.get('beefor-landing-sound') !== 'off';
+    const ac = () => (ctx ||= new (window.AudioContext || window.webkitAudioContext)());
+    const ensure = async () => { const a = ac(); if (a.state === 'suspended') { try { await a.resume(); } catch {} } return a; };
+    function seq(notes) {
+      if (!on) return;
+      ensure().then((a) => { const s = a.currentTime;
+        for (const n of notes) { const o=a.createOscillator(),g=a.createGain();
+          o.type=n.type||'square'; o.frequency.value=n.freq;
+          g.gain.setValueAtTime(.0001,s+n.offset); g.gain.exponentialRampToValueAtTime(n.gain,s+n.offset+.005); g.gain.exponentialRampToValueAtTime(.0001,s+n.offset+n.dur);
+          o.connect(g).connect(a.destination); o.start(s+n.offset); o.stop(s+n.offset+n.dur+.02);
+        }
+      });
+    }
+    function boot() { if (!on) return; ensure().then((a) => { const s=a.currentTime;
+      for (const [f,t,d] of [[523,0,.08],[659,.07,.08],[784,.14,.08],[988,.21,.1],[1175,.3,.2]]) {
+        const o=a.createOscillator(),g=a.createGain(); o.type='triangle'; o.frequency.value=f;
+        g.gain.setValueAtTime(.0001,s+t); g.gain.exponentialRampToValueAtTime(.22,s+t+.012); g.gain.exponentialRampToValueAtTime(.0001,s+t+d);
+        o.connect(g).connect(a.destination); o.start(s+t); o.stop(s+t+d+.02);
+      }
+      const sub=a.createOscillator(),sg=a.createGain(); sub.type='sine'; sub.frequency.value=98;
+      sg.gain.setValueAtTime(.0001,s+.05); sg.gain.exponentialRampToValueAtTime(.14,s+.25); sg.gain.exponentialRampToValueAtTime(.0001,s+.7);
+      sub.connect(sg).connect(a.destination); sub.start(s+.05); sub.stop(s+.75);
+    }); }
+    const lib = {
+      click:()=>seq([{freq:1760,offset:0,dur:.04,gain:.06,type:'sine'}]),
+      'theme-toggle':()=>seq([{freq:880,offset:0,dur:.05,gain:.1,type:'square'},{freq:1175,offset:.04,dur:.06,gain:.1,type:'square'}]),
+      coin:()=>seq([{freq:988,offset:0,dur:.09,gain:.22,type:'square'},{freq:1319,offset:.07,dur:.36,gain:.22,type:'square'}]),
+      success:()=>seq([{freq:784,offset:0,dur:.08,gain:.18,type:'triangle'},{freq:1047,offset:.07,dur:.1,gain:.2,type:'triangle'},{freq:1568,offset:.16,dur:.18,gain:.18,type:'sine'}]),
+      boot,
+    };
+    return {
+      play:(k)=>(lib[k]||lib.click)(),
+      isOn:()=>on,
+      toggle:()=>{ on=!on; LS.set('beefor-landing-sound', on?'on':'off'); if(on) lib['theme-toggle'](); return on; },
+      warm:()=>ensure(),
+    };
+  })();
+
+  /* helper de cópia robusto — funciona em file:// (sem navigator.clipboard) */
+  async function copyText(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; }
+    } catch {}
+    // fallback execCommand (file:// / http inseguro)
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.top = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok;
+    } catch { return false; }
+  }
+  function flashCopied(btn, label) {
+    const old = btn.textContent; btn.textContent = label || '✓'; Sound.play('coin');
+    setTimeout(() => { btn.textContent = old; }, 1500);
+  }
+
+  /* som genérico nos cliques (cada handler isolado, não derruba os outros) */
+  document.addEventListener('click', (e) => {
+    try {
+      const el = e.target.closest('[data-sound], .copy-btn, .cr-copy');
+      if (!el || el.id === 'sound-toggle') return;
+      Sound.play(el.dataset.sound || 'click');
+    } catch {}
+  }, true);
+
+  /* som on/off */
+  try { const b = document.getElementById('sound-toggle');
+    const sync = () => { const o = Sound.isOn(); b.textContent = o?'🔊':'🔇'; b.setAttribute('aria-pressed', String(o)); };
+    sync(); b.addEventListener('click', () => { Sound.warm(); Sound.toggle(); sync(); });
+  } catch {}
+
+  /* tema */
+  try { const root = document.documentElement; const b = document.getElementById('theme-toggle');
+    const saved = LS.get('beefor-landing-theme'); if (saved) root.setAttribute('data-theme', saved);
+    const sync = () => { b.textContent = root.getAttribute('data-theme') === 'light' ? '☀️' : '🌙'; };
+    sync();
+    b.addEventListener('click', () => { const nx = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      root.setAttribute('data-theme', nx); LS.set('beefor-landing-theme', nx); Sound.warm(); Sound.play('theme-toggle'); sync();
+    });
+  } catch {}
+
+  /* modal discord — bind direto + delegação (redundante, à prova de bala) */
+  try {
+    const back = document.getElementById('discord-modal');
+    const fab = document.getElementById('open-discord');
+    const open = (e) => { if (e) e.preventDefault(); back.classList.add('open'); Sound.warm(); Sound.play('success'); };
+    const close = () => back.classList.remove('open');
+    if (fab) fab.addEventListener('click', open);
+    document.addEventListener('click', (e) => {
+      const o = e.target.closest('#open-discord, [data-discord]'); if (o) { open(e); return; }
+      if (e.target.closest('#close-discord')) { close(); return; }
+      if (e.target === back) { close(); return; }
+      const cp = e.target.closest('.cr-copy');
+      if (cp) { const el = document.getElementById(cp.dataset.copy); if (el) copyText(el.textContent.trim()).then(() => flashCopied(cp)); }
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  } catch {}
+
+  /* copiar comando mac */
+  try { const b = document.getElementById('copy-cmd'), c = document.getElementById('mac-cmd');
+    b.addEventListener('click', () => { copyText(c.textContent.trim()).then((ok) => flashCopied(b, ok ? 'Copiado! ✓' : 'Erro :(')); });
+  } catch {}
+
+  /* ── download SEM sair da página ─────────────────────────────────────
+     asset real → baixa via <a download> (fica na página).
+     sem release ainda → abre a página de releases (último recurso).        */
+  (async () => {
+    const REPO = 'jhb404/BeeforDev';
+    const winEl = document.getElementById('dl-win'), macEl = document.getElementById('dl-mac');
+    const frame = document.getElementById('dl-frame');
+    const labelEl = document.getElementById('dl-version-label'), badgeEl = document.getElementById('badge-text');
+    const fallback = `https://github.com/${REPO}/releases/latest`;
+    const urls = { win: null, mac: null };   // preenchido pela API; null = sem asset
+    let busy = false;
+
+    function fire(url) {
+      const isAsset = url && !url.includes('/releases/latest');
+      if (isAsset) {
+        // asset com Content-Disposition: attachment → baixa sem trocar de página
+        if (frame) { frame.src = url; }
+        else { const a = document.createElement('a'); a.href = url; a.download = ''; document.body.appendChild(a); a.click(); a.remove(); }
+      } else {
+        // sem release publicada ainda → leva pra página de releases
+        window.open(fallback, '_blank', 'noopener');
+      }
+    }
+
+    function download(btn, key) {
+      if (busy) return; busy = true;
+      btn.classList.add('loading'); btn.setAttribute('disabled', '');
+      fire(urls[key]);
+      setTimeout(() => {
+        btn.classList.remove('loading'); btn.classList.add('done');
+        Sound.play('success');
+        setTimeout(() => { btn.classList.remove('done'); btn.removeAttribute('disabled'); busy = false; }, 1600);
+      }, 1400);
+    }
+    if (winEl) winEl.addEventListener('click', () => download(winEl, 'win'));
+    if (macEl) macEl.addEventListener('click', () => download(macEl, 'mac'));
+
+    try {
+      const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`);
+      if (!res.ok) throw 0;
+      const r = await res.json();
+      const w = r.assets?.find(a => a.name.endsWith('.exe')); const m = r.assets?.find(a => a.name.endsWith('.dmg'));
+      if (w) urls.win = w.browser_download_url; if (m) urls.mac = m.browser_download_url;
+      const tag = r.tag_name ?? '';
+      if (tag) { if (badgeEl) badgeEl.textContent = `${tag} disponível · Windows & macOS`;
+        if (labelEl) labelEl.textContent = `Versão ${tag} · ${new Date(r.published_at).toLocaleDateString('pt-BR')}`; }
+      else if (labelEl) labelEl.textContent = '';
+    } catch { if (labelEl) labelEl.textContent = 'Sem conexão com o GitHub — clica que tento mesmo assim.'; }
+  })();
+</script>
+
+</body>
+</html>
