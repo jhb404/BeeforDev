@@ -58,12 +58,12 @@
   pointer-events: none;
 }
 
-.coin2u-modal {
+.modal-card.coin2u-modal {
   position: relative;
   max-width: 980px;
   width: min(980px, calc(100vw - 32px));
-  height: 720px;
-  max-height: calc(100vh - 44px);
+  height: min(800px, calc(100vh - 32px));
+  max-height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
 }
@@ -329,6 +329,15 @@ button.coin2u-member--active:hover:not(:disabled) {
   align-items: center;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
+}
+.coin2u-transfer-panel__icon {
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+.coin2u-transfer-panel__head > div {
+  flex: 1;
+  min-width: 0;
 }
 .coin2u-transfer-panel__head span,
 .coin2u-field {
@@ -638,12 +647,170 @@ button.coin2u-member--active:hover:not(:disabled) {
   justify-content: flex-end;
   gap: 8px;
 }
-@media (max-width: 760px) {
+.coin2u-send-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.coin2u-send-toolbar .coin2u-search {
+  flex: 1;
+}
+.coin2u-multi-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-height: var(--control-height);
+  padding: 0 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .14s ease, color .14s ease, border-color .14s ease;
+}
+.coin2u-multi-toggle:hover {
+  background: var(--selectable-hover-bg);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.coin2u-multi-toggle--on {
+  background: var(--selectable-active-bg);
+  color: var(--text);
+  border-color: var(--selectable-active-border);
+}
+.coin2u-member {
+  position: relative;
+}
+.coin2u-member__check {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--button-text);
+}
+.coin2u-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 6px;
+  max-height: 168px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+/* chip de Destino — mesmo comportamento da pílula de Habilidade: clique remove, hover fica vermelho com risco */
+.coin2u-chip {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  padding: 4px 11px;
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  min-height: unset;
+  transition: background 0.16s, border-color 0.16s, color 0.16s, transform 0.1s;
+}
+.coin2u-chip__txt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  transition: text-decoration-color 0.16s;
+}
+button.coin2u-chip:hover {
+  background: color-mix(in srgb, var(--err) 16%, transparent);
+  border-color: color-mix(in srgb, var(--err) 50%, transparent);
+  color: var(--err);
+}
+button.coin2u-chip:hover .coin2u-chip__txt {
+  text-decoration: line-through;
+}
+.coin2u-chip:active {
+  transform: scale(0.96);
+}
+.coin2u-suggest {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  width: auto;
+}
+.coin2u-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.coin2u-total span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.coin2u-total strong {
+  color: var(--text);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.coin2u-total--over {
+  border-color: var(--err);
+  background: rgba(224, 84, 112, 0.1);
+}
+.coin2u-total--over strong {
+  color: var(--err);
+}
+.coin2u-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.coin2u-progress__bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-3);
+  overflow: hidden;
+}
+.coin2u-progress__bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--warm);
+  transition: width 0.25s ease;
+}
+.coin2u-progress__label {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 560px) {
   .coin2u-send-grid {
     grid-template-columns: 1fr;
   }
+  .coin2u-send-toolbar {
+    flex-wrap: wrap;
+  }
   .coin2u-balance-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .coin2u-transfer-panel {
     max-height: 360px;

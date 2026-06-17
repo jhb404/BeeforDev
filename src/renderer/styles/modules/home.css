@@ -135,13 +135,13 @@
 .home-topbar {
   display: flex;
   align-items: center;
+  flex-direction: row !important;
   justify-content: space-between;
   gap: 16px;
 }
 
 .home-topbar__left {
   display: flex;
-  align-items: center;
   gap: 12px;
 }
 
@@ -167,7 +167,6 @@
   gap: 8px;
   color: var(--text-muted);
   font-size: 13px;
-  flex-wrap: wrap;
   justify-content: flex-end;
 }
 

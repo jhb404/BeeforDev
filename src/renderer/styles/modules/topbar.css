@@ -170,6 +170,31 @@
   line-height: 1;
 }
 
+/* Modo estreito: some o "Início" e centraliza a barra de ações */
+@media (max-width: 760px) {
+  .topbar {
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  /* Esconde o rótulo "Início"; mantém só a seta de voltar (em Configurações) */
+  .topbar-home-link__label {
+    display: none;
+  }
+  .topbar-home-link--active {
+    display: none;
+  }
+  .topbar-left {
+    flex: 0 0 auto;
+  }
+  .topbar-actions {
+    flex: 1 1 auto;
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+}
+
 /* === Gear menu (settings + theme + patch notes) === */
 .gear-menu-wrap {
   position: relative;

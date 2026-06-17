@@ -5,7 +5,6 @@ import type { AppSettings, SessionStatus, TodayAlert } from '@shared/types/index
 import { BellPanel } from './BellPanel';
 import { LunchTimerWidget } from './LunchTimerWidget';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { UpdateBadge } from './UpdateBadge';
 import { BeeforLogo } from '../../components/common/BeeforLogo';
 import { useClickOutside } from '../../hooks/useClickOutside';
 
@@ -169,8 +168,6 @@ export function TopBar({
         </button>
 
         <span className="topbar-divider" aria-hidden="true" />
-
-        <UpdateBadge />
 
         <div className="gear-menu-wrap" ref={gearRef}>
           <button
