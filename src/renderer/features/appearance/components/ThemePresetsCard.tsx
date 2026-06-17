@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { UnlockCodeModal, useGamification } from '../../../../features/gamification';
-import type { ThemePreset } from '../../../../features/gamification';
-import { useSettings } from '../../../../app/providers/SettingsProvider';
-import type { AppearanceCardProps } from './types';
+import { Lock } from '../../../components/common/Icons';
+import { UnlockCodeModal, useGamification } from '../../gamification';
+import type { ThemePreset } from '../../gamification';
+import { useSettings } from '../../../app/providers/SettingsProvider';
+import type { AppearanceCardProps } from '../types';
 
 export function ThemePresetsCard({ settings, onUpdate }: AppearanceCardProps) {
   const { themePresets, isThemePresetUnlocked } = useGamification();
@@ -62,7 +63,7 @@ export function ThemePresetsCard({ settings, onUpdate }: AppearanceCardProps) {
               <small>{preset.description}</small>
               {!unlocked && (
                 <span className="theme-preset__lock" aria-hidden="true">
-                  🔒
+                  <Lock size={14} />
                 </span>
               )}
             </button>

@@ -48,6 +48,11 @@
   color: var(--text);
   border-color: var(--border);
 }
+.icon-btn--active {
+  background: var(--tab-active-bg);
+  color: var(--tab-active-text);
+  border-color: var(--tab-active-border);
+}
 
 .topbar-divider {
   width: 1px;
@@ -127,5 +132,151 @@
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+}
+
+/* === Topbar home link === */
+.topbar-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.topbar-home-link:hover {
+  background: var(--bg-2);
+  border-color: var(--border);
+}
+.topbar-home-link--active {
+  color: var(--text);
+}
+.topbar-home-link--back .topbar-home-link__label {
+  color: var(--text-muted);
+}
+.topbar-home-link__arrow {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-muted);
+}
+.topbar-home-link__label {
+  line-height: 1;
+}
+
+/* Modo estreito: some o "Início" e centraliza a barra de ações */
+@media (max-width: 760px) {
+  .topbar {
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  /* Esconde o rótulo "Início"; mantém só a seta de voltar (em Configurações) */
+  .topbar-home-link__label {
+    display: none;
+  }
+  .topbar-home-link--active {
+    display: none;
+  }
+  .topbar-left {
+    flex: 0 0 auto;
+  }
+  .topbar-actions {
+    flex: 1 1 auto;
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+}
+
+/* === Gear menu (settings + theme + patch notes) === */
+.gear-menu-wrap {
+  position: relative;
+}
+.gear-btn__dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--warm);
+  border: 2px solid var(--bg-0);
+  pointer-events: none;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--warm) 60%, transparent);
+  animation: gear-dot-pulse 2s ease-in-out infinite;
+}
+@keyframes gear-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--warm) 60%, transparent); }
+  50%      { box-shadow: 0 0 0 6px color-mix(in srgb, var(--warm) 0%, transparent); }
+}
+.gear-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 240px;
+  background: var(--bg-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 6px;
+  z-index: 220;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: gear-menu-in 0.12s ease;
+}
+@keyframes gear-menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.gear-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  min-height: unset;
+  transition: background 0.1s;
+}
+.gear-menu__item:hover {
+  background: var(--bg-2);
+}
+.gear-menu__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+}
+.gear-menu__item:hover .gear-menu__icon {
+  color: var(--text);
+}
+.gear-menu__badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warm) 18%, transparent);
+  color: var(--warm);
+  border: 1px solid color-mix(in srgb, var(--warm) 40%, transparent);
 }
 

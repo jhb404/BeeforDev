@@ -1,6 +1,6 @@
-import { BeeforLogo } from '../../../../components/common/BeeforLogo';
-import { useGamification } from '../../../../features/gamification';
-import type { AppearanceCardProps } from './types';
+import { BeeforLogo } from '../../../components/common/BeeforLogo';
+import { useGamification } from '../../gamification';
+import type { AppearanceCardProps } from '../types';
 
 interface LogoVariantSpec {
   id: 'orange' | 'purple' | string;

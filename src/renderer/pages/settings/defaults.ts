@@ -5,6 +5,7 @@ const DEFAULT_PUNCH: AppSettings['punchTimes'] = ['09:00', '12:00', '13:00', '18
 export const SETTINGS_DEFAULTS: AppSettings = {
   autoStart: true,
   autoLoginOnLaunch: true,
+  viewMode: 'minimal',
   automatePunch: false,
   punchTimes: DEFAULT_PUNCH,
   punchDriftMinutes: 10,
@@ -25,3 +26,8 @@ export const SETTINGS_DEFAULTS: AppSettings = {
 };
 
 export const PUNCH_LABELS = ['Entrada', 'Saída almoço', 'Retorno', 'Saída'];
+
+/** Mescla um snapshot parcial sobre os defaults (preenche campos novos sem perder os existentes). */
+export function mergeSettings(partial: Partial<AppSettings> | null | undefined): AppSettings {
+  return { ...SETTINGS_DEFAULTS, ...(partial ?? {}) };
+}

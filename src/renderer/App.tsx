@@ -1,5 +1,5 @@
-﻿import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
-import { IpcProvider } from './services/ipc';
+﻿import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
+import { IpcProvider, useIpc } from './services/ipc';
 import { TitleBar } from './components/layout/TitleBar';
 import { StartupOverlay } from './components/layout/StartupOverlay';
 import { SettingsProvider, useSettings } from './app/providers/SettingsProvider';
@@ -21,12 +21,13 @@ import { ProfileModal } from './features/profile';
 import { useUpdater } from './hooks/useUpdater';
 import { useTeamPrefetch } from './app/hooks/useTeamPrefetch';
 import { useAppIconSync } from './hooks/useAppIconSync';
-import { useGamification } from './features/gamification';
+import { useActiveIcon } from './features/gamification';
 import { useBeefor } from './hooks/useBeefor';
 import { APP_EVENTS, emitAppEvent } from './app/events';
 import { useLunchTimer } from './app/hooks/useLunchTimer';
 import { usePatchJournal } from './app/hooks/usePatchJournal';
 import { useTrayListeners } from './app/hooks/useTrayListeners';
+import { useProfileName } from './hooks/useProfileName';
 
 type Tab = 'home' | 'settings';
 
@@ -40,6 +41,18 @@ function AppShell() {
   const { settings: appSettings } = useSettings();
   const { theme, toggle: toggleTheme } = useTheme();
   const showToast = useToast();
+  const { timesheet: timesheetClient } = useIpc();
+
+  const handleOpenBeefor = useCallback(async () => {
+    const res = await timesheetClient.openBeefor();
+    if (!res.ok) {
+      showToast({
+        kind: 'err',
+        title: 'Não abriu o Beefor',
+        msg: res.error || 'falhou',
+      });
+    }
+  }, [timesheetClient, showToast]);
 
   const [tab, setTab] = useState<Tab>('home');
   const [teamModalOpen, setTeamModalOpen] = useState(false);
@@ -69,15 +82,16 @@ function AppShell() {
   useTeamPrefetch(startupComplete, homeBootReady);
 
   // Sync Windows taskbar/titlebar icon with active gamification variant.
-  const { stats } = useGamification();
-  const activeIconId =
-    stats.unlockedIconVariantIds[stats.unlockedIconVariantIds.length - 1] ?? 'orange';
+  const { id: activeIconId } = useActiveIcon();
   useAppIconSync(activeIconId);
 
   const { state: updateState, install: installUpdate } = useUpdater();
 
+  const notifiedUpdateVersion = useRef<string | null>(null);
   useEffect(() => {
     if (updateState.status !== 'ready') return;
+    if (notifiedUpdateVersion.current === updateState.version) return;
+    notifiedUpdateVersion.current = updateState.version;
     showToast(
       {
         kind: 'ok',
@@ -88,8 +102,7 @@ function AppShell() {
       },
       0,
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [updateState.status]);
+  }, [updateState, showToast, installUpdate]);
 
   const handleStartupComplete = useCallback(() => setStartupComplete(true), []);
 
@@ -116,6 +129,7 @@ function AppShell() {
   });
 
   const { status: sessionStatus } = useBeefor();
+  const profileInitials = useProfileName(sessionStatus);
 
   const logoVariant = appSettings?.logoVariant ?? 'orange';
 
@@ -146,6 +160,8 @@ function AppShell() {
         lunchTimerActive={lunchTimerActive}
         lunchStartedAt={lunchStartedAt}
         onCancelLunchTimer={cancelLunchTimer}
+        profileInitials={profileInitials || undefined}
+        onOpenBeefor={() => void handleOpenBeefor()}
       />
 
       <main className="content">
@@ -166,7 +182,7 @@ function AppShell() {
           {tab === 'settings' && (
             <ErrorBoundary label="settings">
               <Suspense fallback={<div className="route-loader">Carregando...</div>}>
-                <SettingsPage onSettingsChanged={() => emitAppEvent(APP_EVENTS.SETTINGS_CHANGED)} />
+                <SettingsPage />
               </Suspense>
             </ErrorBoundary>
           )}

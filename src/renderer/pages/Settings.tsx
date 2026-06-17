@@ -1,140 +1,45 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import { useToast } from '../app/providers/ToastProvider';
 import { useIpc } from '../services/ipc';
-import type { AppSettings } from '@shared/types/index';
-import { SETTINGS_DEFAULTS } from './settings/defaults';
+import { Bell, Lock, Settings as SettingsIcon } from '../components/common/Icons';
 import { AdminBanner } from './settings/sections/AdminBanner';
-import { AppearanceSection } from './settings/sections/AppearanceSection';
 import { CredentialsCard } from './settings/sections/CredentialsCard';
 import { GeneralCard } from './settings/sections/GeneralCard';
-// import { JornadaCard } from './settings/sections/JornadaCard';
 import { KudoCardSettings } from './settings/sections/KudoCardSettings';
 import { LunchCard } from './settings/sections/LunchCard';
 import { MoodCard } from './settings/sections/MoodCard';
 import { PunchCard } from './settings/sections/PunchCard';
 import { SecurityCard } from './settings/sections/SecurityCard';
 import { TrayMenuCard } from './settings/sections/TrayMenuCard';
+import { useAdminElevation } from './settings/hooks/useAdminElevation';
+import { useAppSettings } from './settings/hooks/useAppSettings';
+import { useCoin2uCredentials } from './settings/hooks/useCoin2uCredentials';
+import { useSessionCredentials } from './settings/hooks/useSessionCredentials';
 import { getError } from '@shared/result';
 
-interface SettingsProps {
-  onSettingsChanged?: () => void;
-}
+type SettingsCategory = 'geral' | 'alertas' | 'seguranca';
 
-type SettingsCategory = 'geral' | 'alertas' | 'aparencia' | 'seguranca';
-
-const CATEGORIES: Array<{ id: SettingsCategory; label: string; icon: string; hint: string }> = [
-  { id: 'geral', label: 'Geral', icon: '⚙️', hint: 'Configuração geral, jornada, tray' },
-  { id: 'alertas', label: 'Alertas', icon: '🔔', hint: 'Ponto, mood, almoço, KudoCard' },
-  { id: 'aparencia', label: 'Aparência', icon: '🎨', hint: 'Tema, densidade, layout' },
-  { id: 'seguranca', label: 'Segurança', icon: '🔒', hint: 'Credenciais, Coin2U, sessão' },
+const CATEGORIES: Array<{
+  id: SettingsCategory;
+  label: string;
+  Icon: LucideIcon;
+  hint: string;
+}> = [
+  { id: 'geral', label: 'Geral', Icon: SettingsIcon, hint: 'Configuração geral, jornada, tray' },
+  { id: 'alertas', label: 'Alertas', Icon: Bell, hint: 'Ponto, mood, almoço, KudoCard' },
+  { id: 'seguranca', label: 'Segurança', Icon: Lock, hint: 'Credenciais, Coin2U, sessão' },
 ];
 
-export function Settings({ onSettingsChanged }: SettingsProps = {}) {
-  const {
-    coin2u: coin2uClient,
-    session: sessionClient,
-    settings: settingsClient,
-    system: systemClient,
-  } = useIpc();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [savedEmail, setSavedEmail] = useState<string | null>(null);
-  const [settings, setSettings] = useState<AppSettings>(SETTINGS_DEFAULTS);
+export function Settings() {
+  const { system: systemClient } = useIpc();
   const showToast = useToast();
-  const [admin, setAdmin] = useState<{ elevated: boolean; platform: string } | null>(null);
-  const [coin2uEmail, setCoin2uEmail] = useState('');
-  const [coin2uPassword, setCoin2uPassword] = useState('');
-  const [coin2uSavedEmail, setCoin2uSavedEmail] = useState<string | null>(null);
-  const [coin2uConnected, setCoin2uConnected] = useState<boolean>(false);
   const [category, setCategory] = useState<SettingsCategory>('geral');
 
-  const refreshAdmin = useCallback(
-    () => void systemClient.getAdminStatus().then(setAdmin),
-    [systemClient],
-  );
-
-  useEffect(() => {
-    void sessionClient.getCredentials().then((c) => {
-      if (c) {
-        setSavedEmail(c.email);
-        setEmail(c.email);
-      }
-    });
-    void settingsClient.get().then((s) => {
-      setSettings({ ...SETTINGS_DEFAULTS, ...s });
-    });
-    refreshAdmin();
-    void coin2uClient.getCreds().then((c) => {
-      if (c) {
-        setCoin2uSavedEmail(c.email);
-        setCoin2uEmail(c.email);
-        setCoin2uConnected(!!c.connected);
-      }
-    });
-  }, [coin2uClient, refreshAdmin, sessionClient, settingsClient]);
-
-  const update = async <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => {
-    const next = { ...settings, [k]: v };
-    setSettings(next);
-    await settingsClient.set(next);
-    onSettingsChanged?.();
-  };
-
-  const updatePunchTime = async (idx: 0 | 1 | 2 | 3, value: string) => {
-    const next = [...settings.punchTimes] as AppSettings['punchTimes'];
-    next[idx] = value;
-    await update('punchTimes', next);
-  };
-
-  const toggleKudocardDay = async (day: number) => {
-    const has = settings.kudocardDays.includes(day);
-    const next = has
-      ? settings.kudocardDays.filter((d) => d !== day)
-      : [...settings.kudocardDays, day].sort((a, b) => a - b);
-    await update('kudocardDays', next);
-  };
-
-  const saveCoin2u = async () => {
-    if (!coin2uEmail || !coin2uPassword) {
-      showToast({ kind: 'err', msg: 'Coin2U: preencha e-mail e senha.' });
-      return;
-    }
-    const res = await coin2uClient.saveCreds({
-      email: coin2uEmail,
-      password: coin2uPassword,
-    });
-    if (!res.ok) {
-      showToast({ kind: 'err', msg: `Erro Coin2U: ${getError(res)}` });
-      return;
-    }
-    setCoin2uSavedEmail(coin2uEmail);
-    setCoin2uPassword('');
-    showToast({ kind: 'ok', msg: 'Coin2U: credenciais salvas. Testando login…' });
-    const verify = await coin2uClient.verify();
-    if (verify.ok && verify.data) {
-      setCoin2uConnected(true);
-      showToast({ kind: 'ok', msg: 'Coin2U: conectado.' });
-    } else {
-      setCoin2uConnected(false);
-      showToast({ kind: 'err', msg: `Coin2U: login falhou — ${getError(verify)}` });
-    }
-    onSettingsChanged?.();
-  };
-
-  const clearCoin2u = async () => {
-    const res = await coin2uClient.clearCreds();
-    showToast({
-      kind: res.ok ? 'ok' : 'err',
-      msg: res.ok ? 'Credenciais Coin2U removidas.' : `Erro Coin2U: ${getError(res)}`,
-    });
-    if (res.ok) {
-      setCoin2uSavedEmail(null);
-      setCoin2uEmail('');
-      setCoin2uPassword('');
-      setCoin2uConnected(false);
-      onSettingsChanged?.();
-    }
-  };
+  const session = useSessionCredentials();
+  const coin2u = useCoin2uCredentials();
+  const elevation = useAdminElevation();
+  const { settings, update, updatePunchTime, toggleKudocardDay } = useAppSettings();
 
   const needsAdmin =
     (settings.automatePunch ||
@@ -144,54 +49,11 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
       settings.kudocardNotification) &&
     !settings.adminBannerDismissed;
 
-  const elevateNow = async () => {
-    const res = await systemClient.relaunchAsAdmin();
-    if (!res.ok) showToast({ kind: 'err', msg: `Falha ao elevar: ${getError(res)}` });
-  };
-
   const dismissAdminBanner = () => void update('adminBannerDismissed', true);
-
-  const changeViewMode = async (mode: 'classic' | 'minimal') => {
-    if ((settings.viewMode ?? 'classic') === mode) return;
-    const next = { ...settings, viewMode: mode };
-    setSettings(next);
-    await settingsClient.set(next);
-    showToast({ kind: 'ok', msg: 'Reiniciando para aplicar...' });
-    setTimeout(() => void systemClient.relaunchApp(), 400);
-  };
 
   const testNotif = async (kind: 'mood' | 'lunch' | 'kudocard' | 'punch') => {
     const res = await systemClient.testNotification(kind);
     if (!res.ok) showToast({ kind: 'err', msg: `Teste falhou: ${getError(res)}` });
-  };
-
-  const save = async () => {
-    if (!email || !password) {
-      showToast({ kind: 'err', msg: 'Preencha e-mail e senha.' });
-      return;
-    }
-    const res = await sessionClient.saveCredentials({ email, password });
-    showToast({
-      kind: res.ok ? 'ok' : 'err',
-      msg: res.ok ? 'Credenciais salvas no Credential Manager.' : `Erro: ${getError(res)}`,
-    });
-    if (res.ok) {
-      setSavedEmail(email);
-      setPassword('');
-    }
-  };
-
-  const clear = async () => {
-    const res = await sessionClient.clearCredentials();
-    showToast({
-      kind: res.ok ? 'ok' : 'err',
-      msg: res.ok ? 'Credenciais removidas.' : `Erro: ${getError(res)}`,
-    });
-    if (res.ok) {
-      setSavedEmail(null);
-      setEmail('');
-      setPassword('');
-    }
   };
 
   const activeCat = CATEGORIES.find((c) => c.id === category) ?? CATEGORIES[0];
@@ -210,7 +72,7 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
               data-sound="tab-settings"
             >
               <span className="settings-sidebar__icon" aria-hidden="true">
-                {cat.icon}
+                <cat.Icon size={16} />
               </span>
               <span className="settings-sidebar__label">
                 <strong>{cat.label}</strong>
@@ -223,8 +85,15 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
 
       <div className="settings-content">
         <AdminBanner
-          visible={!!(needsAdmin && admin && !admin.elevated && admin.platform === 'win32')}
-          onElevate={() => void elevateNow()}
+          visible={
+            !!(
+              needsAdmin &&
+              elevation.admin &&
+              !elevation.admin.elevated &&
+              elevation.admin.platform === 'win32'
+            )
+          }
+          onElevate={() => void elevation.elevateNow()}
           onDismiss={dismissAdminBanner}
         />
 
@@ -236,7 +105,6 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
         {category === 'geral' && (
           <div className="settings-grid grid-2">
             <GeneralCard settings={settings} onUpdate={update} />
-            {/* <JornadaCard settings={settings} onUpdate={update} /> */}
             <TrayMenuCard settings={settings} onUpdate={update} />
           </div>
         )}
@@ -264,32 +132,24 @@ export function Settings({ onSettingsChanged }: SettingsProps = {}) {
           </div>
         )}
 
-        {category === 'aparencia' && (
-          <AppearanceSection
-            settings={settings}
-            onUpdate={update}
-            onChangeViewMode={changeViewMode}
-          />
-        )}
-
         {category === 'seguranca' && (
           <div className="settings-grid grid-1">
             <CredentialsCard
-              email={email}
-              password={password}
-              savedEmail={savedEmail}
-              onEmailChange={setEmail}
-              onPasswordChange={setPassword}
-              onSave={() => void save()}
-              onClear={() => void clear()}
-              coin2uEmail={coin2uEmail}
-              coin2uPassword={coin2uPassword}
-              coin2uSavedEmail={coin2uSavedEmail}
-              coin2uConnected={coin2uConnected}
-              onCoin2uEmailChange={setCoin2uEmail}
-              onCoin2uPasswordChange={setCoin2uPassword}
-              onCoin2uSave={() => void saveCoin2u()}
-              onCoin2uClear={() => void clearCoin2u()}
+              email={session.email}
+              password={session.password}
+              savedEmail={session.savedEmail}
+              onEmailChange={session.setEmail}
+              onPasswordChange={session.setPassword}
+              onSave={() => void session.save()}
+              onClear={() => void session.clear()}
+              coin2uEmail={coin2u.email}
+              coin2uPassword={coin2u.password}
+              coin2uSavedEmail={coin2u.savedEmail}
+              coin2uConnected={coin2u.connected}
+              onCoin2uEmailChange={coin2u.setEmail}
+              onCoin2uPasswordChange={coin2u.setPassword}
+              onCoin2uSave={() => void coin2u.save()}
+              onCoin2uClear={() => void coin2u.clear()}
             />
             <SecurityCard />
           </div>

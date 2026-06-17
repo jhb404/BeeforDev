@@ -177,5 +177,18 @@
   text-align: center;
   opacity: 0.75;
   padding-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+}
+.streak-ranking__heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.streak-ranking__heading svg {
+  color: #f97316;
+  flex-shrink: 0;
 }
 

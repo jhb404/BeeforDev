@@ -1,4 +1,5 @@
 import { THEME_PREVIEW_DURATION_S, useSettings } from '../providers/SettingsProvider';
+import { Lock } from '../../components/common/Icons';
 import { useGamification } from '../../features/gamification';
 
 export function ThemePreviewBanner() {
@@ -25,7 +26,9 @@ export function ThemePreviewBanner() {
             Pré-visualizando: {previewName}
             <span className="theme-preview-banner__timer"> · {previewSecondsLeft}s</span>
           </strong>
-          <small>🔒 Conquista necessária: {preset.requires}</small>
+          <small>
+            <Lock size={12} /> Conquista necessária: {preset.requires}
+          </small>
         </div>
       </div>
       <div className="theme-preview-banner__actions">

@@ -1,4 +1,5 @@
 export { useGamification } from './useGamification';
+export { useActiveIcon } from './useActiveIcon';
 export { StreakRankingModal } from './components/StreakRankingModal';
 export { MoodStreakBadge } from './components/MoodStreakBadge';
 export { UnlockCodeModal } from './components/UnlockCodeModal';

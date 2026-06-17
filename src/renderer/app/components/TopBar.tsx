@@ -1,38 +1,18 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { Bell, Moon, Newspaper, Sun } from '../../components/common/Icons';
+import { Suspense, lazy, useRef, useState } from 'react';
+import { Bell, Globe, Moon, Newspaper, Settings, Sun } from '../../components/common/Icons';
 import { TeamButton } from '../../features/team/components/TeamButton';
 import type { AppSettings, SessionStatus, TodayAlert } from '@shared/types/index';
 import { BellPanel } from './BellPanel';
-import { UpdateBadge } from './UpdateBadge';
 import { LunchTimerWidget } from './LunchTimerWidget';
-import { BeeforLogo } from '../../components/common/BeeforLogo';
 import { StatusBadge } from '../../components/common/StatusBadge';
+import { BeeforLogo } from '../../components/common/BeeforLogo';
+import { useClickOutside } from '../../hooks/useClickOutside';
 
 const Coin2uBadge = lazy(() =>
   import('../../features/coin2u/components/Coin2uBadge').then((m) => ({ default: m.Coin2uBadge })),
 );
 
 type Tab = 'home' | 'settings';
-
-const MONTH_NAMES_PT = [
-  'Jan',
-  'Fev',
-  'Mar',
-  'Abr',
-  'Mai',
-  'Jun',
-  'Jul',
-  'Ago',
-  'Set',
-  'Out',
-  'Nov',
-  'Dez',
-];
-
-function currentMonthLabel(): string {
-  const d = new Date();
-  return `${MONTH_NAMES_PT[d.getMonth()]} ${d.getFullYear()}`;
-}
 
 interface TopBarProps {
   tab: Tab;
@@ -46,6 +26,7 @@ interface TopBarProps {
   onOpenTeam: () => void;
   onOpenPatchJournal: () => void;
   onOpenProfile: () => void;
+  onOpenBeefor: () => void;
   teamPartyBadge: number;
   appSettings: AppSettings | null;
   profileInitials?: string;
@@ -70,6 +51,7 @@ export function TopBar({
   onOpenTeam,
   onOpenPatchJournal,
   onOpenProfile,
+  onOpenBeefor,
   teamPartyBadge,
   appSettings,
   profileInitials,
@@ -83,47 +65,67 @@ export function TopBar({
 }: TopBarProps) {
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
+  const [gearOpen, setGearOpen] = useState(false);
+  const gearRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!bellOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
-        setBellOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [bellOpen]);
+  useClickOutside(bellRef, () => setBellOpen(false));
+  useClickOutside(gearRef, () => setGearOpen(false));
+
+  const onSettings = tab === 'settings';
 
   return (
     <header className="topbar">
       <div className="topbar-left">
-        <span className="topbar-date">{currentMonthLabel()}</span>
-        <div className="tabs">
-          <button
-            data-sound="tab-home"
-            className={tab === 'home' ? 'active' : ''}
-            onClick={() => onTabChange('home')}
-          >
-            Início
-          </button>
-          <button
-            data-sound="tab-settings"
-            className={tab === 'settings' ? 'active' : ''}
-            onClick={() => onTabChange('settings')}
-          >
-            Configurações
-          </button>
-        </div>
+        <button
+          type="button"
+          className={`topbar-home-link ${onSettings ? 'topbar-home-link--back' : 'topbar-home-link--active'}`}
+          onClick={() => onTabChange('home')}
+          title={onSettings ? 'Voltar ao Início' : 'Início'}
+          data-sound="tab-home"
+        >
+          {onSettings && (
+            <span className="topbar-home-link__arrow" aria-hidden="true">
+              ←
+            </span>
+          )}
+          <span className="topbar-home-link__label">Início</span>
+        </button>
       </div>
+
       <div className="topbar-actions">
-        <UpdateBadge />
-        <StatusBadge status={sessionStatus} />
         <LunchTimerWidget
           active={lunchTimerActive}
           startedAt={lunchStartedAt}
           onCancel={onCancelLunchTimer ?? (() => undefined)}
         />
+
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={onOpenBeefor}
+          aria-label="Abrir Beefor no navegador"
+          title="Abrir Beefor no navegador"
+          data-sound="click"
+        >
+          <Globe size={18} />
+        </button>
+
+        <StatusBadge status={sessionStatus} />
+
+        <span className="topbar-divider" aria-hidden="true" />
+
+        <Suspense fallback={null}>
+          <Coin2uBadge
+            settings={appSettings}
+            forceOpen={coin2uForceOpen}
+            onForceOpenConsumed={onCoin2uForceOpenConsumed}
+          />
+        </Suspense>
+
+        <span className="topbar-divider" aria-hidden="true" />
+
+        <TeamButton onOpen={onOpenTeam} partyCount={teamPartyBadge} />
+
         <div className="bell-wrap" ref={bellRef}>
           <button
             className="icon-btn"
@@ -150,37 +152,7 @@ export function TopBar({
             />
           )}
         </div>
-        <TeamButton onOpen={onOpenTeam} partyCount={teamPartyBadge} />
-        <span className="topbar-divider" aria-hidden="true" />
-        <Suspense fallback={null}>
-          <Coin2uBadge
-            settings={appSettings}
-            forceOpen={coin2uForceOpen}
-            onForceOpenConsumed={onCoin2uForceOpenConsumed}
-          />
-        </Suspense>
-        <span className="topbar-divider" aria-hidden="true" />
-        <button
-          data-sound="theme-toggle"
-          className="icon-btn"
-          aria-label={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
-          onClick={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            onToggleTheme({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-          }}
-        >
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
-        <button
-          data-sound="journal"
-          className={`icon-btn journal-btn ${journalBadge ? 'journal-btn--has-news' : ''}`}
-          aria-label={journalBadge ? 'Jornal de patches — novidades!' : 'Jornal de patches'}
-          title={journalBadge ? 'Tem novidades pra você ver!' : 'Jornal de patches'}
-          onClick={onOpenPatchJournal}
-        >
-          <Newspaper size={18} />
-          {journalBadge && <span className="journal-btn__dot" aria-hidden="true" />}
-        </button>
+
         <button
           type="button"
           className="profile-btn"
@@ -194,6 +166,76 @@ export function TopBar({
             {(profileInitials ?? 'JB').slice(0, 2).toUpperCase()}
           </span>
         </button>
+
+        <span className="topbar-divider" aria-hidden="true" />
+
+        <div className="gear-menu-wrap" ref={gearRef}>
+          <button
+            type="button"
+            className={`icon-btn ${gearOpen || onSettings ? 'icon-btn--active' : ''} ${journalBadge ? 'gear-btn--has-news' : ''}`}
+            aria-label="Configurações e ajustes"
+            aria-haspopup="menu"
+            aria-expanded={gearOpen}
+            title="Configurações e ajustes"
+            onClick={() => setGearOpen((v) => !v)}
+          >
+            <Settings size={18} />
+            {journalBadge && <span className="gear-btn__dot" aria-hidden="true" />}
+          </button>
+          {gearOpen && (
+            <div className="gear-menu" role="menu">
+              <button
+                role="menuitem"
+                className="gear-menu__item"
+                data-sound="tab-settings"
+                onClick={() => {
+                  setGearOpen(false);
+                  onTabChange('settings');
+                }}
+              >
+                <span className="gear-menu__icon" aria-hidden="true">
+                  <Settings size={16} />
+                </span>
+                <span>Configurações</span>
+              </button>
+              <button
+                role="menuitem"
+                className="gear-menu__item"
+                data-sound="theme-toggle"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setGearOpen(false);
+                  onToggleTheme({
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2,
+                  });
+                }}
+              >
+                <span className="gear-menu__icon" aria-hidden="true">
+                  {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                </span>
+                <span>
+                  {theme === 'dark' ? 'Trocar para tema claro' : 'Trocar para tema escuro'}
+                </span>
+              </button>
+              <button
+                role="menuitem"
+                className="gear-menu__item"
+                data-sound="journal"
+                onClick={() => {
+                  setGearOpen(false);
+                  onOpenPatchJournal();
+                }}
+              >
+                <span className="gear-menu__icon" aria-hidden="true">
+                  <Newspaper size={16} />
+                </span>
+                <span>Patch notes</span>
+                {journalBadge && <span className="gear-menu__badge">novo</span>}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

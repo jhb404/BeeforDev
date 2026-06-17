@@ -2,6 +2,7 @@ export const APP_EVENTS = {
   SETTINGS_CHANGED: 'beefor:settings-changed',
   OPEN_KUDO: 'beefor:open-kudo',
   CODES_CHANGED: 'beefor:codes-changed',
+  COIN2U_CHANGED: 'beefor:coin2u-changed',
 } as const;
 
 export type AppEventName = (typeof APP_EVENTS)[keyof typeof APP_EVENTS];
