@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { SessionStatus } from '@shared/types/index';
-import { Briefcase, Clock, Heart } from '../../../components/common/Icons';
+import { Briefcase, Clock, Heart, Spade } from '../../../components/common/Icons';
 import { useClickOutside } from '../../../hooks/useClickOutside';
 
 interface HomeTopbarProps {
@@ -13,6 +13,7 @@ interface HomeTopbarProps {
   onOpenKudo: () => void;
   onOpenKudoHistory: () => void;
   onOpenAtividades: () => void;
+  onOpenPoker: () => void;
 }
 
 export function HomeTopbar({
@@ -25,6 +26,7 @@ export function HomeTopbar({
   onOpenKudo,
   onOpenKudoHistory,
   onOpenAtividades,
+  onOpenPoker,
 }: HomeTopbarProps) {
   const showReload = status === 'error' || status === 'expired' || status === 'disconnected';
   const [kudoOpen, setKudoOpen] = useState(false);
@@ -49,6 +51,15 @@ export function HomeTopbar({
         )}
       </div>
       <div className="home-status">
+        <button
+          className="secondary compact home-action-btn"
+          onClick={onOpenPoker}
+          title="Planning Poker (estimativa em squad)"
+        >
+          <Spade size={15} />
+          <span>Poker</span>
+        </button>
+
         <button
           data-sound="activity-open"
           className="secondary compact home-action-btn"

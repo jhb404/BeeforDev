@@ -1,0 +1,252 @@
+/* poker.css — Planning Poker modal. Segue tokens de base.css. */
+
+.poker-modal {
+  width: min(680px, 100%);
+}
+
+.poker-modal .modal-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---------- entrada ---------- */
+
+.poker-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  overflow: auto;
+}
+
+.poker-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.poker-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.poker-entry__split {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.poker-entry__col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.poker-entry__col h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.poker-entry__divider {
+  width: 1px;
+  background: var(--border);
+}
+
+.poker-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.poker-hint code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+.poker-hint--foot {
+  text-align: center;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.poker-error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--err);
+}
+
+/* ---------- sala ---------- */
+
+.poker-room {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  overflow: auto;
+}
+
+.poker-room__bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.poker-room__room {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.poker-room__room strong {
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+
+.poker-conn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.poker-conn--connected {
+  color: var(--ok);
+  border-color: var(--ok-border);
+}
+
+.poker-conn--connecting,
+.poker-conn--reconnecting {
+  color: var(--warn);
+}
+
+.poker-conn--closed {
+  color: var(--err);
+  border-color: var(--err-border);
+}
+
+.poker-room__bar > button:last-child {
+  margin-left: auto;
+}
+
+.poker-invite {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.poker-invite__field {
+  flex: 1;
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 12px;
+  cursor: text;
+  background: var(--bg-2);
+}
+
+/* cartas */
+
+.poker-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.poker-card {
+  min-width: 54px;
+  min-height: 76px;
+  font-size: 20px;
+  font-weight: 700;
+  background: var(--bg-2);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  transition: transform 0.1s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.poker-card:hover:not(:disabled) {
+  background: var(--bg-3);
+  transform: translateY(-2px);
+}
+
+.poker-card.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+/* participantes */
+
+.poker-people {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.poker-person {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--row-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.poker-person__name {
+  font-weight: 600;
+}
+
+.poker-person__vote {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.poker-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.poker-badge--ok {
+  color: var(--ok);
+}
+
+.poker-badge--wait {
+  color: var(--text-muted);
+}
+
+/* ações da sala */
+
+.poker-room__actions {
+  align-items: center;
+}
+
+.poker-room__spacer {
+  flex: 1;
+}
+
+.poker-avg {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--warm);
+}
+
+@media (max-width: 560px) {
+  .poker-entry__split {
+    grid-template-columns: 1fr;
+  }
+  .poker-entry__divider {
+    display: none;
+  }
+}

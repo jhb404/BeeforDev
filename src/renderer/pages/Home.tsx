@@ -21,6 +21,7 @@ import { ImportarMesModal } from './home/components/ImportarMesModal';
 import { HomeTopbar } from './home/components/HomeTopbar';
 import { logger } from '../services/logger';
 import { AtividadesModal } from '../features/atividades/components/AtividadesModal';
+import { PlanningPokerModal } from '../features/poker/components/PlanningPokerModal';
 import { APP_EVENTS, onAppEvent } from '../app/events';
 import { useMoodFlow } from './home/hooks/useMoodFlow';
 import { useTimesheetData } from './home/hooks/useTimesheetData';
@@ -53,6 +54,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
   const [showKudoModal, setShowKudoModal] = useState(false);
   const [showKudoHistory, setShowKudoHistory] = useState(false);
   const [showAtividades, setShowAtividades] = useState(false);
+  const [showPoker, setShowPoker] = useState(false);
 
   useEffect(() => {
     void settingsClient.get().then(setSettings);
@@ -245,6 +247,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
         onOpenKudo={() => setShowKudoModal(true)}
         onOpenKudoHistory={() => setShowKudoHistory(true)}
         onOpenAtividades={() => setShowAtividades(true)}
+        onOpenPoker={() => setShowPoker(true)}
       />
 
       <MoodPanel
@@ -335,6 +338,8 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
       <KudoCardHistoryModal open={showKudoHistory} onClose={() => setShowKudoHistory(false)} />
 
       <AtividadesModal open={showAtividades} onClose={() => setShowAtividades(false)} />
+
+      <PlanningPokerModal open={showPoker} onClose={() => setShowPoker(false)} />
     </div>
   );
 }

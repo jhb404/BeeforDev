@@ -150,6 +150,15 @@ export const IPC = {
   API_PERFIL_EDIT_GET: 'api:perfilEditGet',
   API_PERFIL_EDIT_SAVE: 'api:perfilEditSave',
   API_PERFIL_GESTORES: 'api:perfilGestores',
+
+  // planning poker (servidor WS local no main)
+  POKER_GET_PORT: 'poker:getPort',
+  POKER_GET_LOCAL_IP: 'poker:getLocalIp',
+  POKER_START_TUNNEL: 'poker:startTunnel',
+  POKER_STOP_TUNNEL: 'poker:stopTunnel',
+
+  // clipboard nativo (navigator.clipboard falha em file://)
+  CLIPBOARD_WRITE: 'clipboard:write',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];

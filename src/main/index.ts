@@ -14,6 +14,7 @@ import { createStartupSplash } from './startupSplash';
 import { revealMainWindow } from './bootstrap/windowReveal';
 import { ensureTray } from './bootstrap/tray';
 import { setupAutoUpdater } from './updater';
+import { stopTunnel } from './services/tunnelManager';
 
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false;
@@ -121,6 +122,7 @@ async function bootstrap() {
 
 app.on('before-quit', () => {
   isQuitting = true;
+  stopTunnel();
 });
 
 app.on('window-all-closed', async () => {

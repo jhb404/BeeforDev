@@ -27,6 +27,10 @@ export function installCsp(isDev: boolean): void {
     BEEFOR_URL,
     BEEFOR_API_BASE,
     COIN2U_URL,
+    // Planning Poker: túnel público (host) + conexão dos convidados.
+    'wss://*.trycloudflare.com',
+    // Rede local / fallback sem túnel (ws://ip:porta).
+    'ws://*:*',
     isDev ? devOrigins : fileScheme,
   ]
     .filter(Boolean)

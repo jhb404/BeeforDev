@@ -171,6 +171,15 @@ const api = {
     ipcRenderer.invoke(IPC.COIN2U_TRANSFER, payload),
   verifyCoin2u: (): Promise<ActionResult<{ userId: number; email: string }>> =>
     ipcRenderer.invoke(IPC.COIN2U_VERIFY),
+
+  // Planning Poker
+  pokerGetPort: (): Promise<number> => ipcRenderer.invoke(IPC.POKER_GET_PORT),
+  pokerGetLocalIp: (): Promise<string> => ipcRenderer.invoke(IPC.POKER_GET_LOCAL_IP),
+  pokerStartTunnel: (): Promise<ActionResult<string>> => ipcRenderer.invoke(IPC.POKER_START_TUNNEL),
+  pokerStopTunnel: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.POKER_STOP_TUNNEL),
+
+  clipboardWrite: (text: string): Promise<ActionResult> =>
+    ipcRenderer.invoke(IPC.CLIPBOARD_WRITE, text),
 };
 
 const httpApi = {
@@ -343,14 +352,9 @@ const httpApi = {
         dataInicio: string | null;
       }>,
     ): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_ATIV_EDIT, { idCard, body }),
-    arquivar: (
-      idCard: string,
-      arquivado: boolean,
-      idQuadro?: string,
-    ): Promise<ActionResult> =>
+    arquivar: (idCard: string, arquivado: boolean, idQuadro?: string): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_ATIV_ARQUIVAR, { idCard, arquivado, idQuadro }),
-    logs: (idCard: string): Promise<ActionResult> =>
-      ipcRenderer.invoke(IPC.API_ATIV_LOGS, idCard),
+    logs: (idCard: string): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_ATIV_LOGS, idCard),
     anexos: (idCard: string): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_ATIV_ANEXOS, idCard),
     removerAnexo: (idAnexo: string): Promise<ActionResult> =>

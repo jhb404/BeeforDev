@@ -11,6 +11,7 @@ import { registerWindowHandlers } from './handlers/window.handlers';
 import { registerCoin2uHandlers } from './handlers/coin2u.handlers';
 import { registerAtividadesHandlers } from './handlers/atividades.handlers';
 import { registerBeeforApiHandlers } from './handlers/beeforApi.handlers';
+import { registerPokerHandlers } from './handlers/poker.handlers';
 
 export function registerIpcHandlers(getWindow: () => BrowserWindow | null): void {
   registerCredentialsHandlers();
@@ -25,4 +26,5 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null): void
   registerCoin2uHandlers();
   registerAtividadesHandlers(getWindow);
   registerBeeforApiHandlers();
+  registerPokerHandlers();
 }

@@ -122,6 +122,11 @@ const EXPECTED_IPC = {
   API_PERFIL_EDIT_GET: 'api:perfilEditGet',
   API_PERFIL_EDIT_SAVE: 'api:perfilEditSave',
   API_PERFIL_GESTORES: 'api:perfilGestores',
+  POKER_GET_PORT: 'poker:getPort',
+  POKER_GET_LOCAL_IP: 'poker:getLocalIp',
+  POKER_START_TUNNEL: 'poker:startTunnel',
+  POKER_STOP_TUNNEL: 'poker:stopTunnel',
+  CLIPBOARD_WRITE: 'clipboard:write',
 } as const satisfies typeof IPC;
 
 describe('IPC channels', () => {

@@ -85,6 +85,11 @@ export function createFakeIpcClients(overrides: Partial<IpcClients> = {}): IpcCl
       getAssetPath: vi.fn(async () => ''),
       readAsset: vi.fn(async () => null),
       notifyWindows: vi.fn(async () => okVoid()),
+      pokerGetPort: vi.fn(async () => 4242),
+      pokerGetLocalIp: vi.fn(async () => '127.0.0.1'),
+      pokerStartTunnel: vi.fn(async () => okData('https://test.trycloudflare.com')),
+      pokerStopTunnel: vi.fn(async () => okVoid()),
+      clipboardWrite: vi.fn(async () => okVoid()),
     },
     window: {
       minimize: vi.fn(),

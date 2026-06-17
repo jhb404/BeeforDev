@@ -27,6 +27,11 @@ export function createSystemClient(api: BeeforApi) {
     readAsset: (fileName: string): Promise<string | null> => api.readAsset(fileName),
     notifyWindows: (title: string, body: string, variant?: 'orange' | 'purple') =>
       api.notifyWindows(title, body, variant),
+    pokerGetPort: (): Promise<number> => api.pokerGetPort(),
+    pokerGetLocalIp: (): Promise<string> => api.pokerGetLocalIp(),
+    pokerStartTunnel: (): Promise<ActionResult<string>> => api.pokerStartTunnel(),
+    pokerStopTunnel: (): Promise<ActionResult> => api.pokerStopTunnel(),
+    clipboardWrite: (text: string): Promise<ActionResult> => api.clipboardWrite(text),
   };
 }
 
