@@ -180,6 +180,14 @@ const api = {
 
   clipboardWrite: (text: string): Promise<ActionResult> =>
     ipcRenderer.invoke(IPC.CLIPBOARD_WRITE, text),
+
+  // Deep link beefor:// (convite de sala)
+  consumeDeepLink: (): Promise<string | null> => ipcRenderer.invoke(IPC.DEEPLINK_CONSUME),
+  onDeepLink: (cb: (url: string) => void): (() => void) => {
+    const listener = (_e: unknown, url: string) => cb(url);
+    ipcRenderer.on(IPC.EVT_DEEPLINK_URL, listener);
+    return () => ipcRenderer.removeListener(IPC.EVT_DEEPLINK_URL, listener);
+  },
 };
 
 const httpApi = {

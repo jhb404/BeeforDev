@@ -32,6 +32,8 @@ export function createSystemClient(api: BeeforApi) {
     pokerStartTunnel: (): Promise<ActionResult<string>> => api.pokerStartTunnel(),
     pokerStopTunnel: (): Promise<ActionResult> => api.pokerStopTunnel(),
     clipboardWrite: (text: string): Promise<ActionResult> => api.clipboardWrite(text),
+    consumeDeepLink: (): Promise<string | null> => api.consumeDeepLink(),
+    onDeepLink: (cb: (url: string) => void): (() => void) => api.onDeepLink(cb),
   };
 }
 

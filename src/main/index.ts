@@ -15,6 +15,12 @@ import { revealMainWindow } from './bootstrap/windowReveal';
 import { ensureTray } from './bootstrap/tray';
 import { setupAutoUpdater } from './updater';
 import { stopTunnel } from './services/tunnelManager';
+import {
+  registerDeepLink,
+  extractUrlFromArgv,
+  handleDeepLinkUrl,
+  deliver,
+} from './services/deepLink';
 
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false;
@@ -113,6 +119,8 @@ async function bootstrap() {
     startWatchdog(getWindow);
     startScheduler(getWindow);
     setupAutoUpdater(getWindow);
+    // entrega convite beefor:// que chegou antes da janela existir (cold start)
+    deliver(mainWindow);
   });
 
   app.on('activate', () => {
@@ -135,13 +143,26 @@ const gotSingleInstanceLock = app.requestSingleInstanceLock();
 if (!gotSingleInstanceLock) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  registerDeepLink();
+
+  // macOS entrega a URL por evento dedicado
+  app.on('open-url', (event, url) => {
+    event.preventDefault();
+    handleDeepLinkUrl(url, mainWindow);
+  });
+
+  // Windows/Linux: 2ª instância traz a URL no argv
+  app.on('second-instance', (_event, argv) => {
+    handleDeepLinkUrl(extractUrlFromArgv(argv), mainWindow);
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.show();
       mainWindow.focus();
     }
   });
+
+  // cold start via link (Windows/Linux): URL já está no argv inicial
+  handleDeepLinkUrl(extractUrlFromArgv(process.argv), null);
 
   bootstrap().catch((err) => {
     logger.error('Bootstrap failed', err);

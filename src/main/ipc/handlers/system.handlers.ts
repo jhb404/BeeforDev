@@ -9,6 +9,7 @@ import { fireTestNotification, getTodayAlerts } from '../../scheduler/index';
 import { getBuildAssetPath, getBuildAssetsDir } from '../../window';
 import { setLunchTimerActive } from '../../bootstrap/tray';
 import { notifyWindows } from '../../bootstrap/notifications';
+import { consumePendingUrl } from '../../services/deepLink';
 import { logger } from '../../logger';
 import { ok } from '../../../shared/result';
 import { assetFileNameSchema, notifyTestKindSchema, notifyWindowsArgsSchema } from '../schemas';
@@ -76,6 +77,12 @@ export function registerSystemHandlers(getWindow: () => BrowserWindow | null) {
       clipboard.writeText(data);
       return ok();
     },
+  });
+
+  defineHandler({
+    channel: IPC.DEEPLINK_CONSUME,
+    errorMessage: 'Deep link consume failed',
+    run: () => consumePendingUrl(),
   });
 
   defineEventHandler({

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { playUiSound, type UiSoundKind } from '../../../utils/alarm';
 import { cardTier, pokerAsset } from '../cardTier';
 import type { LiveReaction, PokerParticipant } from '../usePokerRoom';
@@ -59,57 +59,6 @@ interface Props {
   average: number | null;
   reactions: LiveReaction[];
   maxSeats?: number;
-}
-
-/**
- * Rastreia quais participantes já ficaram 8s sem votar (= ZZZ).
- * Antes disso só mostra "?".
- */
-function useSlowVoters(participants: PokerParticipant[], revealed: boolean): Set<string> {
-  const [slowIds, setSlowIds] = useState<Set<string>>(new Set());
-  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-
-  useEffect(() => {
-    const timers = timersRef.current;
-
-    // limpa timers de quem votou ou saiu
-    for (const [id, timer] of timers) {
-      const p = participants.find((x) => x.id === id);
-      if (!p || p.voted || revealed) {
-        clearTimeout(timer);
-        timers.delete(id);
-        setSlowIds((prev) => {
-          if (!prev.has(id)) return prev;
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-      }
-    }
-
-    if (revealed) return;
-
-    // inicia timer pra quem ainda não votou e ainda não tem timer
-    for (const p of participants) {
-      if (!p.voted && !timers.has(p.id)) {
-        const t = setTimeout(() => {
-          setSlowIds((prev) => new Set([...prev, p.id]));
-          timers.delete(p.id);
-        }, 8000);
-        timers.set(p.id, t);
-      }
-    }
-  }, [participants, revealed]);
-
-  // reseta tudo quando revela
-  useEffect(() => {
-    if (!revealed) return;
-    for (const t of timersRef.current.values()) clearTimeout(t);
-    timersRef.current.clear();
-    setSlowIds(new Set());
-  }, [revealed]);
-
-  return slowIds;
 }
 
 export function PokerDogTable({ participants, bench = [], revealed, average, reactions }: Props) {
@@ -308,6 +257,11 @@ export function PokerDogTable({ participants, bench = [], revealed, average, rea
               <span className="pdog__bench-status">
                 {revealed ? (p.vote ?? '—') : p.voted ? '✓' : '💭'}
               </span>
+              {(reactionsBySeat[p.id] ?? []).map((r) => (
+                <span key={r.key} className="pdog__reaction pdog__reaction--bench">
+                  {r.emoji}
+                </span>
+              ))}
             </span>
           ))}
         </div>

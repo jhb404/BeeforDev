@@ -1,4 +1,5 @@
 import os from 'node:os';
+import http from 'node:http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { logger } from '../logger';
 
@@ -59,6 +60,7 @@ interface SocketState {
 const sockets = new WeakMap<WebSocket, SocketState>();
 
 let wss: WebSocketServer | null = null;
+let httpServer: http.Server | null = null;
 let cleanupTimer: NodeJS.Timeout | null = null;
 
 const ONE_HOUR = 60 * 60 * 1000;
@@ -337,11 +339,89 @@ function startHeartbeat(): void {
   heartbeatTimer.unref?.();
 }
 
+/**
+ * Página /join servida pelo próprio host (via túnel Cloudflare https://).
+ *
+ * Convite vira 1 link clicável: https://<tunnel>/join?room=BEF4F
+ * A página descobre o host pela própria origin (this site == o túnel do host),
+ * monta o deep link beefor://join?ws=wss://<tunnel>&room=<CODE> e redireciona.
+ * Discord/Slack/WhatsApp linkam https:// automaticamente; o beefor:// roda só no clique.
+ */
+function joinPageHtml(): string {
+  // Sem interpolar dados do servidor — tudo vem de location no browser (evita injeção).
+  return `<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Entrar na sala — Beefor Planning Poker</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background:#16110d; color:#f4ece3; text-align:center; padding:24px; }
+  .card { max-width:380px; background:#211913; border:1px solid #3a2c20; border-radius:16px; padding:32px 28px; }
+  h1 { font-size:22px; margin:0 0 8px; }
+  p { color:#c8b8a8; font-size:14px; line-height:1.5; margin:0 0 20px; }
+  .room { font-size:28px; letter-spacing:4px; font-weight:800; color:#ffb454; margin:4px 0 16px; }
+  a.btn { display:inline-block; background:#ff9e2c; color:#1a1208; text-decoration:none;
+    font-weight:700; padding:12px 22px; border-radius:10px; }
+  small { display:block; margin-top:18px; color:#7d6f60; font-size:12px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>🃏 Bora pontuar!</h1>
+    <p>Você foi convidado pra uma sala de Planning Poker no Beefor.</p>
+    <div class="room" id="room">—</div>
+    <a class="btn" id="open" href="#">Abrir no Beefor</a>
+    <small>Não abriu? <a id="raw" href="#" style="color:#ffb454">clique aqui</a> ou abra o app e cole o código.</small>
+  </div>
+<script>
+  (function () {
+    var params = new URLSearchParams(location.search);
+    var room = (params.get('room') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    // origin deste site = o túnel do host → wss equivalente
+    var ws = location.origin.replace(/^http/i, 'ws');
+    var deep = 'beefor://join?ws=' + encodeURIComponent(ws) + '&room=' + encodeURIComponent(room);
+    document.getElementById('room').textContent = room || '—';
+    var open = document.getElementById('open');
+    var raw = document.getElementById('raw');
+    open.href = deep;
+    raw.href = deep;
+    // tenta abrir o app automaticamente
+    if (room) { try { location.href = deep; } catch (e) {} }
+  })();
+</script>
+</body>
+</html>`;
+}
+
+/** Responde requisições HTTP do túnel: serve /join, ignora o resto. */
+function handleHttpRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
+  const url = req.url ?? '/';
+  if (req.method === 'GET' && (url === '/join' || url.startsWith('/join?'))) {
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+    });
+    res.end(joinPageHtml());
+    return;
+  }
+  res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+  res.end('Beefor Planning Poker');
+}
+
 /** Sobe o servidor (idempotente). Chamado no setup dos IPC handlers. */
 export function startPokerServer(): void {
   if (wss) return;
   try {
-    wss = new WebSocketServer({ port: PORT });
+    httpServer = http.createServer(handleHttpRequest);
+    wss = new WebSocketServer({ server: httpServer });
+    httpServer.listen(PORT);
+    httpServer.on('error', (err) => {
+      logger.error('[poker] erro no servidor HTTP', err);
+    });
     wss.on('connection', (ws) => {
       alive.set(ws, true);
       ws.on('pong', () => alive.set(ws, true));

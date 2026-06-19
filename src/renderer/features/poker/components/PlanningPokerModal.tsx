@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useIpc } from '../../../services/ipc';
 import { ModalShell } from '../../../components/ui/ModalShell';
-import { Copy, Eye, RotateCcw, Spade } from '../../../components/common/Icons';
+import { Check, Copy, Eye, RotateCcw, Spade } from '../../../components/common/Icons';
 import { playUiSound } from '../../../utils/alarm';
 import {
   usePokerRoom,
@@ -24,6 +24,19 @@ const SOUND_REACTIONS: { emoji: string; label: string; sound: string }[] = [
 interface Props {
   open: boolean;
   onClose: () => void;
+  /** convite vindo de deep link beefor://join?ws=…&room=… — auto-entra na sala */
+  initialInvite?: { wsUrl: string; roomId: string } | null;
+}
+
+/**
+ * Monta o convite = 1 link https clicável (Discord/Slack/WhatsApp linkam sozinho):
+ *   https://<tunnel>/join?room=<CODE>
+ * A página /join (servida pelo host via túnel) redireciona pro beefor://join.
+ * wsUrl é wss://<tunnel> → troca pro https equivalente.
+ */
+function buildInviteLink(wsUrl: string, roomId: string): string {
+  const httpOrigin = wsUrl.replace(/^ws/i, 'http').replace(/\/+$/, '');
+  return `${httpOrigin}/join?room=${encodeURIComponent(roomId)}`;
 }
 
 const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -37,7 +50,40 @@ function genRoomCode(): string {
 }
 
 function parseInvite(raw: string): { wsUrl: string; roomId: string } | null {
-  const m = raw.trim().match(/(wss?:\/\/[^\s|]+|[\w.-]+:\d+)\s*\|\s*([A-Za-z0-9]+)/i);
+  const trimmed = raw.trim();
+
+  // 1) deep link beefor://join?ws=<enc>&room=<CODE> (pode vir no meio de um texto)
+  const deep = trimmed.match(/beefor:\/\/join\?[^\s]+/i);
+  if (deep) {
+    try {
+      const u = new URL(deep[0]);
+      const ws = u.searchParams.get('ws');
+      const room = u.searchParams.get('room');
+      if (ws && room) {
+        const url = /^wss?:\/\//i.test(ws) ? ws : `ws://${ws}`;
+        return { wsUrl: url, roomId: room.toUpperCase() };
+      }
+    } catch {
+      /* cai pro formato antigo abaixo */
+    }
+  }
+
+  // 2) link https clicável https://<tunnel>/join?room=<CODE> — host vem da origin
+  const httpJoin = trimmed.match(/https?:\/\/[^\s]+\/join\?[^\s]+/i);
+  if (httpJoin) {
+    try {
+      const u = new URL(httpJoin[0]);
+      const room = u.searchParams.get('room');
+      if (room) {
+        return { wsUrl: u.origin.replace(/^http/i, 'ws'), roomId: room.toUpperCase() };
+      }
+    } catch {
+      /* cai pro formato antigo abaixo */
+    }
+  }
+
+  // 3) formato antigo wsUrl|ROOM (ou host:porta|ROOM)
+  const m = trimmed.match(/(wss?:\/\/[^\s|]+|[\w.-]+:\d+)\s*\|\s*([A-Za-z0-9]+)/i);
   if (!m) return null;
   let url = m[1];
   if (!/^wss?:\/\//i.test(url)) url = `ws://${url}`;
@@ -51,7 +97,7 @@ const CONN_LABEL: Record<ConnState, string> = {
   closed: 'Desconectado',
 };
 
-export function PlanningPokerModal({ open, onClose }: Props) {
+export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
   const { system } = useIpc();
 
   const [name, setName] = useState('');
@@ -65,7 +111,7 @@ export function PlanningPokerModal({ open, onClose }: Props) {
   const [wsUrl, setWsUrl] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<'link' | 'direct' | null>(null);
 
   // papel inicial definido NA AÇÃO (criar=seated, entrar=spectator), não derivado
   // de isHost no meio do render — senão race com o setIsHost batched manda spectator.
@@ -101,9 +147,20 @@ export function PlanningPokerModal({ open, onClose }: Props) {
     setInviteInput('');
     setEntryError(null);
     setCreating(false);
-    setCopied(false);
+    setCopied(null);
   }, [open, isHost, system]);
 
+  // convite via deep link: ao abrir, entra direto na sala como convidado
+  useEffect(() => {
+    if (!open || !initialInvite) return;
+    setInitialRole('spectator');
+    setIsHost(false);
+    setWsUrl(initialInvite.wsUrl);
+    setRoomId(initialInvite.roomId);
+  }, [open, initialInvite]);
+
+  // convite = link https clicável; fallback texto antigo se algo faltar
+  const inviteLink = wsUrl && roomId ? buildInviteLink(wsUrl, roomId) : null;
   const inviteText = wsUrl && roomId ? `${wsUrl}|${roomId}` : null;
 
   const createRoom = async () => {
@@ -134,18 +191,32 @@ export function PlanningPokerModal({ open, onClose }: Props) {
     setRoomId(parsed.roomId);
   };
 
-  const copyInvite = async () => {
-    if (!inviteText) return;
-    const res = await system.clipboardWrite(inviteText);
+  const copyToClipboard = async (text: string) => {
+    const res = await system.clipboardWrite(text);
     if (!res.ok) {
       try {
-        await navigator.clipboard.writeText(inviteText);
+        await navigator.clipboard.writeText(text);
       } catch {
         /* fallback silencioso */
       }
     }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  };
+
+  // 1) link clicável (Discord/Slack) — https://<tunnel>/join?room=… abre o app
+  const copyLink = async () => {
+    const text = inviteLink ?? inviteText;
+    if (!text) return;
+    await copyToClipboard(text);
+    setCopied('link');
+    setTimeout(() => setCopied(null), 1500);
+  };
+
+  // 2) convite direto — fallback: cola no campo "cole o convite" se o link falhar
+  const copyDirect = async () => {
+    if (!inviteText) return;
+    await copyToClipboard(inviteText);
+    setCopied('direct');
+    setTimeout(() => setCopied(null), 1500);
   };
 
   const leaveRoom = () => {
@@ -196,7 +267,8 @@ export function PlanningPokerModal({ open, onClose }: Props) {
           selfId={selfId}
           dogId={dogId}
           myName={name}
-          onCopy={copyInvite}
+          onCopyLink={copyLink}
+          onCopyDirect={copyDirect}
           onVote={vote}
           onReveal={revealWithSound}
           onReset={reset}
@@ -272,7 +344,7 @@ function EntryScreen({
           />
         </label>
 
-        <div className="poker-field">
+        <div className="poker-field poker-field--grow">
           <span>Seu personagem</span>
           <div className="poker-charpick poker-charpick--entry">
             {dogs.map((d) => (
@@ -312,10 +384,6 @@ function EntryScreen({
           </button>
         </div>
 
-        <p className="poker-entry__foot">
-          Sem nome? Tudo bem — a gente pergunta quando você entrar. 🐾
-        </p>
-
         {error && <p className="poker-error">{error}</p>}
       </div>
     </div>
@@ -335,7 +403,8 @@ function RoomScreen({
   selfId,
   dogId,
   myName,
-  onCopy,
+  onCopyLink,
+  onCopyDirect,
   onVote,
   onReveal,
   onReset,
@@ -350,13 +419,14 @@ function RoomScreen({
   conn: ConnState;
   room: ReturnType<typeof usePokerRoom>['room'];
   isHost: boolean;
-  copied: boolean;
+  copied: 'link' | 'direct' | null;
   reactions: LiveReaction[];
   history: RoundRecord[];
   selfId: string | null;
   dogId: number;
   myName: string;
-  onCopy: () => void;
+  onCopyLink: () => void;
+  onCopyDirect: () => void;
   onVote: (v: string) => void;
   onReveal: () => void;
   onReset: () => void;
@@ -472,12 +542,32 @@ function RoomScreen({
   return (
     <div className="poker-room">
       <div className="poker-room__bar">
-        <button className="poker-room__code" onClick={onCopy} title="Copiar convite da sala">
+        <span className="poker-room__code">
           <span className="poker-room__code-label">Sala</span>
-          <Copy size={14} />
           <strong>{roomId}</strong>
-          {copied && <span className="poker-room__copied">copiado!</span>}
-        </button>
+        </span>
+
+        {/* convite: ação principal = link clicável (Discord); fallback = convite direto */}
+        <div className="poker-invite" role="group" aria-label="Convidar time">
+          <button
+            type="button"
+            className="poker-invite__main"
+            onClick={onCopyLink}
+            title="Copia o link clicável — mande no Discord/Slack/WhatsApp, é só clicar pra entrar"
+          >
+            {copied === 'link' ? <Check size={15} /> : <Copy size={15} />}
+            {copied === 'link' ? 'Link copiado!' : 'Copiar link de convite'}
+          </button>
+          <button
+            type="button"
+            className="poker-invite__alt"
+            onClick={onCopyDirect}
+            title="Convite direto — se o link não abrir, cole isto no campo 'cole o convite' do app"
+          >
+            {copied === 'direct' ? '✓ copiado' : 'ou convite direto'}
+          </button>
+        </div>
+
         <span className={`poker-conn poker-conn--${conn}`}>{CONN_LABEL[conn]}</span>
         <div className="poker-room__spacer" />
 
@@ -725,11 +815,9 @@ function RoomScreen({
                 <RotateCcw size={16} /> Novo round
               </button>
             )
-          ) : (
-            <span className="poker-dock__hint">
-              {revealed ? 'Aguardando novo round…' : 'O host revela os votos'}
-            </span>
-          )}
+          ) : revealed ? (
+            <span className="poker-dock__hint">Aguardando novo round…</span>
+          ) : null}
         </div>
       </div>
     </div>

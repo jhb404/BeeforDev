@@ -90,6 +90,8 @@ export function createFakeIpcClients(overrides: Partial<IpcClients> = {}): IpcCl
       pokerStartTunnel: vi.fn(async () => okData('https://test.trycloudflare.com')),
       pokerStopTunnel: vi.fn(async () => okVoid()),
       clipboardWrite: vi.fn(async () => okVoid()),
+      consumeDeepLink: vi.fn(async () => null),
+      onDeepLink: vi.fn(() => vi.fn()),
     },
     window: {
       minimize: vi.fn(),

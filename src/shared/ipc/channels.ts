@@ -159,6 +159,10 @@ export const IPC = {
 
   // clipboard nativo (navigator.clipboard falha em file://)
   CLIPBOARD_WRITE: 'clipboard:write',
+
+  // deep link beefor:// (convite de sala)
+  DEEPLINK_CONSUME: 'deeplink:consume',
+  EVT_DEEPLINK_URL: 'deeplink:url',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];

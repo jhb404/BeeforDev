@@ -27,6 +27,20 @@ import { useMoodFlow } from './home/hooks/useMoodFlow';
 import { useTimesheetData } from './home/hooks/useTimesheetData';
 import { usePrefetch } from '../app/hooks/usePrefetch';
 
+/** parse beefor://join?ws=<enc>&room=<CODE> → { wsUrl, roomId } */
+function parsePokerDeepLink(raw: string): { wsUrl: string; roomId: string } | null {
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== 'beefor:') return null;
+    const ws = u.searchParams.get('ws');
+    const room = u.searchParams.get('room');
+    if (!ws || !room) return null;
+    return { wsUrl: ws, roomId: room.toUpperCase() };
+  } catch {
+    return null;
+  }
+}
+
 interface HomeProps {
   onMoodChanged?: (mood: string | null) => void;
   onBootReady?: () => void;
@@ -55,10 +69,26 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
   const [showKudoHistory, setShowKudoHistory] = useState(false);
   const [showAtividades, setShowAtividades] = useState(false);
   const [showPoker, setShowPoker] = useState(false);
+  const [pokerInvite, setPokerInvite] = useState<{ wsUrl: string; roomId: string } | null>(null);
 
   useEffect(() => {
     void settingsClient.get().then(setSettings);
   }, [settingsClient]);
+
+  // deep link beefor://join?ws=…&room=… → abre o poker já entrando na sala
+  useEffect(() => {
+    const handle = (raw: string) => {
+      const invite = parsePokerDeepLink(raw);
+      if (!invite) return;
+      setPokerInvite(invite);
+      setShowPoker(true);
+    };
+    // URL que chegou antes do renderer montar (cold start / 2ª instância)
+    void systemClient.consumeDeepLink().then((url) => {
+      if (url) handle(url);
+    });
+    return systemClient.onDeepLink(handle);
+  }, [systemClient]);
 
   useEffect(() => {
     return onAppEvent(APP_EVENTS.SETTINGS_CHANGED, () => {
@@ -339,7 +369,14 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
 
       <AtividadesModal open={showAtividades} onClose={() => setShowAtividades(false)} />
 
-      <PlanningPokerModal open={showPoker} onClose={() => setShowPoker(false)} />
+      <PlanningPokerModal
+        open={showPoker}
+        initialInvite={pokerInvite}
+        onClose={() => {
+          setShowPoker(false);
+          setPokerInvite(null);
+        }}
+      />
     </div>
   );
 }
