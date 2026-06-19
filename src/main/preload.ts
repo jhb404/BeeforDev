@@ -84,7 +84,7 @@ const api = {
   relaunchApp: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.APP_RELAUNCH),
 
   // notification testing
-  testNotification: (kind: 'mood' | 'lunch' | 'kudocard' | 'punch'): Promise<ActionResult> =>
+  testNotification: (kind: 'mood' | 'lunch' | 'kudocard' | 'punch' | 'pj'): Promise<ActionResult> =>
     ipcRenderer.invoke(IPC.NOTIFY_TEST, kind),
 
   getTodayAlerts: (): Promise<ActionResult<TodayAlert[]>> =>

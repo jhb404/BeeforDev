@@ -8,8 +8,9 @@ export function createSystemClient(api: BeeforApi) {
     getAdminStatus: (): Promise<{ elevated: boolean; platform: string }> => api.getAdminStatus(),
     relaunchAsAdmin: (): Promise<ActionResult> => api.relaunchAsAdmin(),
     relaunchApp: (): Promise<ActionResult> => api.relaunchApp(),
-    testNotification: (kind: 'mood' | 'lunch' | 'kudocard' | 'punch'): Promise<ActionResult> =>
-      api.testNotification(kind),
+    testNotification: (
+      kind: 'mood' | 'lunch' | 'kudocard' | 'punch' | 'pj',
+    ): Promise<ActionResult> => api.testNotification(kind),
     getTodayAlerts: (): Promise<ActionResult<TodayAlert[]>> => api.getTodayAlerts(),
     onPlayAlarm: (cb: (info: AlarmInfo) => void): (() => void) => api.onPlayAlarm(cb),
     onNotify: (cb: (info: { title: string; body: string }) => void): (() => void) =>

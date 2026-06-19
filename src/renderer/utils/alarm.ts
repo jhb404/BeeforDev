@@ -125,6 +125,45 @@ async function playKudocardAlarm(): Promise<void> {
   sub.stop(start + 0.8);
 }
 
+// PJ (Ajustar Pontos): tema único — "alerta burocrático" insistente.
+// Padrão de 4 toques em dois tons alternados (estilo sino de recepção) +
+// nota grave de fechamento. Distinto dos demais alarmes.
+async function playPjAlarm(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const start = audio.currentTime;
+  // 4 dings alternando B5 / E5 (sino metálico)
+  const dings = [
+    { f: 988, t: 0.0 },
+    { f: 659, t: 0.2 },
+    { f: 988, t: 0.4 },
+    { f: 659, t: 0.6 },
+  ];
+  for (const d of dings) {
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+    osc.frequency.value = d.f;
+    osc.type = 'triangle';
+    gain.gain.setValueAtTime(0.0001, start + d.t);
+    gain.gain.exponentialRampToValueAtTime(0.4, start + d.t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + d.t + 0.25);
+    osc.connect(gain).connect(audio.destination);
+    osc.start(start + d.t);
+    osc.stop(start + d.t + 0.28);
+  }
+  // nota grave de fechamento (A3) — dá peso "oficial"
+  const sub = audio.createOscillator();
+  const subGain = audio.createGain();
+  sub.frequency.value = 220;
+  sub.type = 'sine';
+  subGain.gain.setValueAtTime(0.0001, start + 0.82);
+  subGain.gain.exponentialRampToValueAtTime(0.28, start + 0.86);
+  subGain.gain.exponentialRampToValueAtTime(0.0001, start + 1.2);
+  sub.connect(subGain).connect(audio.destination);
+  sub.start(start + 0.82);
+  sub.stop(start + 1.25);
+}
+
 type Note = { freq: number; offset: number; dur: number; gain: number; type?: OscillatorType };
 
 function playSequence(notes: Note[]) {
@@ -823,7 +862,7 @@ export function playUiSound(kind: UiSoundKind): void {
   }
 }
 
-export type AlarmKind = 'mood' | 'lunch' | 'punch' | 'kudocard' | 'default';
+export type AlarmKind = 'mood' | 'lunch' | 'punch' | 'kudocard' | 'pj' | 'default';
 
 export async function playAlarmByKind(kind: AlarmKind): Promise<void> {
   switch (kind) {
@@ -835,6 +874,8 @@ export async function playAlarmByKind(kind: AlarmKind): Promise<void> {
       return playPunchAlarm();
     case 'kudocard':
       return playKudocardAlarm();
+    case 'pj':
+      return playPjAlarm();
     default:
       return playAlarm();
   }

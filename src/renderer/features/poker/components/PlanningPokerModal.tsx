@@ -556,15 +556,16 @@ function RoomScreen({
             title="Copia o link clicável — mande no Discord/Slack/WhatsApp, é só clicar pra entrar"
           >
             {copied === 'link' ? <Check size={15} /> : <Copy size={15} />}
-            {copied === 'link' ? 'Link copiado!' : 'Copiar link de convite'}
+            {copied === 'link' ? 'Convite copiado!' : 'Copiar convite'}
           </button>
           <button
             type="button"
             className="poker-invite__alt"
             onClick={onCopyDirect}
-            title="Convite direto — se o link não abrir, cole isto no campo 'cole o convite' do app"
+            title="Convite direto — se o link não abrir no chat, cole isto no campo 'cole o convite' do app"
           >
-            {copied === 'direct' ? '✓ copiado' : 'ou convite direto'}
+            {copied === 'direct' ? <Check size={13} /> : <Copy size={13} />}
+            {copied === 'direct' ? 'copiado' : 'direto'}
           </button>
         </div>
 
