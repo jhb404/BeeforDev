@@ -52,6 +52,7 @@ export function HomeTopbar({
       </div>
       <div className="home-status">
         <button
+          data-sound="poker-open"
           className="secondary compact home-action-btn"
           onClick={onOpenPoker}
           title="Planning Poker (estimativa em squad)"

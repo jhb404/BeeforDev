@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useIpc } from '../../../services/ipc';
 import { ModalShell } from '../../../components/ui/ModalShell';
-import { Check, Clock, Copy, Eye, RotateCcw, Spade } from '../../../components/common/Icons';
-import { usePokerRoom, type ConnState } from '../usePokerRoom';
+import { Copy, Eye, RotateCcw, Spade } from '../../../components/common/Icons';
+import { playUiSound } from '../../../utils/alarm';
+import { usePokerRoom, type ConnState, type LiveReaction } from '../usePokerRoom';
+import { PokerDogTable } from './PokerDogTable';
+
+/** Emojis de reação rápida (repassados a todos via servidor). */
+const REACTIONS = ['🔥', '👏', '😂', '👍', '❤️', '🤔'];
 
 interface Props {
   open: boolean;
@@ -54,7 +59,16 @@ export function PlanningPokerModal({ open, onClose }: Props) {
   const [isHost, setIsHost] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const { room, conn, vote, reveal, reset } = usePokerRoom({ wsUrl, roomId, name });
+  const { room, conn, reactions, vote, reveal, reset, sendReaction } = usePokerRoom({
+    wsUrl,
+    roomId,
+    name,
+  });
+
+  const revealWithSound = () => {
+    playUiSound('poker-reveal');
+    reveal();
+  };
 
   // reseta ao fechar
   useEffect(() => {
@@ -150,13 +164,14 @@ export function PlanningPokerModal({ open, onClose }: Props) {
           conn={conn}
           room={room}
           isHost={isHost}
-          inviteText={inviteText}
           copied={copied}
+          reactions={reactions}
           onCopy={copyInvite}
           onVote={vote}
-          onReveal={reveal}
+          onReveal={revealWithSound}
           onReset={reset}
           onLeave={leaveRoom}
+          onReact={sendReaction}
         />
       )}
     </ModalShell>
@@ -238,25 +253,27 @@ function RoomScreen({
   conn,
   room,
   isHost,
-  inviteText,
   copied,
+  reactions,
   onCopy,
   onVote,
   onReveal,
   onReset,
   onLeave,
+  onReact,
 }: {
   roomId: string;
   conn: ConnState;
   room: ReturnType<typeof usePokerRoom>['room'];
   isHost: boolean;
-  inviteText: string | null;
   copied: boolean;
+  reactions: LiveReaction[];
   onCopy: () => void;
   onVote: (v: string) => void;
   onReveal: () => void;
   onReset: () => void;
   onLeave: () => void;
+  onReact: (emoji: string) => void;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -273,84 +290,83 @@ function RoomScreen({
   };
 
   const revealed = room?.revealed ?? false;
+  const participants = room?.participants ?? [];
 
   return (
     <div className="poker-room">
       <div className="poker-room__bar">
-        <div className="poker-room__room">
-          Sala <strong>{roomId}</strong>
-        </div>
+        <button className="poker-room__code" onClick={onCopy} title="Copiar convite da sala">
+          <span className="poker-room__code-label">Sala</span>
+          <Copy size={14} />
+          <strong>{roomId}</strong>
+          {copied && <span className="poker-room__copied">copiado!</span>}
+        </button>
         <span className={`poker-conn poker-conn--${conn}`}>{CONN_LABEL[conn]}</span>
-      </div>
-
-      {inviteText && (
-        <div className="poker-invite">
-          <input
-            className="poker-invite__field"
-            value={inviteText}
-            readOnly
-            onFocus={(e) => e.currentTarget.select()}
-            onClick={(e) => e.currentTarget.select()}
-          />
-          <button className="secondary compact" onClick={onCopy}>
-            <Copy size={14} /> {copied ? 'Copiado!' : 'Copiar'}
-          </button>
-        </div>
-      )}
-
-      <div className="poker-cards">
-        {CARDS.map((card) => (
-          <button
-            key={card}
-            className={`poker-card${selected === card ? ' is-selected' : ''}`}
-            onClick={() => pick(card)}
-            disabled={revealed}
-          >
-            {card}
-          </button>
-        ))}
-      </div>
-
-      <div className="poker-people">
-        {(room?.participants ?? []).map((p) => (
-          <div key={p.id} className="poker-person">
-            <span className="poker-person__name">{p.name}</span>
-            {revealed ? (
-              <span className="poker-person__vote">{p.vote ?? '—'}</span>
-            ) : p.voted ? (
-              <span className="poker-badge poker-badge--ok">
-                <Check size={13} /> votou
-              </span>
-            ) : (
-              <span className="poker-badge poker-badge--wait">
-                <Clock size={13} /> aguardando
-              </span>
-            )}
-          </div>
-        ))}
-        {(room?.participants?.length ?? 0) === 0 && (
-          <p className="poker-hint">Ninguém na sala ainda.</p>
-        )}
-      </div>
-
-      <footer className="poker-room__actions modal-actions">
-        {revealed && room?.average !== null && room?.average !== undefined && (
-          <span className="poker-avg">Média: {room.average}</span>
-        )}
         <div className="poker-room__spacer" />
-        <button className="secondary" onClick={onLeave}>
+        <button className="secondary compact" onClick={onLeave}>
           {isHost ? 'Encerrar sala' : 'Sair'}
         </button>
-        {!revealed ? (
-          <button className="warm" onClick={onReveal}>
-            <Eye size={15} /> Revelar
-          </button>
-        ) : (
-          <button className="warm" onClick={onReset}>
-            <RotateCcw size={15} /> Novo round
-          </button>
-        )}
-      </footer>
+      </div>
+
+      <PokerDogTable
+        participants={participants}
+        revealed={revealed}
+        average={room?.average ?? null}
+        reactions={reactions}
+      />
+
+      <div className="poker-dock">
+        <div className="poker-dock__cards-wrap">
+          <span className="poker-dock__label">
+            {revealed ? 'Votos revelados' : 'Escolha sua carta'}
+          </span>
+          <div className="poker-dock__cards">
+            {CARDS.map((card) => (
+              <button
+                key={card}
+                className={`poker-card${selected === card ? ' is-selected' : ''}`}
+                onClick={() => pick(card)}
+                disabled={revealed}
+              >
+                {card}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="poker-dock__row">
+          <div className="poker-reactions">
+            {REACTIONS.map((e) => (
+              <button
+                key={e}
+                className="poker-reactions__btn"
+                onClick={() => onReact(e)}
+                title="Reagir"
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+
+          <div className="poker-room__spacer" />
+
+          {isHost ? (
+            !revealed ? (
+              <button className="warm poker-dock__action" onClick={onReveal}>
+                <Eye size={16} /> Revelar
+              </button>
+            ) : (
+              <button className="warm poker-dock__action" onClick={onReset}>
+                <RotateCcw size={16} /> Novo round
+              </button>
+            )
+          ) : (
+            <span className="poker-dock__hint">
+              {revealed ? 'Aguardando novo round…' : 'O host revela os votos'}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

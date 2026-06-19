@@ -543,6 +543,78 @@ export async function playUiSuccess(): Promise<void> {
   ]);
 }
 
+// poker-open — fichas + baralho: cliques secos de chips + "shuffle" (ruído curto)
+export async function playUiPokerOpen(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  // 3 cliques de ficha (curtos, agudos, levemente dessincronizados)
+  const chips = [0, 0.06, 0.13];
+  for (const t of chips) {
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = 'square';
+    osc.frequency.value = 1200 + Math.random() * 400;
+    g.gain.setValueAtTime(0.0001, s + t);
+    g.gain.exponentialRampToValueAtTime(0.12, s + t + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + t + 0.05);
+    osc.connect(g).connect(audio.destination);
+    osc.start(s + t);
+    osc.stop(s + t + 0.06);
+  }
+  // "shuffle" do baralho — ruído filtrado curto
+  const dur = 0.4;
+  const buf = audio.createBuffer(1, audio.sampleRate * dur, audio.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i += 1) {
+    const decay = 1 - i / data.length;
+    data[i] = (Math.random() * 2 - 1) * decay * 0.5;
+  }
+  const noise = audio.createBufferSource();
+  noise.buffer = buf;
+  const filter = audio.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 3200;
+  filter.Q.value = 0.6;
+  const ng = audio.createGain();
+  ng.gain.setValueAtTime(0.08, s + 0.18);
+  ng.gain.exponentialRampToValueAtTime(0.0001, s + 0.18 + dur);
+  noise.connect(filter).connect(ng).connect(audio.destination);
+  noise.start(s + 0.18);
+  noise.stop(s + 0.18 + dur);
+}
+
+// dog-bark — "au-au" pixel: dois ganidos curtos com pitch caindo
+export async function playUiDogBark(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  const barks = [0, 0.18];
+  for (const t of barks) {
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(620, s + t);
+    osc.frequency.exponentialRampToValueAtTime(300, s + t + 0.12);
+    g.gain.setValueAtTime(0.0001, s + t);
+    g.gain.exponentialRampToValueAtTime(0.2, s + t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + t + 0.13);
+    osc.connect(g).connect(audio.destination);
+    osc.start(s + t);
+    osc.stop(s + t + 0.15);
+  }
+}
+
+// poker-reveal — "virar cartas": varredura ascendente curta + clique final
+export async function playUiPokerReveal(): Promise<void> {
+  playSequence([
+    { freq: 523, offset: 0, dur: 0.07, gain: 0.16, type: 'triangle' },
+    { freq: 659, offset: 0.05, dur: 0.07, gain: 0.16, type: 'triangle' },
+    { freq: 784, offset: 0.1, dur: 0.07, gain: 0.16, type: 'triangle' },
+    { freq: 1047, offset: 0.16, dur: 0.22, gain: 0.18, type: 'sine' },
+  ]);
+}
+
 export type UiSoundKind =
   | 'click'
   | 'close'
@@ -566,7 +638,10 @@ export type UiSoundKind =
   | 'boot'
   | 'profile-open'
   | 'streak-open'
-  | 'activity-open';
+  | 'activity-open'
+  | 'poker-open'
+  | 'dog-bark'
+  | 'poker-reveal';
 
 export function playUiSound(kind: UiSoundKind): void {
   switch (kind) {
@@ -638,6 +713,15 @@ export function playUiSound(kind: UiSoundKind): void {
       return;
     case 'activity-open':
       void playUiActivityOpen();
+      return;
+    case 'poker-open':
+      void playUiPokerOpen();
+      return;
+    case 'dog-bark':
+      void playUiDogBark();
+      return;
+    case 'poker-reveal':
+      void playUiPokerReveal();
       return;
   }
 }

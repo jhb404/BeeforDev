@@ -1,7 +1,21 @@
 /* poker.css — Planning Poker modal. Segue tokens de base.css. */
 
 .poker-modal {
-  width: min(680px, 100%);
+  width: min(960px, calc(100vw - 24px));
+  height: min(800px, calc(100vh - 32px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* sala: barra topo + mesa que cresce + dock fixo embaixo */
+.poker-room {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+  padding: 14px 16px;
 }
 
 .poker-modal .modal-head h2 {
@@ -96,17 +110,41 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
-.poker-room__room {
-  font-size: 14px;
-  color: var(--text-muted);
-}
-
-.poker-room__room strong {
-  font-size: 16px;
-  letter-spacing: 2px;
+/* botão "Sala [📋 CÓDIGO]" — copia o convite */
+.poker-room__code {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  background: var(--bg-2);
   color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.poker-room__code:hover:not(:disabled) {
+  background: var(--bg-3);
+  border-color: var(--accent);
+}
+
+.poker-room__code-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.poker-room__code strong {
+  letter-spacing: 2px;
+  font-size: 15px;
+}
+
+.poker-room__copied {
+  font-size: 11px;
+  color: var(--ok);
+  font-weight: 700;
 }
 
 .poker-conn {
@@ -132,114 +170,420 @@
   border-color: var(--err-border);
 }
 
-.poker-room__bar > button:last-child {
-  margin-left: auto;
-}
-
-.poker-invite {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.poker-invite__field {
+.poker-room__spacer {
   flex: 1;
-  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
-  font-size: 12px;
-  cursor: text;
-  background: var(--bg-2);
 }
 
-/* cartas */
+/* ---------- dock embaixo: cartas + reações + ação ---------- */
 
-.poker-cards {
+.poker-dock {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 4px 4px;
+  border-top: 1px solid var(--border);
+}
+
+.poker-dock__cards-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+
+.poker-dock__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.poker-dock__cards {
   display: flex;
   flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.poker-dock__row {
+  display: flex;
+  align-items: center;
   gap: 10px;
+  min-height: 40px;
 }
 
 .poker-card {
-  min-width: 54px;
-  min-height: 76px;
+  min-width: 52px;
+  min-height: 70px;
   font-size: 20px;
   font-weight: 700;
   background: var(--bg-2);
   color: var(--text);
   border: 2px solid var(--border);
   border-radius: 10px;
-  transition: transform 0.1s ease, border-color 0.12s ease, background 0.12s ease;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
 .poker-card:hover:not(:disabled) {
   background: var(--bg-3);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  border-color: var(--border-strong);
+}
+
+.poker-card:disabled {
+  opacity: 0.45;
 }
 
 .poker-card.is-selected {
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--text);
+  transform: translateY(-6px);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
-/* participantes */
-
-.poker-people {
+/* reações rápidas */
+.poker-reactions {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
-.poker-person {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px;
-  background: var(--row-bg);
+.poker-reactions__btn {
+  min-height: 34px;
+  padding: 3px 9px;
+  font-size: 17px;
+  background: var(--bg-2);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
+  transition: transform 0.1s ease, background 0.12s ease;
 }
 
-.poker-person__name {
-  font-weight: 600;
+.poker-reactions__btn:hover {
+  background: var(--bg-3);
+  transform: scale(1.18);
 }
 
-.poker-person__vote {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--accent);
+.poker-reactions__btn:active {
+  transform: scale(0.95);
 }
 
-.poker-badge {
+/* ação principal (revelar / novo round) — só host */
+.poker-dock__action {
+  min-height: 40px;
+  padding: 8px 22px;
+  font-size: 14px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
+}
+
+.poker-dock__hint {
   font-size: 12px;
-  font-weight: 600;
-}
-
-.poker-badge--ok {
-  color: var(--ok);
-}
-
-.poker-badge--wait {
+  font-style: italic;
   color: var(--text-muted);
 }
 
-/* ações da sala */
+/* ---------- mesa PokerDog ---------- */
 
-.poker-room__actions {
+.pdog {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  align-self: center;
+}
+
+/* mesa pixel-art transparente, centralizada */
+.pdog__table {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 82%;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pdog__seat {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  width: 96px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
 }
 
-.poker-room__spacer {
-  flex: 1;
+.pdog__seat.is-empty {
+  width: 70px;
+  height: 70px;
+  border: 2px dashed var(--border-strong);
+  border-radius: 12px;
+  justify-content: center;
 }
 
-.poker-avg {
-  font-size: 14px;
+/* cão (sprite já vem com corpo + cartas) — sempre colorido */
+.pdog__dog {
+  image-rendering: pixelated;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.5));
+  transition: filter 0.25s ease, transform 0.2s ease;
+}
+
+/* consenso = brilho verde, outlier = brilho vermelho */
+.pdog__dog.is-consensus {
+  filter: drop-shadow(0 0 8px var(--ok)) drop-shadow(0 0 8px var(--ok));
+}
+
+.pdog__dog.is-outlier {
+  filter: drop-shadow(0 0 8px var(--err)) drop-shadow(0 0 8px var(--err));
+}
+
+.pdog__zzz {
+  position: absolute;
+  top: -6px;
+  right: 8px;
+  z-index: 4;
+  font-size: 15px;
+  font-weight: 800;
+  color: #cdd6e3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  animation: pdog-zzz 1.8s ease-in-out infinite;
+}
+
+@keyframes pdog-zzz {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* pulo ao votar */
+.pdog__seat.just-voted .pdog__dog {
+  animation: pdog-bounce 0.45s ease;
+}
+
+@keyframes pdog-bounce {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-14px) scale(1.06); }
+  70% { transform: translateY(0) scale(0.98); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.pdog__name {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  max-width: 100px;
+  padding: 1px 7px;
+  font-size: 11px;
   font-weight: 700;
+  text-align: center;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.78);
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdog__name.is-empty {
+  position: static;
+  transform: none;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* carta com flip 3D, usando os sprites de carta */
+.pdog__card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  perspective: 400px;
+}
+
+.pdog__card-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.45, 0.05, 0.2, 1.2);
+}
+
+.pdog__card.is-flipped .pdog__card-inner {
+  transform: rotateY(180deg);
+}
+
+.pdog__card-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+}
+
+.pdog__card-back {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.pdog__card-front {
+  transform: rotateY(180deg);
+  background: #fff;
+  color: #16432c;
+  font-size: 17px;
+  font-weight: 800;
+  border-radius: 4px;
+  border: 2px solid var(--accent);
+}
+
+.pdog__card.is-consensus .pdog__card-front {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.pdog__card.is-outlier .pdog__card-front {
+  border-color: var(--err);
+  color: var(--err);
+}
+
+/* centro da mesa: média / status */
+.pdog__center {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* emoji de reação flutuando sobre o cão */
+.pdog__reaction {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 5;
+  font-size: 22px;
+  pointer-events: none;
+  animation: pdog-react 2.4s ease-out forwards;
+}
+
+@keyframes pdog-react {
+  0% { transform: translate(-50%, 0) scale(0.4); opacity: 0; }
+  15% { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(-50%, -70px) scale(1); opacity: 0; }
+}
+
+.pdog__avg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 20px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--warm);
+  border-radius: 12px;
+  animation: pdog-pop 0.4s ease;
+}
+
+@keyframes pdog-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.pdog__avg span {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pdog__avg strong {
+  font-size: 28px;
   color: var(--warm);
+  line-height: 1.1;
+}
+
+.pdog__avg em {
+  margin-top: 2px;
+  font-size: 11px;
+  font-style: normal;
+  color: var(--ok);
+}
+
+/* status "aguardando todos votarem" + bolinhas de progresso */
+.pdog__status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.pdog__status-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+}
+
+.pdog__paw {
+  font-size: 14px;
+}
+
+.pdog__dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pdog__dots-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.pdog__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pdog__dot.is-on {
+  background: var(--ok);
+  box-shadow: 0 0 6px var(--ok);
+}
+
+.pdog__overflow {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  padding: 2px 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border-radius: 999px;
 }
 
 @media (max-width: 560px) {

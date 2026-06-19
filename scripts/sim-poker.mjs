@@ -13,7 +13,10 @@
  *   8        -> vota 8 (cartas: 1 2 3 5 8 13 21 ? ☕)
  *   reveal   -> revela
  *   reset    -> novo round
- *   bots N   -> sobe N bots extras que votam aleatório
+ *   bots N   -> sobe N bots com nomes aleatórios (votam aleatório)
+ *   fill     -> sobe 6 bots com nomes aleatórios de uma vez
+ *   react    -> você manda uma reação (emoji aleatório); react 🔥 = emoji específico
+ *   reacts   -> todos os bots reagem com emoji aleatório
  *   quit     -> sai
  */
 import WebSocket from 'ws';
@@ -21,6 +24,21 @@ import readline from 'node:readline';
 
 const args = process.argv.slice(2);
 const CARDS = ['1', '2', '3', '5', '8', '13', '21', '?', '☕'];
+
+/** Nomes aleatórios pros bots. */
+const NAMES = [
+  'Sara', 'Lucas', 'Michael', 'Jennifer', 'Bruno', 'Paula', 'Diego', 'Aline',
+  'Rafa', 'Bia', 'Caio', 'Duda', 'Theo', 'Nina', 'Igor', 'Lara',
+];
+const EMOJIS = ['🔥', '👏', '😂', '👍', '❤️', '🤔'];
+const usedNames = new Set();
+function randomName() {
+  const free = NAMES.filter((n) => !usedNames.has(n));
+  const pool = free.length ? free : NAMES;
+  const name = pool[Math.floor(Math.random() * pool.length)];
+  usedNames.add(name);
+  return name;
+}
 
 /** Normaliza endereço em URL WebSocket. host:porta -> ws://host:porta */
 function toWsUrl(raw) {
@@ -84,6 +102,11 @@ function render(buf) {
   } catch {
     return;
   }
+  if (msg.type === 'reaction') {
+    console.log(`\n💬 reação: ${msg.fromName} → ${msg.emoji}`);
+    process.stdout.write('> ');
+    return;
+  }
   if (msg.type !== 'roomUpdate') return;
   const { room } = msg;
   console.log(`\n🃏 sala ${room.id} | revelado: ${room.revealed} | média: ${room.average ?? '—'}`);
@@ -102,6 +125,23 @@ const send = (obj) => {
 };
 
 const bots = [];
+
+/** Sobe N bots com nomes aleatórios. Cada um vota uma carta aleatória. */
+function spawnBots(n) {
+  for (let i = 0; i < n; i++) {
+    const botName = randomName();
+    const b = connect(botName);
+    b.on('open', () => {
+      const card = CARDS[Math.floor(Math.random() * CARDS.length)];
+      setTimeout(() => {
+        if (b.readyState === WebSocket.OPEN) b.send(JSON.stringify({ type: 'vote', value: card }));
+      }, 500);
+    });
+    bots.push(b);
+  }
+  console.log(`+${n} bots subindo com nomes aleatórios (votam aleatório)`);
+}
+
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 rl.on('line', (line) => {
   const cmd = line.trim();
@@ -117,24 +157,27 @@ rl.on('line', (line) => {
     rl.close();
     setTimeout(() => process.exit(0), 200);
     return;
+  } else if (cmd === 'fill') {
+    spawnBots(6);
   } else if (cmd.startsWith('bots ')) {
-    const n = parseInt(cmd.slice(5), 10) || 0;
-    for (let i = 0; i < n; i++) {
-      const botName = `Bot ${bots.length + 1}`;
-      const b = connect(botName);
-      b.on('open', () => {
-        const card = CARDS[Math.floor(Math.random() * CARDS.length)];
-        setTimeout(() => {
-          if (b.readyState === WebSocket.OPEN) b.send(JSON.stringify({ type: 'vote', value: card }));
-        }, 500);
-      });
-      bots.push(b);
+    spawnBots(parseInt(cmd.slice(5), 10) || 0);
+  } else if (cmd === 'react' || cmd.startsWith('react ')) {
+    const emoji = cmd.slice(5).trim() || EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    send({ type: 'reaction', emoji });
+    console.log(`enviou reação: ${emoji}`);
+  } else if (cmd === 'reacts') {
+    // todos os bots reagem com emoji aleatório
+    for (const b of bots) {
+      if (b.readyState === WebSocket.OPEN) {
+        const emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+        b.send(JSON.stringify({ type: 'reaction', emoji }));
+      }
     }
-    console.log(`+${n} bots subindo (votam aleatório)`);
+    console.log(`${bots.length} bots reagiram`);
   } else if (CARDS.includes(cmd)) {
     send({ type: 'vote', value: cmd });
   } else {
-    console.log('comandos: <carta> | reveal | reset | bots N | quit');
+    console.log('comandos: <carta> | reveal | reset | fill | bots N | react [emoji] | reacts | quit');
   }
   process.stdout.write('> ');
 });

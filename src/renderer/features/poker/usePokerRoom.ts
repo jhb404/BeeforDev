@@ -17,6 +17,14 @@ export interface PokerRoom {
 
 export type ConnState = 'connecting' | 'connected' | 'reconnecting' | 'closed';
 
+/** Reação efêmera recebida — some sozinha após alguns segundos. */
+export interface LiveReaction {
+  key: number;
+  fromId: string;
+  fromName: string;
+  emoji: string;
+}
+
 interface UsePokerRoomArgs {
   /** URL WebSocket completa do servidor, ex: "wss://abc.trycloudflare.com". */
   wsUrl: string | null;
@@ -31,6 +39,8 @@ interface UsePokerRoomArgs {
 export function usePokerRoom({ wsUrl, roomId, name }: UsePokerRoomArgs) {
   const [room, setRoom] = useState<PokerRoom | null>(null);
   const [conn, setConn] = useState<ConnState>('connecting');
+  const [reactions, setReactions] = useState<LiveReaction[]>([]);
+  const reactionSeq = useRef(0);
   const wsRef = useRef<WebSocket | null>(null);
   const retryRef = useRef(0);
   const closedByUs = useRef(false);
@@ -64,7 +74,19 @@ export function usePokerRoom({ wsUrl, roomId, name }: UsePokerRoomArgs) {
       ws.onmessage = (ev) => {
         try {
           const data = JSON.parse(ev.data as string);
-          if (data?.type === 'roomUpdate') setRoom(data.room as PokerRoom);
+          if (data?.type === 'roomUpdate') {
+            setRoom(data.room as PokerRoom);
+          } else if (data?.type === 'reaction') {
+            const key = ++reactionSeq.current;
+            setReactions((prev) => [
+              ...prev,
+              { key, fromId: data.fromId, fromName: data.fromName, emoji: data.emoji },
+            ]);
+            // some após a animação
+            setTimeout(() => {
+              setReactions((prev) => prev.filter((r) => r.key !== key));
+            }, 2600);
+          }
         } catch {
           /* ignora frame inválido */
         }
@@ -101,6 +123,7 @@ export function usePokerRoom({ wsUrl, roomId, name }: UsePokerRoomArgs) {
   const vote = useCallback((value: string) => send({ type: 'vote', value }), [send]);
   const reveal = useCallback(() => send({ type: 'reveal' }), [send]);
   const reset = useCallback(() => send({ type: 'reset' }), [send]);
+  const sendReaction = useCallback((emoji: string) => send({ type: 'reaction', emoji }), [send]);
 
-  return { room, conn, vote, reveal, reset };
+  return { room, conn, reactions, vote, reveal, reset, sendReaction };
 }

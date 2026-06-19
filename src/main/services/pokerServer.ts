@@ -35,6 +35,7 @@ type ClientMessage =
   | { type: 'vote'; value: string }
   | { type: 'reveal' }
   | { type: 'reset' }
+  | { type: 'reaction'; emoji: string }
   | { type: 'leave' };
 
 const rooms = new Map<string, Room>();
@@ -160,9 +161,26 @@ function handleMessage(ws: WebSocket, raw: ClientMessage): void {
       broadcast(room);
       break;
     }
+    case 'reaction': {
+      const p = room.participants.find((x) => x.id === st.participantId);
+      broadcastReaction(room, st.participantId, p?.name ?? '?', String(raw.emoji).slice(0, 8));
+      break;
+    }
     case 'leave': {
       removeFromRoom(ws);
       break;
+    }
+  }
+}
+
+/** Reação é efêmera — não guarda estado, só repassa pra todos da sala. */
+function broadcastReaction(room: Room, fromId: string, fromName: string, emoji: string): void {
+  if (!wss) return;
+  const data = JSON.stringify({ type: 'reaction', fromId, fromName, emoji });
+  for (const client of wss.clients) {
+    const sock = sockets.get(client);
+    if (sock?.roomId === room.id && client.readyState === WebSocket.OPEN) {
+      client.send(data);
     }
   }
 }
