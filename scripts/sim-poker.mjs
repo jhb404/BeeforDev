@@ -2,10 +2,15 @@
 /*
  * Simulador de participante do Planning Poker (teste manual, sem browser/CSP).
  *
- * Uso — 2 formas:
- *   1) cola o convite inteiro (entre aspas):
+ * Uso — 3 formas:
+ *   1) cria sala como host (conecta no servidor local que o app já subiu):
+ *      node scripts/sim-poker.mjs create [porta]     (padrão: porta 4242)
+ *      → exibe convite ws://localhost:<porta>|<CODIGO> pra colar no app
+ *
+ *   2) cola o convite inteiro (entre aspas) — entra como convidado:
  *      node scripts/sim-poker.mjs "wss://abc.trycloudflare.com|HZZPU" "Bot Maria"
- *   2) url e sala separados:
+ *
+ *   3) url e sala separados:
  *      node scripts/sim-poker.mjs wss://abc.trycloudflare.com HZZPU "Bot Maria"
  *      node scripts/sim-poker.mjs 192.168.0.225:4242 HZZPU "Bot Maria"  (rede local)
  *
@@ -25,7 +30,7 @@ import WebSocket from 'ws';
 import readline from 'node:readline';
 
 const args = process.argv.slice(2);
-const CARDS = ['1', '2', '3', '5', '8', '13', '21', '?', '☕'];
+const CARDS = ['0', '1', '2', '3', '5', '8', '13', '21', '?', '☕'];
 
 /** Nomes aleatórios pros bots. */
 const NAMES = [
@@ -56,9 +61,34 @@ function toWsUrl(raw) {
   return url;
 }
 
-/** Aceita "url|sala" ou "url" "sala" (em args separados). */
+const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function genRoomCode() {
+  let code = '';
+  for (let i = 0; i < 5; i++) code += ROOM_ALPHABET[Math.floor(Math.random() * ROOM_ALPHABET.length)];
+  return code;
+}
+
+/** Aceita "url|sala" ou "url" "sala" (em args separados), ou "create [porta]". */
 function parseArgs() {
   if (!args[0]) return null;
+
+  // forma create: node sim-poker.mjs create [porta]
+  if (args[0] === 'create') {
+    const port = parseInt(args[1], 10) || 4242;
+    const room = genRoomCode();
+    const url = `ws://localhost:${port}`;
+    const name = 'Host Sim';
+    console.log('');
+    console.log('🎲 Sala criada! Convite para colar no app:');
+    console.log('');
+    console.log(`   ${url}|${room}`);
+    console.log('');
+    console.log('📋 Cole esse convite no campo "entre com um convite" do Planning Poker.');
+    console.log('   (o app precisa estar rodando pra o servidor WS existir)');
+    console.log('');
+    return { url, room, name };
+  }
+
   // forma 1: convite inteiro no primeiro arg
   if (args[0].includes('|')) {
     const [u, r] = args[0].split('|');
@@ -71,8 +101,10 @@ function parseArgs() {
 
 const cfg = parseArgs();
 if (!cfg || !cfg.room) {
-  console.error('Uso: node scripts/sim-poker.mjs "<convite>" [nome]');
-  console.error('  ou: node scripts/sim-poker.mjs <url> <SALA> [nome]');
+  console.error('Uso:');
+  console.error('  node scripts/sim-poker.mjs create [porta]    — cria sala local (porta padrão: 4242)');
+  console.error('  node scripts/sim-poker.mjs "<convite>" [nome] — entra como convidado');
+  console.error('  node scripts/sim-poker.mjs <url> <SALA> [nome]');
   process.exit(1);
 }
 

@@ -17,12 +17,16 @@ const PORT = Number(process.env.POKER_PORT) || 4242;
 const NON_NUMERIC = new Set(['?', '☕']);
 
 const DOG_COUNT = 14;
+const MAX_SEATS = 7; // lugares na mesa; excedente vai pro banco
+
+type Role = 'seated' | 'bench' | 'spectator';
 
 interface Participant {
   id: string;
   name: string;
   vote: string | null;
   dogId: number; // personagem (1..DOG_COUNT), único na sala quando possível
+  role: Role; // seated = na mesa, bench = reserva (vota), spectator = só observa
 }
 
 interface Room {
@@ -34,7 +38,11 @@ interface Room {
 
 /** Mensagens que o renderer envia. */
 type ClientMessage =
-  | { type: 'join'; roomId: string; name: string; dogId?: number }
+  | { type: 'join'; roomId: string; name: string; dogId?: number; role?: Role }
+  | { type: 'rename'; name: string }
+  | { type: 'changeDog'; dogId: number }
+  | { type: 'sit'; dogId?: number } // entra/volta pra mesa (ou banco se cheia)
+  | { type: 'spectate' } // vira espectador
   | { type: 'vote'; value: string }
   | { type: 'reveal' }
   | { type: 'reset' }
@@ -71,19 +79,38 @@ function roomPayload(room: Room) {
         id: p.id,
         name: p.name,
         dogId: p.dogId,
+        role: p.role,
         voted: p.vote !== null,
         vote: room.revealed ? p.vote : null,
       })),
-      // cães já em uso (pra UI travar na seleção)
-      takenDogs: room.participants.map((p) => p.dogId),
+      // cães já em uso por quem senta na mesa (pra UI travar na seleção)
+      takenDogs: room.participants.filter((p) => p.role === 'seated').map((p) => p.dogId),
+      seatsTaken: room.participants.filter((p) => p.role === 'seated').length,
+      maxSeats: MAX_SEATS,
       average: room.revealed ? average(room) : null,
     },
   };
 }
 
-/** Escolhe um dogId: usa o pedido se livre; senão o primeiro livre; senão recicla. */
-function pickDog(room: Room, preferred?: number): number {
-  const taken = new Set(room.participants.map((p) => p.dogId));
+/** Quantos estão sentados na mesa. */
+function seatedCount(room: Room): number {
+  return room.participants.filter((p) => p.role === 'seated').length;
+}
+
+/** Abriu vaga na mesa: promove o primeiro do banco (ordem de chegada). */
+function promoteFromBench(room: Room): void {
+  while (seatedCount(room) < MAX_SEATS) {
+    const next = room.participants.find((p) => p.role === 'bench');
+    if (!next) break;
+    next.dogId = pickDog(room, next.dogId, next.id);
+    next.role = 'seated';
+  }
+}
+
+/** Escolhe um dogId: usa o pedido se livre; senão o primeiro livre; senão recicla.
+ *  excludeId: participantId a ignorar no cálculo de "taken" (útil em changeDog). */
+function pickDog(room: Room, preferred?: number, excludeId?: string): number {
+  const taken = new Set(room.participants.filter((p) => p.id !== excludeId).map((p) => p.dogId));
   if (preferred && preferred >= 1 && preferred <= DOG_COUNT && !taken.has(preferred)) {
     return preferred;
   }
@@ -93,9 +120,10 @@ function pickDog(room: Room, preferred?: number): number {
   return (room.participants.length % DOG_COUNT) + 1; // sala cheia: recicla
 }
 
-/** Média ignorando `?` e `☕`. null se ninguém votou em número. */
+/** Média ignorando `?`, `☕` e espectadores. null se ninguém votou em número. */
 function average(room: Room): number | null {
   const nums = room.participants
+    .filter((p) => p.role !== 'spectator')
     .map((p) => p.vote)
     .filter((v): v is string => v !== null && !NON_NUMERIC.has(v))
     .map(Number)
@@ -126,6 +154,7 @@ function removeFromRoom(ws: WebSocket): void {
   if (room.participants.length === 0) {
     rooms.delete(room.id);
   } else {
+    promoteFromBench(room); // abriu vaga? sobe alguém do banco
     broadcast(room);
   }
 }
@@ -146,10 +175,17 @@ function handleMessage(ws: WebSocket, raw: ClientMessage): void {
       rooms.set(roomId, room);
     }
     const participantId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    // entra na mesa se tiver vaga; senão vai pro banco (reserva, vota igual)
+    const role: Role =
+      raw.role === 'spectator' ? 'spectator' : seatedCount(room) < MAX_SEATS ? 'seated' : 'bench';
     const dogId = pickDog(room, raw.dogId);
-    room.participants.push({ id: participantId, name, vote: null, dogId });
+    room.participants.push({ id: participantId, name, vote: null, dogId, role });
     sockets.set(ws, { roomId, participantId });
     touch(room);
+    // diz ao cliente QUEM ele é (pra identificar "eu" sem depender do dogId)
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'welcome', selfId: participantId }));
+    }
     broadcast(room);
     return;
   }
@@ -160,6 +196,51 @@ function handleMessage(ws: WebSocket, raw: ClientMessage): void {
   if (!room) return;
 
   switch (raw.type) {
+    case 'rename': {
+      const p = room.participants.find((x) => x.id === st.participantId);
+      const nm = String(raw.name || '')
+        .trim()
+        .slice(0, 40);
+      if (p && nm) {
+        p.name = nm;
+        touch(room);
+        broadcast(room);
+      }
+      break;
+    }
+    case 'changeDog': {
+      const p = room.participants.find((x) => x.id === st.participantId);
+      if (p) {
+        const newDog = pickDog(room, raw.dogId, st.participantId);
+        p.dogId = newDog;
+        touch(room);
+        broadcast(room);
+      }
+      break;
+    }
+    case 'sit': {
+      const p = room.participants.find((x) => x.id === st.participantId);
+      if (p && p.role !== 'seated') {
+        // só senta se há vaga; senão fica no banco (continua votando)
+        p.role = seatedCount(room) < MAX_SEATS ? 'seated' : 'bench';
+        if (p.role === 'seated' && raw.dogId) p.dogId = pickDog(room, raw.dogId, st.participantId);
+        touch(room);
+        broadcast(room);
+      }
+      break;
+    }
+    case 'spectate': {
+      const p = room.participants.find((x) => x.id === st.participantId);
+      if (p && p.role !== 'spectator') {
+        p.role = 'spectator';
+        p.vote = null; // espectador não vota
+        touch(room);
+        // libera vaga: se há alguém no banco, promove o primeiro pra mesa
+        promoteFromBench(room);
+        broadcast(room);
+      }
+      break;
+    }
     case 'vote': {
       const p = room.participants.find((x) => x.id === st.participantId);
       if (p) p.vote = String(raw.value);

@@ -13,24 +13,34 @@ import { getPokerPort } from './pokerServer';
  * http://localhost:<porta-do-poker> e capturamos a URL pública gerada.
  * O convite usa essa URL (wss://<random>.trycloudflare.com).
  *
- * Só Windows por enquanto (binário cloudflared.exe empacotado em resources/).
+ * Binário empacotado em resources/ por plataforma:
+ *   Windows → cloudflared.exe   macOS → cloudflared-darwin   Linux → cloudflared-linux
+ * (rode `node scripts/fetch-cloudflared.mjs` na plataforma alvo).
  */
 
 let proc: ChildProcess | null = null;
 let publicUrl: string | null = null;
 
+/** Nome do binário conforme o SO atual. */
+function binName(): string {
+  if (process.platform === 'win32') return 'cloudflared.exe';
+  if (process.platform === 'darwin') return 'cloudflared-darwin';
+  return 'cloudflared-linux';
+}
+
 /** Caminho do binário: packaged → resources/, dev → resources/ do projeto. */
 function cloudflaredPath(): string {
+  const name = binName();
   const candidates = app.isPackaged
-    ? [path.join(process.resourcesPath, 'cloudflared.exe')]
+    ? [path.join(process.resourcesPath, name)]
     : [
-        path.join(app.getAppPath(), 'resources', 'cloudflared.exe'),
-        path.join(__dirname, '../../resources/cloudflared.exe'),
+        path.join(app.getAppPath(), 'resources', name),
+        path.join(__dirname, `../../resources/${name}`),
       ];
   for (const c of candidates) {
     if (fs.existsSync(c)) return c;
   }
-  throw new Error('cloudflared.exe não encontrado. Rode: node scripts/fetch-cloudflared.mjs');
+  throw new Error(`${name} não encontrado. Rode: node scripts/fetch-cloudflared.mjs`);
 }
 
 /**

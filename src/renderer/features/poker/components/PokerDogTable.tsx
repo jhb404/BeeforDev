@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { playUiSound, type UiSoundKind } from '../../../utils/alarm';
 import { cardTier, pokerAsset } from '../cardTier';
 import type { LiveReaction, PokerParticipant } from '../usePokerRoom';
@@ -13,7 +13,6 @@ import type { LiveReaction, PokerParticipant } from '../usePokerRoom';
  *  - consenso (verde) vs outlier (vermelho) destacados
  */
 
-const SEAT_COUNT = 7;
 const NON_NUMERIC = new Set(['?', '☕']);
 
 /* ════════════════════════════════════════════════════════════════════
@@ -52,13 +51,68 @@ const NAME_OFFSET = { x: 0, y: 46 };
 /* ════════════════════════════════════════════════════════════════════ */
 
 interface Props {
+  /** participantes sentados na mesa (até maxSeats). */
   participants: PokerParticipant[];
+  /** participantes no banco de reserva (votam mas não sentam). */
+  bench?: PokerParticipant[];
   revealed: boolean;
   average: number | null;
   reactions: LiveReaction[];
+  maxSeats?: number;
 }
 
-export function PokerDogTable({ participants, revealed, average, reactions }: Props) {
+/**
+ * Rastreia quais participantes já ficaram 8s sem votar (= ZZZ).
+ * Antes disso só mostra "?".
+ */
+function useSlowVoters(participants: PokerParticipant[], revealed: boolean): Set<string> {
+  const [slowIds, setSlowIds] = useState<Set<string>>(new Set());
+  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  useEffect(() => {
+    const timers = timersRef.current;
+
+    // limpa timers de quem votou ou saiu
+    for (const [id, timer] of timers) {
+      const p = participants.find((x) => x.id === id);
+      if (!p || p.voted || revealed) {
+        clearTimeout(timer);
+        timers.delete(id);
+        setSlowIds((prev) => {
+          if (!prev.has(id)) return prev;
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }
+    }
+
+    if (revealed) return;
+
+    // inicia timer pra quem ainda não votou e ainda não tem timer
+    for (const p of participants) {
+      if (!p.voted && !timers.has(p.id)) {
+        const t = setTimeout(() => {
+          setSlowIds((prev) => new Set([...prev, p.id]));
+          timers.delete(p.id);
+        }, 8000);
+        timers.set(p.id, t);
+      }
+    }
+  }, [participants, revealed]);
+
+  // reseta tudo quando revela
+  useEffect(() => {
+    if (!revealed) return;
+    for (const t of timersRef.current.values()) clearTimeout(t);
+    timersRef.current.clear();
+    setSlowIds(new Set());
+  }, [revealed]);
+
+  return slowIds;
+}
+
+export function PokerDogTable({ participants, bench = [], revealed, average, reactions }: Props) {
   // reações agrupadas por participante (pra flutuar sobre o cão certo)
   const reactionsBySeat = useMemo(() => {
     const map: Record<string, LiveReaction[]> = {};
@@ -99,7 +153,9 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
     return max >= 2 ? best : null;
   }, [participants, revealed]);
 
-  const pending = participants.filter((p) => !p.voted).length;
+  // votação conta mesa + banco (espectadores não entram)
+  const voters = [...participants, ...bench];
+  const pending = voters.filter((p) => !p.voted).length;
 
   return (
     <div className="pdog">
@@ -160,7 +216,7 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
               style={{ width: `${DOG_SIZE}px` }}
               onDoubleClick={() => playUiSound('dog-bark')}
             />
-            {notVoted && <span className="pdog__zzz">z</span>}
+            {notVoted && <span className="pdog__think">💭</span>}
 
             {(reactionsBySeat[p.id] ?? []).map((r) => (
               <span key={r.key} className="pdog__reaction">
@@ -213,18 +269,18 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
           <div className="pdog__status">
             <span className="pdog__status-text">
               <span className="pdog__paw">🐾</span>
-              {participants.length === 0
+              {voters.length === 0
                 ? 'sala vazia'
                 : pending > 0
                   ? 'Aguardando todos votarem…'
                   : 'Todos votaram!'}
             </span>
-            {participants.length > 0 && (
+            {voters.length > 0 && (
               <span className="pdog__dots">
                 <span className="pdog__dots-count">
-                  {participants.length - pending}/{participants.length}
+                  {voters.length - pending}/{voters.length}
                 </span>
-                {participants.map((p) => (
+                {voters.map((p) => (
                   <span
                     key={p.id}
                     className={`pdog__dot${p.voted ? ' is-on' : ''}`}
@@ -237,8 +293,24 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
         )}
       </div>
 
-      {participants.length > SEAT_COUNT && (
-        <div className="pdog__overflow">+{participants.length - SEAT_COUNT} sem assento</div>
+      {/* banco de reserva — quem passou de 7 lugares (vota mas não senta) */}
+      {bench.length > 0 && (
+        <div className="pdog__bench">
+          <span className="pdog__bench-label">🪑 Banco</span>
+          {bench.map((p) => (
+            <span
+              key={p.id}
+              className={`pdog__bench-item${p.voted || revealed ? ' has-voted' : ''}`}
+              title={p.name}
+            >
+              <img src={pokerAsset(`dog-${p.dogId}.png`)} alt="" />
+              <span className="pdog__bench-name">{p.name}</span>
+              <span className="pdog__bench-status">
+                {revealed ? (p.vote ?? '—') : p.voted ? '✓' : '💭'}
+              </span>
+            </span>
+          ))}
+        </div>
       )}
     </div>
   );
