@@ -16,7 +16,7 @@ const PORT = Number(process.env.POKER_PORT) || 4242;
 /** Cartas válidas (mesmo set do renderer). Não-numéricas saem da média. */
 const NON_NUMERIC = new Set(['?', '☕']);
 
-const DOG_COUNT = 7;
+const DOG_COUNT = 14;
 
 interface Participant {
   id: string;
