@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useIpc } from '../../../services/ipc';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import { Copy, Eye, RotateCcw, Spade } from '../../../components/common/Icons';
 import { playUiSound } from '../../../utils/alarm';
 import { usePokerRoom, type ConnState, type LiveReaction } from '../usePokerRoom';
-import { CARDS, cardTier } from '../cardTier';
+import { CARDS, cardTier, pokerAsset } from '../cardTier';
 import { PokerDogTable } from './PokerDogTable';
 
 /** Reações rápidas — emoji puro ou emoji + efeito sonoro compartilhado. */
@@ -59,7 +59,7 @@ export function PlanningPokerModal({ open, onClose }: Props) {
   const [entryError, setEntryError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
-  // personagem escolhido (1..7)
+  // personagem escolhido (1..14)
   const [dogId, setDogId] = useState(1);
 
   // sessão ativa
@@ -218,7 +218,7 @@ function EntryScreen({
   onCreate: () => void;
   onJoin: () => void;
 }) {
-  const dogs = [1, 2, 3, 4, 5, 6, 7];
+  const dogs = Array.from({ length: 14 }, (_, i) => i + 1);
   return (
     <div className="poker-entry">
       <div className="poker-entry__card">
@@ -244,17 +244,15 @@ function EntryScreen({
                 onClick={() => setDogId(d)}
                 title={`Cachorro ${d}`}
               >
-                <img src={`./poker/dog-${d}.png`} alt={`Cachorro ${d}`} />
+                <img src={pokerAsset(`dog-${d}.png`)} alt={`Cachorro ${d}`} />
               </button>
             ))}
           </div>
-          <p className="poker-charpick__hint">
-            Se alguém já escolheu, o app dá outro automaticamente.
-          </p>
         </div>
 
         <button className="warm poker-entry__create" onClick={onCreate} disabled={creating}>
-          {creating ? 'Abrindo link…' : '🃏 Criar nova sala'}
+          <img className="poker-entry__create-icon" src={pokerAsset('card-back.png')} alt="" />
+          {creating ? 'Abrindo link…' : 'Criar nova sala'}
         </button>
 
         <div className="poker-entry__or">
@@ -309,6 +307,19 @@ function RoomScreen({
 }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [reactOpen, setReactOpen] = useState(false);
+  const reactMenuRef = useRef<HTMLDivElement>(null);
+
+  // fecha menu de reações ao clicar fora
+  useEffect(() => {
+    if (!reactOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (reactMenuRef.current && !reactMenuRef.current.contains(e.target as Node)) {
+        setReactOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [reactOpen]);
 
   // limpa seleção local quando a sala é resetada
   useEffect(() => {
@@ -343,7 +354,7 @@ function RoomScreen({
 
       <div className="poker-table-wrap">
         {/* menu de reações no canto superior esquerdo da mesa */}
-        <div className="poker-reactmenu">
+        <div className="poker-reactmenu" ref={reactMenuRef}>
           <button
             className={`poker-reactmenu__toggle${reactOpen ? ' is-open' : ''}`}
             onClick={() => setReactOpen((v) => !v)}
@@ -355,14 +366,7 @@ function RoomScreen({
             <div className="poker-reactmenu__panel">
               <div className="poker-reactmenu__group">
                 {EMOJI_REACTIONS.map((e) => (
-                  <button
-                    key={e}
-                    className="poker-reactmenu__emoji"
-                    onClick={() => {
-                      onReact(e);
-                      setReactOpen(false);
-                    }}
-                  >
+                  <button key={e} className="poker-reactmenu__emoji" onClick={() => onReact(e)}>
                     {e}
                   </button>
                 ))}
@@ -373,10 +377,7 @@ function RoomScreen({
                   <button
                     key={s.sound}
                     className="poker-reactmenu__sound"
-                    onClick={() => {
-                      onReact(s.emoji, s.sound);
-                      setReactOpen(false);
-                    }}
+                    onClick={() => onReact(s.emoji, s.sound)}
                   >
                     <span>{s.emoji}</span>
                     {s.label}

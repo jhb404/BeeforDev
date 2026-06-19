@@ -40,16 +40,16 @@
 
 .poker-entry > * {
   width: 100%;
-  max-width: 440px;
+  max-width: 620px;
 }
 
 .poker-entry__card {
   width: 100%;
-  max-width: 440px;
+  max-width: 620px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 22px;
+  gap: 18px;
+  padding: 28px;
   background: var(--bg-1);
   border: 1px solid var(--border-strong);
   border-radius: calc(var(--radius) + 4px);
@@ -69,8 +69,12 @@
 }
 
 .poker-entry__create {
-  min-height: 46px;
+  min-height: 50px;
   font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .poker-entry__or {
@@ -294,6 +298,8 @@
 .poker-card:hover:not(:disabled) {
   transform: translateY(-6px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  background: var(--card-bg, #fff);
+  border-color: var(--card-bd, var(--border-strong));
 }
 
 .poker-card:disabled {
@@ -367,10 +373,15 @@
   box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
-.poker-charpick__hint {
-  margin: 0;
-  font-size: 11px;
-  color: var(--text-muted);
+/* ícone de carta no botão "Criar nova sala" */
+.poker-entry__create-icon {
+  width: 18px;
+  height: 24px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  margin-right: 4px;
+  vertical-align: middle;
+  border-radius: 2px;
 }
 
 /* ============ menu de reações (canto da mesa) ============ */
@@ -501,6 +512,7 @@
   width: 100%;
   max-width: 760px;
   margin: 0 auto;
+  user-select: none;
 }
 
 /* mesa pixel-art transparente, centralizada */
@@ -536,17 +548,31 @@
 /* cão (sprite já vem com corpo + cartas) — sempre colorido */
 .pdog__dog {
   image-rendering: pixelated;
-  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.5));
-  transition: filter 0.25s ease, transform 0.2s ease;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.5)) saturate(0.35);
+  opacity: 0.85;
+  transition: filter 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
+}
+
+/* cão que já votou — cor plena */
+.pdog__seat.has-voted .pdog__dog {
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.5)) saturate(1);
+  opacity: 1;
 }
 
 /* consenso = brilho verde, outlier = brilho vermelho */
 .pdog__dog.is-consensus {
   filter: drop-shadow(0 0 8px var(--ok)) drop-shadow(0 0 8px var(--ok));
+  opacity: 1;
 }
 
 .pdog__dog.is-outlier {
   filter: drop-shadow(0 0 8px var(--err)) drop-shadow(0 0 8px var(--err));
+  opacity: 1;
+}
+
+/* carta destacada quando o dono já votou (antes do reveal) */
+.pdog__card.is-held {
+  filter: drop-shadow(0 0 5px rgba(255, 220, 100, 0.9));
 }
 
 .pdog__zzz {
@@ -679,12 +705,12 @@
   --card-fg: #4a5568;
 }
 
-/* centro da mesa: média / status */
+/* centro da mesa: média / status — 44% alinha com o feltro oval */
 .pdog__center {
   position: absolute;
   z-index: 2;
   left: 50%;
-  top: 50%;
+  top: 44%;
   transform: translate(-50%, -50%);
   text-align: center;
   pointer-events: none;
@@ -725,21 +751,22 @@
 }
 
 .pdog__avg span {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .pdog__avg strong {
-  font-size: 28px;
+  font-size: 48px;
   color: var(--warm);
-  line-height: 1.1;
+  line-height: 1;
+  font-weight: 900;
 }
 
 .pdog__avg em {
-  margin-top: 2px;
-  font-size: 11px;
+  margin-top: 4px;
+  font-size: 12px;
   font-style: normal;
   color: var(--ok);
 }

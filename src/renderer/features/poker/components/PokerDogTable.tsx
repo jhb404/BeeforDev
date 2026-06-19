@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { playUiSound, type UiSoundKind } from '../../../utils/alarm';
-import { cardTier } from '../cardTier';
+import { cardTier, pokerAsset } from '../cardTier';
 import type { LiveReaction, PokerParticipant } from '../usePokerRoom';
 
 /**
@@ -22,13 +22,13 @@ const NON_NUMERIC = new Set(['?', '☕']);
 
 /** Posição de cada cão, em % do container quadrado (x = horizontal, y = vertical). */
 const SEATS = [
-  { x: 30, y: 20 }, // 1 topo-esq
-  { x: 50, y: 17 }, // 2 topo-meio
-  { x: 70, y: 20 }, // 3 topo-dir
+  { x: 30, y: 17 }, // 1 topo-esq
+  { x: 50, y: 15 }, // 2 topo-meio
+  { x: 70, y: 17 }, // 3 topo-dir
   { x: 14, y: 45 }, // 4 meio-esq
   { x: 86, y: 45 }, // 5 meio-dir
-  { x: 33, y: 75 }, // 6 base-esq
-  { x: 67, y: 75 }, // 7 base-dir
+  { x: 33, y: 70 }, // 6 base-esq
+  { x: 67, y: 70 }, // 7 base-dir
 ];
 
 /** Tamanho do sprite do cão (px). */
@@ -103,7 +103,7 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
 
   return (
     <div className="pdog">
-      <img className="pdog__table" src="./poker/table.png" alt="" aria-hidden="true" />
+      <img className="pdog__table" src={pokerAsset('table.png')} alt="" aria-hidden="true" />
 
       {SEATS.map((seat, i) => {
         const p = participants[i];
@@ -122,19 +122,40 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
         const isConsensus = revealed && consensus !== null && p.vote === consensus;
         const isOutlier = revealed && consensus !== null && isNum && p.vote !== consensus;
         // fallback: se o servidor ainda não manda dogId, deriva pelo assento
-        const dogId = p.dogId && p.dogId >= 1 && p.dogId <= 7 ? p.dogId : (i % 7) + 1;
+        const dogId = p.dogId && p.dogId >= 1 && p.dogId <= 14 ? p.dogId : (i % 14) + 1;
+
+        const seatClass = [
+          'pdog__seat',
+          p.voted && !revealed ? 'just-voted' : '',
+          p.voted ? 'has-voted' : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+
+        const dogClass = [
+          'pdog__dog',
+          isConsensus ? 'is-consensus' : '',
+          isOutlier ? 'is-outlier' : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+
+        // carta: brilho dourado se votou mas ainda não revelou
+        const cardClass = [
+          'pdog__card',
+          revealed ? 'is-flipped' : '',
+          p.voted && !revealed ? 'is-held' : '',
+          isConsensus ? 'is-consensus' : '',
+          isOutlier ? 'is-outlier' : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
 
         return (
-          <div
-            key={p.id}
-            className={`pdog__seat${p.voted && !revealed ? ' just-voted' : ''}`}
-            style={style}
-          >
+          <div key={p.id} className={seatClass} style={style}>
             <img
-              className={`pdog__dog${isConsensus ? ' is-consensus' : ''}${
-                isOutlier ? ' is-outlier' : ''
-              }`}
-              src={`./poker/dog-${dogId}.png`}
+              className={dogClass}
+              src={pokerAsset(`dog-${dogId}.png`)}
               alt={p.name}
               style={{ width: `${DOG_SIZE}px` }}
               onDoubleClick={() => playUiSound('dog-bark')}
@@ -158,9 +179,7 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
 
             {(revealed || p.voted) && (
               <span
-                className={`pdog__card${revealed ? ' is-flipped' : ''}${
-                  isConsensus ? ' is-consensus' : ''
-                }${isOutlier ? ' is-outlier' : ''}`}
+                className={cardClass}
                 style={{
                   width: `${CARD_W}px`,
                   height: `${CARD_H}px`,
@@ -170,7 +189,7 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
                 <span className="pdog__card-inner">
                   <img
                     className="pdog__card-face pdog__card-back"
-                    src="./poker/card-back.png"
+                    src={pokerAsset('card-back.png')}
                     alt=""
                   />
                   <span className={`pdog__card-face pdog__card-front ${cardTier(p.vote)}`}>

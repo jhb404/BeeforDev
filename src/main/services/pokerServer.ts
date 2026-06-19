@@ -270,7 +270,7 @@ export function startPokerServer(): void {
           const msg = JSON.parse(buf.toString()) as ClientMessage;
           handleMessage(ws, msg);
         } catch (err) {
-          logger.warn('[poker] mensagem inválida', err);
+          logger.warn(`[poker] mensagem inválida: ${err instanceof Error ? err.message : err}`);
         }
       });
       ws.on('close', () => removeFromRoom(ws));

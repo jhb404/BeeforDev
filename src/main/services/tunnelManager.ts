@@ -104,7 +104,9 @@ export function stopTunnel(): void {
     try {
       proc.kill();
     } catch (err) {
-      logger.warn('[tunnel] erro ao matar cloudflared', err);
+      logger.warn(
+        `[tunnel] erro ao matar cloudflared: ${err instanceof Error ? err.message : err}`,
+      );
     }
   }
   proc = null;
