@@ -17,6 +17,8 @@
  *   fill     -> sobe 6 bots com nomes aleatórios de uma vez
  *   react    -> você manda uma reação (emoji aleatório); react 🔥 = emoji específico
  *   reacts   -> todos os bots reagem com emoji aleatório
+ *   sound    -> reação SONORA: sound latido|aplauso|vaia|suspense (vazio = aleatório)
+ *   sounds   -> todos os bots mandam um som aleatório
  *   quit     -> sai
  */
 import WebSocket from 'ws';
@@ -31,6 +33,13 @@ const NAMES = [
   'Rafa', 'Bia', 'Caio', 'Duda', 'Theo', 'Nina', 'Igor', 'Lara',
 ];
 const EMOJIS = ['🔥', '👏', '😂', '👍', '❤️', '🤔'];
+/** Reações sonoras (mesmas do app): atalho -> { emoji, sound } */
+const SOUNDS = {
+  latido: { emoji: '🐶', sound: 'dog-bark' },
+  aplauso: { emoji: '👏', sound: 'clap' },
+  vaia: { emoji: '👎', sound: 'boo' },
+  suspense: { emoji: '🥁', sound: 'drumroll' },
+};
 const usedNames = new Set();
 function randomName() {
   const free = NAMES.filter((n) => !usedNames.has(n));
@@ -103,7 +112,8 @@ function render(buf) {
     return;
   }
   if (msg.type === 'reaction') {
-    console.log(`\n💬 reação: ${msg.fromName} → ${msg.emoji}`);
+    const snd = msg.sound ? ` 🔊 ${msg.sound}` : '';
+    console.log(`\n💬 reação: ${msg.fromName} → ${msg.emoji}${snd}`);
     process.stdout.write('> ');
     return;
   }
@@ -174,10 +184,28 @@ rl.on('line', (line) => {
       }
     }
     console.log(`${bots.length} bots reagiram`);
+  } else if (cmd === 'sound' || cmd.startsWith('sound ')) {
+    // reação SONORA: sound latido|aplauso|vaia|suspense (vazio = aleatório)
+    const key = cmd.slice(6).trim();
+    const entry = SOUNDS[key] || SOUNDS[Object.keys(SOUNDS)[Math.floor(Math.random() * 4)]];
+    send({ type: 'reaction', emoji: entry.emoji, sound: entry.sound });
+    console.log(`enviou som: ${entry.sound} ${entry.emoji}`);
+  } else if (cmd === 'sounds') {
+    // todos os bots mandam um som aleatório (cuidado: vira festa)
+    const keys = Object.keys(SOUNDS);
+    for (const b of bots) {
+      if (b.readyState === WebSocket.OPEN) {
+        const entry = SOUNDS[keys[Math.floor(Math.random() * keys.length)]];
+        b.send(JSON.stringify({ type: 'reaction', emoji: entry.emoji, sound: entry.sound }));
+      }
+    }
+    console.log(`${bots.length} bots mandaram som`);
   } else if (CARDS.includes(cmd)) {
     send({ type: 'vote', value: cmd });
   } else {
-    console.log('comandos: <carta> | reveal | reset | fill | bots N | react [emoji] | reacts | quit');
+    console.log(
+      'comandos: <carta> | reveal | reset | fill | bots N | react [emoji] | reacts | sound [latido|aplauso|vaia|suspense] | sounds | quit',
+    );
   }
   process.stdout.write('> ');
 });

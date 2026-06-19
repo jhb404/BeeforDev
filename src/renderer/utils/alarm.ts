@@ -615,6 +615,91 @@ export async function playUiPokerReveal(): Promise<void> {
   ]);
 }
 
+// boo — vaia: ruído grave descendente "buuu"
+export async function playUiBoo(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  const osc = audio.createOscillator();
+  const g = audio.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(240, s);
+  osc.frequency.exponentialRampToValueAtTime(90, s + 0.7);
+  g.gain.setValueAtTime(0.0001, s);
+  g.gain.exponentialRampToValueAtTime(0.18, s + 0.05);
+  g.gain.exponentialRampToValueAtTime(0.0001, s + 0.75);
+  const filter = audio.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 800;
+  osc.connect(filter).connect(g).connect(audio.destination);
+  osc.start(s);
+  osc.stop(s + 0.8);
+}
+
+// clap — aplauso: rajada de cliques de ruído filtrado
+export async function playUiClap(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  for (let i = 0; i < 7; i++) {
+    const t = s + i * 0.07 + Math.random() * 0.02;
+    const dur = 0.05;
+    const buf = audio.createBuffer(1, audio.sampleRate * dur, audio.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let j = 0; j < data.length; j++) {
+      data[j] = (Math.random() * 2 - 1) * (1 - j / data.length);
+    }
+    const noise = audio.createBufferSource();
+    noise.buffer = buf;
+    const filter = audio.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1800;
+    filter.Q.value = 1;
+    const g = audio.createGain();
+    g.gain.setValueAtTime(0.18, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    noise.connect(filter).connect(g).connect(audio.destination);
+    noise.start(t);
+    noise.stop(t + dur);
+  }
+}
+
+// drumroll — rufar de tambor (suspense): cliques graves acelerando + final
+export async function playUiDrumroll(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  let t = 0;
+  let gap = 0.07;
+  while (t < 1.0) {
+    const at = s + t;
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = 90 + Math.random() * 20;
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.12, at + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.05);
+    osc.connect(g).connect(audio.destination);
+    osc.start(at);
+    osc.stop(at + 0.06);
+    t += gap;
+    gap = Math.max(0.025, gap * 0.92); // acelera
+  }
+  // batida final
+  const at = s + 1.05;
+  const osc = audio.createOscillator();
+  const g = audio.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(160, at);
+  osc.frequency.exponentialRampToValueAtTime(60, at + 0.3);
+  g.gain.setValueAtTime(0.3, at);
+  g.gain.exponentialRampToValueAtTime(0.0001, at + 0.35);
+  osc.connect(g).connect(audio.destination);
+  osc.start(at);
+  osc.stop(at + 0.4);
+}
+
 export type UiSoundKind =
   | 'click'
   | 'close'
@@ -641,7 +726,10 @@ export type UiSoundKind =
   | 'activity-open'
   | 'poker-open'
   | 'dog-bark'
-  | 'poker-reveal';
+  | 'poker-reveal'
+  | 'boo'
+  | 'clap'
+  | 'drumroll';
 
 export function playUiSound(kind: UiSoundKind): void {
   switch (kind) {
@@ -722,6 +810,15 @@ export function playUiSound(kind: UiSoundKind): void {
       return;
     case 'poker-reveal':
       void playUiPokerReveal();
+      return;
+    case 'boo':
+      void playUiBoo();
+      return;
+    case 'clap':
+      void playUiClap();
+      return;
+    case 'drumroll':
+      void playUiDrumroll();
       return;
   }
 }

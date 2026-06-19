@@ -26,12 +26,34 @@
 
 /* ---------- entrada ---------- */
 
+/* tela de entrada centralizada num card compacto (a modal é grande) */
 .poker-entry {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  padding: 24px;
+  overflow: auto;
+}
+
+.poker-entry > * {
+  width: 100%;
+  max-width: 440px;
+}
+
+.poker-entry__card {
+  width: 100%;
+  max-width: 440px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 18px;
-  overflow: auto;
+  padding: 22px;
+  background: var(--bg-1);
+  border: 1px solid var(--border-strong);
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: var(--shadow);
 }
 
 .poker-field {
@@ -46,28 +68,40 @@
   color: var(--text-muted);
 }
 
-.poker-entry__split {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 18px;
-  align-items: stretch;
+.poker-entry__create {
+  min-height: 46px;
+  font-size: 15px;
 }
 
-.poker-entry__col {
+.poker-entry__or {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 10px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.poker-entry__col h3 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.poker-entry__divider {
-  width: 1px;
+.poker-entry__or::before,
+.poker-entry__or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
   background: var(--border);
+}
+
+.poker-entry__join {
+  display: flex;
+  gap: 8px;
+}
+
+.poker-entry__join input {
+  flex: 1;
+}
+
+.poker-entry__join button {
+  flex-shrink: 0;
 }
 
 .poker-hint {
@@ -118,11 +152,11 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 5px 12px;
+  padding: 6px 12px;
   background: var(--bg-2);
   color: var(--text);
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius);
   font-size: 13px;
 }
 
@@ -214,60 +248,233 @@
   min-height: 40px;
 }
 
+/* carta de voto — formato de carta de baralho, cor por dificuldade */
 .poker-card {
-  min-width: 52px;
-  min-height: 70px;
-  font-size: 20px;
-  font-weight: 700;
-  background: var(--bg-2);
-  color: var(--text);
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease,
-    box-shadow 0.12s ease;
+  position: relative;
+  width: 52px;
+  height: 74px;
+  padding: 0;
+  background: var(--card-bg, #fff);
+  border: 2px solid var(--card-bd, var(--border));
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.poker-card__value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--card-fg, #222);
+}
+
+.poker-card__corner {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--card-fg, #222);
+  line-height: 1;
+}
+
+.poker-card__corner--tl {
+  top: 4px;
+  left: 5px;
+}
+
+.poker-card__corner--br {
+  bottom: 4px;
+  right: 5px;
+  transform: rotate(180deg);
 }
 
 .poker-card:hover:not(:disabled) {
-  background: var(--bg-3);
-  transform: translateY(-4px);
-  border-color: var(--border-strong);
+  transform: translateY(-6px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
 }
 
 .poker-card:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .poker-card.is-selected {
+  transform: translateY(-10px);
+  box-shadow: 0 0 0 3px var(--card-bd), 0 10px 20px rgba(0, 0, 0, 0.4);
+  filter: saturate(1.2);
+}
+
+/* tiers de dificuldade — fácil (verde) → difícil (vermelho) */
+.poker-card.tier-1 {
+  --card-bg: #e9f9ef;
+  --card-bd: #3cba6f;
+  --card-fg: #1e7a45;
+}
+.poker-card.tier-2 {
+  --card-bg: #fff7e3;
+  --card-bd: #e8b54a;
+  --card-fg: #8a5e12;
+}
+.poker-card.tier-3 {
+  --card-bg: #ffefe0;
+  --card-bd: #e8843c;
+  --card-fg: #a8521a;
+}
+.poker-card.tier-4 {
+  --card-bg: #ffe6e6;
+  --card-bd: #e0545a;
+  --card-fg: #9e2b30;
+}
+.poker-card.tier-neutral {
+  --card-bg: #eef1f6;
+  --card-bd: #9aa6b6;
+  --card-fg: #4a5568;
+}
+
+/* ============ seleção de personagem (entrada) ============ */
+.poker-charpick {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.poker-charpick__opt {
+  aspect-ratio: 1 / 1;
+  padding: 3px;
+  background: var(--bg-2);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.poker-charpick__opt img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.poker-charpick__opt:hover {
+  background: var(--bg-3);
+  transform: translateY(-2px);
+}
+
+.poker-charpick__opt.is-active {
   border-color: var(--accent);
   background: var(--accent-soft);
-  color: var(--text);
-  transform: translateY(-6px);
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
-/* reações rápidas */
-.poker-reactions {
+.poker-charpick__hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ============ menu de reações (canto da mesa) ============ */
+.poker-table-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
   display: flex;
-  gap: 4px;
+  justify-content: center;
 }
 
-.poker-reactions__btn {
-  min-height: 34px;
-  padding: 3px 9px;
-  font-size: 17px;
+.poker-reactmenu {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 6;
+}
+
+.poker-reactmenu__toggle {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  padding: 0;
   background: var(--bg-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.poker-reactmenu__toggle:hover,
+.poker-reactmenu__toggle.is-open {
+  background: var(--bg-3);
+  transform: scale(1.08);
+}
+
+.poker-reactmenu__panel {
+  position: absolute;
+  top: 46px;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  width: 200px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  animation: pdog-pop 0.18s ease;
+}
+
+.poker-reactmenu__group {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+}
+
+.poker-reactmenu__emoji {
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  font-size: 17px;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 8px;
   transition: transform 0.1s ease, background 0.12s ease;
 }
 
-.poker-reactions__btn:hover {
-  background: var(--bg-3);
-  transform: scale(1.18);
+.poker-reactmenu__emoji:hover {
+  background: var(--bg-2);
+  transform: scale(1.2);
 }
 
-.poker-reactions__btn:active {
-  transform: scale(0.95);
+.poker-reactmenu__divider {
+  height: 1px;
+  background: var(--border);
+}
+
+.poker-reactmenu__sounds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.poker-reactmenu__sound {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: background 0.12s ease;
+}
+
+.poker-reactmenu__sound:hover {
+  background: var(--bg-3);
+}
+
+.poker-reactmenu__sound span {
+  font-size: 14px;
 }
 
 /* ação principal (revelar / novo round) — só host */
@@ -290,12 +497,10 @@
 
 .pdog {
   position: relative;
-  flex: 1;
-  min-height: 0;
+  height: 100%;
   width: 100%;
   max-width: 760px;
   margin: 0 auto;
-  align-self: center;
 }
 
 /* mesa pixel-art transparente, centralizada */
@@ -437,24 +642,41 @@
   image-rendering: pixelated;
 }
 
+/* frente da carta revelada — herda a cor (tier) do voto, igual à escolha */
 .pdog__card-front {
   transform: rotateY(180deg);
-  background: #fff;
-  color: #16432c;
+  background: var(--card-bg, #fff);
+  color: var(--card-fg, #16432c);
   font-size: 17px;
   font-weight: 800;
   border-radius: 4px;
-  border: 2px solid var(--accent);
+  border: 2px solid var(--card-bd, var(--accent));
 }
 
-.pdog__card.is-consensus .pdog__card-front {
-  border-color: var(--ok);
-  color: var(--ok);
+.pdog__card-front.tier-1 {
+  --card-bg: #e9f9ef;
+  --card-bd: #3cba6f;
+  --card-fg: #1e7a45;
 }
-
-.pdog__card.is-outlier .pdog__card-front {
-  border-color: var(--err);
-  color: var(--err);
+.pdog__card-front.tier-2 {
+  --card-bg: #fff7e3;
+  --card-bd: #e8b54a;
+  --card-fg: #8a5e12;
+}
+.pdog__card-front.tier-3 {
+  --card-bg: #ffefe0;
+  --card-bd: #e8843c;
+  --card-fg: #a8521a;
+}
+.pdog__card-front.tier-4 {
+  --card-bg: #ffe6e6;
+  --card-bd: #e0545a;
+  --card-fg: #9e2b30;
+}
+.pdog__card-front.tier-neutral {
+  --card-bg: #eef1f6;
+  --card-bd: #9aa6b6;
+  --card-fg: #4a5568;
 }
 
 /* centro da mesa: média / status */

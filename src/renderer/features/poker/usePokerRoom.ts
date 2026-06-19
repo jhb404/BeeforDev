@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export interface PokerParticipant {
   id: string;
   name: string;
+  dogId: number;
   voted: boolean;
   vote: string | null;
 }
@@ -12,6 +13,7 @@ export interface PokerRoom {
   id: string;
   revealed: boolean;
   participants: PokerParticipant[];
+  takenDogs: number[];
   average: number | null;
 }
 
@@ -23,6 +25,8 @@ export interface LiveReaction {
   fromId: string;
   fromName: string;
   emoji: string;
+  /** efeito sonoro a tocar (kind do alarm.ts), se houver */
+  sound?: string;
 }
 
 interface UsePokerRoomArgs {
@@ -30,13 +34,15 @@ interface UsePokerRoomArgs {
   wsUrl: string | null;
   roomId: string | null;
   name: string;
+  /** personagem escolhido (1..7); servidor garante unicidade. */
+  dogId?: number;
 }
 
 /**
  * Conexão WebSocket nativa com o servidor de poker.
  * Reconecta com backoff simples e reenvia o `join` ao religar.
  */
-export function usePokerRoom({ wsUrl, roomId, name }: UsePokerRoomArgs) {
+export function usePokerRoom({ wsUrl, roomId, name, dogId }: UsePokerRoomArgs) {
   const [room, setRoom] = useState<PokerRoom | null>(null);
   const [conn, setConn] = useState<ConnState>('connecting');
   const [reactions, setReactions] = useState<LiveReaction[]>([]);
@@ -69,7 +75,7 @@ export function usePokerRoom({ wsUrl, roomId, name }: UsePokerRoomArgs) {
       ws.onopen = () => {
         retryRef.current = 0;
         setConn('connected');
-        ws.send(JSON.stringify({ type: 'join', roomId, name }));
+        ws.send(JSON.stringify({ type: 'join', roomId, name, dogId }));
       };
       ws.onmessage = (ev) => {
         try {
@@ -80,7 +86,13 @@ export function usePokerRoom({ wsUrl, roomId, name }: UsePokerRoomArgs) {
             const key = ++reactionSeq.current;
             setReactions((prev) => [
               ...prev,
-              { key, fromId: data.fromId, fromName: data.fromName, emoji: data.emoji },
+              {
+                key,
+                fromId: data.fromId,
+                fromName: data.fromName,
+                emoji: data.emoji,
+                sound: data.sound,
+              },
             ]);
             // some após a animação
             setTimeout(() => {
@@ -118,12 +130,15 @@ export function usePokerRoom({ wsUrl, roomId, name }: UsePokerRoomArgs) {
       wsRef.current = null;
       setConn('closed');
     };
-  }, [wsUrl, roomId, name]);
+  }, [wsUrl, roomId, name, dogId]);
 
   const vote = useCallback((value: string) => send({ type: 'vote', value }), [send]);
   const reveal = useCallback(() => send({ type: 'reveal' }), [send]);
   const reset = useCallback(() => send({ type: 'reset' }), [send]);
-  const sendReaction = useCallback((emoji: string) => send({ type: 'reaction', emoji }), [send]);
+  const sendReaction = useCallback(
+    (emoji: string, sound?: string) => send({ type: 'reaction', emoji, sound }),
+    [send],
+  );
 
   return { room, conn, reactions, vote, reveal, reset, sendReaction };
 }

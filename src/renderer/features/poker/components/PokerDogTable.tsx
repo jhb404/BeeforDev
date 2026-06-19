@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
-import { playUiSound } from '../../../utils/alarm';
+import { useEffect, useMemo, useRef } from 'react';
+import { playUiSound, type UiSoundKind } from '../../../utils/alarm';
+import { cardTier } from '../cardTier';
 import type { LiveReaction, PokerParticipant } from '../usePokerRoom';
 
 /**
@@ -12,7 +13,6 @@ import type { LiveReaction, PokerParticipant } from '../usePokerRoom';
  *  - consenso (verde) vs outlier (vermelho) destacados
  */
 
-const DOG_COUNT = 7;
 const SEAT_COUNT = 7;
 const NON_NUMERIC = new Set(['?', '☕']);
 
@@ -51,26 +51,6 @@ const NAME_OFFSET = { x: 0, y: 46 };
 
 /* ════════════════════════════════════════════════════════════════════ */
 
-/** Sorteia um cão por participante, estável e sem repetir (por ordem). */
-function useDogAssignment(participants: PokerParticipant[]): Record<string, number> {
-  return useMemo(() => {
-    const map: Record<string, number> = {};
-    const used = new Set<number>();
-    for (const p of participants) {
-      let h = 0;
-      for (const ch of p.id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-      let dog = (h % DOG_COUNT) + 1;
-      let guard = 0;
-      while (used.has(dog) && used.size < DOG_COUNT && guard++ < DOG_COUNT) {
-        dog = (dog % DOG_COUNT) + 1;
-      }
-      used.add(dog);
-      map[p.id] = ((dog - 1) % DOG_COUNT) + 1;
-    }
-    return map;
-  }, [participants]);
-}
-
 interface Props {
   participants: PokerParticipant[];
   revealed: boolean;
@@ -79,8 +59,6 @@ interface Props {
 }
 
 export function PokerDogTable({ participants, revealed, average, reactions }: Props) {
-  const dogOf = useDogAssignment(participants);
-
   // reações agrupadas por participante (pra flutuar sobre o cão certo)
   const reactionsBySeat = useMemo(() => {
     const map: Record<string, LiveReaction[]> = {};
@@ -88,6 +66,17 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
       (map[r.fromId] ??= []).push(r);
     }
     return map;
+  }, [reactions]);
+
+  // toca o som de cada reação nova que chega (uma vez por key)
+  const playedSounds = useRef(new Set<number>());
+  useEffect(() => {
+    for (const r of reactions) {
+      if (r.sound && !playedSounds.current.has(r.key)) {
+        playedSounds.current.add(r.key);
+        playUiSound(r.sound as UiSoundKind);
+      }
+    }
   }, [reactions]);
 
   // voto majoritário (consenso) pra destacar verde vs outlier vermelho
@@ -132,6 +121,8 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
         const isNum = p.vote && !NON_NUMERIC.has(p.vote);
         const isConsensus = revealed && consensus !== null && p.vote === consensus;
         const isOutlier = revealed && consensus !== null && isNum && p.vote !== consensus;
+        // fallback: se o servidor ainda não manda dogId, deriva pelo assento
+        const dogId = p.dogId && p.dogId >= 1 && p.dogId <= 7 ? p.dogId : (i % 7) + 1;
 
         return (
           <div
@@ -143,7 +134,7 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
               className={`pdog__dog${isConsensus ? ' is-consensus' : ''}${
                 isOutlier ? ' is-outlier' : ''
               }`}
-              src={`./poker/dog-${dogOf[p.id]}.png`}
+              src={`./poker/dog-${dogId}.png`}
               alt={p.name}
               style={{ width: `${DOG_SIZE}px` }}
               onDoubleClick={() => playUiSound('dog-bark')}
@@ -182,7 +173,9 @@ export function PokerDogTable({ participants, revealed, average, reactions }: Pr
                     src="./poker/card-back.png"
                     alt=""
                   />
-                  <span className="pdog__card-face pdog__card-front">{p.vote ?? '—'}</span>
+                  <span className={`pdog__card-face pdog__card-front ${cardTier(p.vote)}`}>
+                    {p.vote ?? '—'}
+                  </span>
                 </span>
               </span>
             )}

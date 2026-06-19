@@ -4,17 +4,23 @@ import { ModalShell } from '../../../components/ui/ModalShell';
 import { Copy, Eye, RotateCcw, Spade } from '../../../components/common/Icons';
 import { playUiSound } from '../../../utils/alarm';
 import { usePokerRoom, type ConnState, type LiveReaction } from '../usePokerRoom';
+import { CARDS, cardTier } from '../cardTier';
 import { PokerDogTable } from './PokerDogTable';
 
-/** Emojis de reação rápida (repassados a todos via servidor). */
-const REACTIONS = ['🔥', '👏', '😂', '👍', '❤️', '🤔'];
+/** Reações rápidas — emoji puro ou emoji + efeito sonoro compartilhado. */
+const EMOJI_REACTIONS = ['🔥', '👏', '😂', '👍', '❤️', '🤔'];
+const SOUND_REACTIONS: { emoji: string; label: string; sound: string }[] = [
+  { emoji: '🐶', label: 'Latido', sound: 'dog-bark' },
+  { emoji: '👏', label: 'Aplauso', sound: 'clap' },
+  { emoji: '👎', label: 'Vaia', sound: 'boo' },
+  { emoji: '🥁', label: 'Suspense', sound: 'drumroll' },
+];
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-const CARDS = ['1', '2', '3', '5', '8', '13', '21', '?', '☕'];
 const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 function genRoomCode(): string {
@@ -53,6 +59,9 @@ export function PlanningPokerModal({ open, onClose }: Props) {
   const [entryError, setEntryError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
+  // personagem escolhido (1..7)
+  const [dogId, setDogId] = useState(1);
+
   // sessão ativa
   const [wsUrl, setWsUrl] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -63,6 +72,7 @@ export function PlanningPokerModal({ open, onClose }: Props) {
     wsUrl,
     roomId,
     name,
+    dogId,
   });
 
   const revealWithSound = () => {
@@ -138,19 +148,24 @@ export function PlanningPokerModal({ open, onClose }: Props) {
 
   return (
     <ModalShell open={open} onClose={onClose} className="poker-modal" labelledBy="poker-title">
-      <header className="modal-head">
-        <h2 id="poker-title">
-          <Spade size={18} /> Planning Poker
-        </h2>
-        <button className="secondary compact" onClick={onClose}>
+      <div className="modal-head">
+        <div>
+          <p className="eyebrow">Time</p>
+          <h2 id="poker-title">
+            <Spade size={18} /> Planning Poker
+          </h2>
+        </div>
+        <button className="secondary compact" onClick={onClose} data-sound="close">
           Fechar
         </button>
-      </header>
+      </div>
 
       {!inRoom ? (
         <EntryScreen
           name={name}
           setName={setName}
+          dogId={dogId}
+          setDogId={setDogId}
           inviteInput={inviteInput}
           setInviteInput={setInviteInput}
           creating={creating}
@@ -183,6 +198,8 @@ export function PlanningPokerModal({ open, onClose }: Props) {
 function EntryScreen({
   name,
   setName,
+  dogId,
+  setDogId,
   inviteInput,
   setInviteInput,
   creating,
@@ -192,6 +209,8 @@ function EntryScreen({
 }: {
   name: string;
   setName: (v: string) => void;
+  dogId: number;
+  setDogId: (v: number) => void;
   inviteInput: string;
   setInviteInput: (v: string) => void;
   creating: boolean;
@@ -199,49 +218,62 @@ function EntryScreen({
   onCreate: () => void;
   onJoin: () => void;
 }) {
+  const dogs = [1, 2, 3, 4, 5, 6, 7];
   return (
     <div className="poker-entry">
-      <label className="poker-field">
-        <span>Seu nome</span>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Ex: João"
-          maxLength={40}
-        />
-      </label>
+      <div className="poker-entry__card">
+        <label className="poker-field">
+          <span>Seu nome</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ex: João"
+            maxLength={40}
+            autoFocus
+          />
+        </label>
 
-      <div className="poker-entry__split">
-        <div className="poker-entry__col">
-          <h3>Criar sala</h3>
-          <p className="poker-hint">
-            Você vira o host. O app abre um link público (Cloudflare) — a squad entra de qualquer
-            lugar, sem instalar nada.
+        <div className="poker-field">
+          <span>Escolha seu personagem</span>
+          <div className="poker-charpick">
+            {dogs.map((d) => (
+              <button
+                key={d}
+                type="button"
+                className={`poker-charpick__opt${dogId === d ? ' is-active' : ''}`}
+                onClick={() => setDogId(d)}
+                title={`Cachorro ${d}`}
+              >
+                <img src={`./poker/dog-${d}.png`} alt={`Cachorro ${d}`} />
+              </button>
+            ))}
+          </div>
+          <p className="poker-charpick__hint">
+            Se alguém já escolheu, o app dá outro automaticamente.
           </p>
-          <button className="warm" onClick={onCreate} disabled={creating}>
-            {creating ? 'Abrindo link…' : 'Criar sala'}
-          </button>
         </div>
 
-        <div className="poker-entry__divider" />
+        <button className="warm poker-entry__create" onClick={onCreate} disabled={creating}>
+          {creating ? 'Abrindo link…' : '🃏 Criar nova sala'}
+        </button>
 
-        <div className="poker-entry__col">
-          <h3>Entrar numa sala</h3>
-          <label className="poker-field">
-            <span>Convite</span>
-            <input
-              value={inviteInput}
-              onChange={(e) => setInviteInput(e.target.value)}
-              placeholder="cole o convite aqui"
-            />
-          </label>
+        <div className="poker-entry__or">
+          <span>ou entre com um convite</span>
+        </div>
+
+        <div className="poker-entry__join">
+          <input
+            value={inviteInput}
+            onChange={(e) => setInviteInput(e.target.value)}
+            placeholder="cole o convite aqui"
+          />
           <button className="secondary" onClick={onJoin} disabled={creating}>
-            Entrar na sala
+            Entrar
           </button>
         </div>
-      </div>
 
-      {error && <p className="poker-error">{error}</p>}
+        {error && <p className="poker-error">{error}</p>}
+      </div>
     </div>
   );
 }
@@ -273,9 +305,10 @@ function RoomScreen({
   onReveal: () => void;
   onReset: () => void;
   onLeave: () => void;
-  onReact: (emoji: string) => void;
+  onReact: (emoji: string, sound?: string) => void;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [reactOpen, setReactOpen] = useState(false);
 
   // limpa seleção local quando a sala é resetada
   useEffect(() => {
@@ -308,12 +341,59 @@ function RoomScreen({
         </button>
       </div>
 
-      <PokerDogTable
-        participants={participants}
-        revealed={revealed}
-        average={room?.average ?? null}
-        reactions={reactions}
-      />
+      <div className="poker-table-wrap">
+        {/* menu de reações no canto superior esquerdo da mesa */}
+        <div className="poker-reactmenu">
+          <button
+            className={`poker-reactmenu__toggle${reactOpen ? ' is-open' : ''}`}
+            onClick={() => setReactOpen((v) => !v)}
+            title="Reagir"
+          >
+            😀
+          </button>
+          {reactOpen && (
+            <div className="poker-reactmenu__panel">
+              <div className="poker-reactmenu__group">
+                {EMOJI_REACTIONS.map((e) => (
+                  <button
+                    key={e}
+                    className="poker-reactmenu__emoji"
+                    onClick={() => {
+                      onReact(e);
+                      setReactOpen(false);
+                    }}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+              <div className="poker-reactmenu__divider" />
+              <div className="poker-reactmenu__sounds">
+                {SOUND_REACTIONS.map((s) => (
+                  <button
+                    key={s.sound}
+                    className="poker-reactmenu__sound"
+                    onClick={() => {
+                      onReact(s.emoji, s.sound);
+                      setReactOpen(false);
+                    }}
+                  >
+                    <span>{s.emoji}</span>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <PokerDogTable
+          participants={participants}
+          revealed={revealed}
+          average={room?.average ?? null}
+          reactions={reactions}
+        />
+      </div>
 
       <div className="poker-dock">
         <div className="poker-dock__cards-wrap">
@@ -324,30 +404,19 @@ function RoomScreen({
             {CARDS.map((card) => (
               <button
                 key={card}
-                className={`poker-card${selected === card ? ' is-selected' : ''}`}
+                className={`poker-card ${cardTier(card)}${selected === card ? ' is-selected' : ''}`}
                 onClick={() => pick(card)}
                 disabled={revealed}
               >
-                {card}
+                <span className="poker-card__corner poker-card__corner--tl">{card}</span>
+                <span className="poker-card__value">{card}</span>
+                <span className="poker-card__corner poker-card__corner--br">{card}</span>
               </button>
             ))}
           </div>
         </div>
 
         <div className="poker-dock__row">
-          <div className="poker-reactions">
-            {REACTIONS.map((e) => (
-              <button
-                key={e}
-                className="poker-reactions__btn"
-                onClick={() => onReact(e)}
-                title="Reagir"
-              >
-                {e}
-              </button>
-            ))}
-          </div>
-
           <div className="poker-room__spacer" />
 
           {isHost ? (
