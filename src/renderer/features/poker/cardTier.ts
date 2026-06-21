@@ -10,10 +10,8 @@ export function pokerAsset(file: string): string {
   return `./poker/${file}?v=${ART_VERSION}`;
 }
 
-/** Cartas de voto disponíveis. */
-export const CARDS = ['0', '1', '2', '3', '5', '8', '13', '21', '?', '☕'];
-
-/** Classe de dificuldade por carta — verde (fácil) → vermelho (difícil). */
+/** Classe de dificuldade por carta — verde (fácil) → vermelho (difícil).
+ *  Cartas fora desse mapa caem em `tier-neutral` (ex: ½, XS/S/M/L, ?, ☕). */
 export function cardTier(card: string | null): string {
   switch (card) {
     case '0':

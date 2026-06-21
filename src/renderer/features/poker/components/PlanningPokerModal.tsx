@@ -10,8 +10,9 @@ import {
   type RoundRecord,
   type PokerRole,
 } from '../usePokerRoom';
-import { CARDS, cardTier, pokerAsset } from '../cardTier';
+import { cardTier, pokerAsset } from '../cardTier';
 import { PokerDogTable } from './PokerDogTable';
+import { DECKS, DEFAULT_DECK_ID, getDeck, type DeckId } from '../../../../shared/poker/decks';
 
 const EMOJI_REACTIONS = ['🔥', '👏', '😂', '👍', '❤️', '🤔'];
 const SOUND_REACTIONS: { emoji: string; label: string; sound: string }[] = [
@@ -120,6 +121,9 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
   // de isHost no meio do render — senão race com o setIsHost batched manda spectator.
   const [initialRole, setInitialRole] = useState<PokerRole>('seated');
 
+  // deck escolhido pelo host na tela de entrada (ignorado quando entra como guest).
+  const [deckChoice, setDeckChoice] = useState<DeckId>(DEFAULT_DECK_ID);
+
   const {
     room,
     conn,
@@ -134,7 +138,15 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
     changeDog,
     sit,
     spectate,
-  } = usePokerRoom({ wsUrl, roomId, name, dogId, initialRole });
+  } = usePokerRoom({
+    wsUrl,
+    roomId,
+    name,
+    dogId,
+    initialRole,
+    // só envia deckId quando o host está criando — guests recebem do servidor.
+    deckId: isHost ? deckChoice : undefined,
+  });
 
   const revealWithSound = () => {
     playUiSound('poker-reveal');
@@ -261,6 +273,8 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
           setInviteInput={setInviteInput}
           creating={creating}
           error={entryError}
+          deckChoice={deckChoice}
+          setDeckChoice={setDeckChoice}
           onCreate={() => void createRoom()}
           onJoin={joinRoom}
         />
@@ -313,6 +327,8 @@ function EntryScreen({
   setInviteInput,
   creating,
   error,
+  deckChoice,
+  setDeckChoice,
   onCreate,
   onJoin,
 }: {
@@ -324,6 +340,8 @@ function EntryScreen({
   setInviteInput: (v: string) => void;
   creating: boolean;
   error: string | null;
+  deckChoice: DeckId;
+  setDeckChoice: (v: DeckId) => void;
   onCreate: () => void;
   onJoin: () => void;
 }) {
@@ -369,6 +387,27 @@ function EntryScreen({
             ))}
           </div>
         </div>
+
+        <label className="poker-field">
+          <span>Baralho de votação</span>
+          <select
+            className="poker-select"
+            value={deckChoice}
+            onChange={(e) => setDeckChoice(e.target.value as DeckId)}
+          >
+            {DECKS.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.label} —{' '}
+                {d.cards
+                  .filter((c) => c !== '?' && c !== '☕')
+                  .slice(0, 5)
+                  .join(', ')}
+                {d.cards.filter((c) => c !== '?' && c !== '☕').length > 5 ? '…' : ''}
+              </option>
+            ))}
+          </select>
+          <small className="poker-field__hint">{getDeck(deckChoice).description}</small>
+        </label>
 
         <button className="warm poker-entry__create" onClick={onCreate} disabled={creating}>
           <img className="poker-entry__create-icon" src={pokerAsset('card-back.png')} alt="" />
@@ -551,12 +590,19 @@ function RoomScreen({
   return (
     <div className="poker-room">
       <div className="poker-room__bar">
-        <span className="poker-room__code">
-          <span className="poker-room__code-label">Sala</span>
-          <strong>{roomId}</strong>
-        </span>
+        {/* cluster 1: identidade da sala */}
+        <div className="poker-room__cluster poker-room__cluster--id">
+          <span className="poker-room__code">
+            <span className="poker-room__code-label">Sala</span>
+            <strong>{roomId}</strong>
+          </span>
+          <span className={`poker-conn poker-conn--${conn}`} title={CONN_LABEL[conn]}>
+            <span className="poker-conn__dot" aria-hidden="true" />
+            {CONN_LABEL[conn]}
+          </span>
+        </div>
 
-        {/* convite: ação principal = link clicável (Discord); fallback = convite direto */}
+        {/* cluster 2: convite — ação principal + fallback direto */}
         <div className="poker-invite" role="group" aria-label="Convidar time">
           <button
             type="button"
@@ -574,70 +620,76 @@ function RoomScreen({
             title="Convite direto — se o link não abrir no chat, cole isto no campo 'cole o convite' do app"
           >
             {copied === 'direct' ? <Check size={13} /> : <Copy size={13} />}
-            {copied === 'direct' ? 'copiado' : 'direto'}
+            {copied === 'direct' ? 'ok' : 'direto'}
           </button>
         </div>
 
-        <span className={`poker-conn poker-conn--${conn}`}>{CONN_LABEL[conn]}</span>
-        <div className="poker-room__spacer" />
-
-        {/* alternar espectador / jogador (host também pode assistir e liberar lugar) */}
-        {amSpectator ? (
-          <button
-            className="secondary compact"
-            onClick={() => handleSit()}
-            title={
-              seatsFull ? 'Mesa cheia — você entra no banco (vota igual)' : 'Entrar para votar'
-            }
-          >
-            🎮 {seatsFull ? 'Entrar (banco)' : 'Jogar'}
-          </button>
-        ) : (
-          <button className="secondary compact" onClick={handleSpectate} title="Só assistir">
-            👀 Assistir
-          </button>
-        )}
-
-        {/* histórico */}
-        {history.length > 0 && (
-          <div className="poker-histmenu" ref={histRef}>
+        {/* cluster 3: ações do participante */}
+        <div className="poker-room__cluster poker-room__cluster--actions">
+          {amSpectator ? (
             <button
-              className={`secondary compact poker-histmenu__toggle${histOpen ? ' is-open' : ''}`}
-              onClick={() => setHistOpen((v) => !v)}
-              title="Histórico de rounds"
+              className="secondary compact"
+              onClick={() => handleSit()}
+              title={
+                seatsFull ? 'Mesa cheia — você entra no banco (vota igual)' : 'Entrar para votar'
+              }
             >
-              📋 Histórico
+              🎮 {seatsFull ? 'Banco' : 'Jogar'}
             </button>
-            {histOpen && (
-              <div className="poker-histmenu__panel">
-                <p className="poker-histmenu__title">Rounds anteriores</p>
-                {history
-                  .slice()
-                  .reverse()
-                  .map((r) => (
-                    <div key={r.roundIndex} className="poker-histmenu__round">
-                      <div className="poker-histmenu__round-head">
-                        <span>Round {r.roundIndex + 1}</span>
-                        <strong>{r.average !== null ? `Média ${r.average}` : 'Sem média'}</strong>
-                      </div>
-                      <div className="poker-histmenu__votes">
-                        {r.votes.map((v, i) => (
-                          <span key={i} className="poker-histmenu__vote">
-                            <span>{v.name}</span>
-                            <strong>{v.vote ?? '—'}</strong>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-        )}
+          ) : (
+            <button className="secondary compact" onClick={handleSpectate} title="Só assistir">
+              👀 Assistir
+            </button>
+          )}
 
-        <button className="secondary compact poker-room__leave" onClick={onLeave}>
-          {isHost ? 'Encerrar' : 'Sair'}
-        </button>
+          {history.length > 0 && (
+            <div className="poker-histmenu" ref={histRef}>
+              <button
+                className={`secondary compact poker-histmenu__toggle${histOpen ? ' is-open' : ''}`}
+                onClick={() => setHistOpen((v) => !v)}
+                title="Histórico de rounds"
+              >
+                📋 Histórico
+              </button>
+              {histOpen && (
+                <div className="poker-histmenu__panel">
+                  <p className="poker-histmenu__title">Rounds anteriores</p>
+                  {history
+                    .slice()
+                    .reverse()
+                    .map((r) => {
+                      const label =
+                        r.average !== null
+                          ? `Média ${r.average}`
+                          : r.results?.mode
+                            ? `Mais votado: ${r.results.mode}`
+                            : 'Sem voto';
+                      return (
+                        <div key={r.roundIndex} className="poker-histmenu__round">
+                          <div className="poker-histmenu__round-head">
+                            <span>Round {r.roundIndex + 1}</span>
+                            <strong>{label}</strong>
+                          </div>
+                          <div className="poker-histmenu__votes">
+                            {r.votes.map((v, i) => (
+                              <span key={i} className="poker-histmenu__vote">
+                                <span>{v.name}</span>
+                                <strong>{v.vote ?? '—'}</strong>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          )}
+
+          <button className="secondary compact poker-room__leave" onClick={onLeave}>
+            {isHost ? 'Encerrar' : 'Sair'}
+          </button>
+        </div>
       </div>
 
       <div className="poker-table-wrap">
@@ -724,7 +776,8 @@ function RoomScreen({
             participants={seated}
             bench={bench}
             revealed={revealed}
-            average={room?.average ?? null}
+            results={room?.results ?? null}
+            deckId={room?.deckId}
             reactions={reactions}
             maxSeats={maxSeats}
           />
@@ -797,7 +850,7 @@ function RoomScreen({
                 : 'Escolha sua carta'}
           </span>
           <div className="poker-dock__cards">
-            {CARDS.map((card) => (
+            {getDeck(room?.deckId).cards.map((card) => (
               <button
                 key={card}
                 className={`poker-card ${cardTier(card)}${selected === card ? ' is-selected' : ''}`}

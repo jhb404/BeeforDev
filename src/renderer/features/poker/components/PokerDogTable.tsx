@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { playUiSound, type UiSoundKind } from '../../../utils/alarm';
 import { cardTier, pokerAsset } from '../cardTier';
 import type { LiveReaction, PokerParticipant } from '../usePokerRoom';
+import { getDeck, type DeckId, type RoundResults } from '../../../../shared/poker/decks';
 
 /**
  * Modo PokerDog: mesa pixel-art transparente no centro, 7 cães em volta.
@@ -12,8 +13,6 @@ import type { LiveReaction, PokerParticipant } from '../usePokerRoom';
  *  - carta dá flip 3D no reveal (verso → frente com o valor)
  *  - consenso (verde) vs outlier (vermelho) destacados
  */
-
-const NON_NUMERIC = new Set(['?', '☕']);
 
 /* ════════════════════════════════════════════════════════════════════
  * AJUSTE VISUAL — mexa aqui pra posicionar/dimensionar.
@@ -56,12 +55,23 @@ interface Props {
   /** participantes no banco de reserva (votam mas não sentam). */
   bench?: PokerParticipant[];
   revealed: boolean;
-  average: number | null;
+  /** Resultados computados pelo servidor após `reveal`. null antes do reveal. */
+  results: RoundResults | null;
+  /** Deck da sala — pra identificar quais cartas têm valor numérico. */
+  deckId?: DeckId;
   reactions: LiveReaction[];
   maxSeats?: number;
 }
 
-export function PokerDogTable({ participants, bench = [], revealed, average, reactions }: Props) {
+export function PokerDogTable({
+  participants,
+  bench = [],
+  revealed,
+  results,
+  deckId,
+  reactions,
+}: Props) {
+  const deck = getDeck(deckId);
   // reações agrupadas por participante (pra flutuar sobre o cão certo)
   const reactionsBySeat = useMemo(() => {
     const map: Record<string, LiveReaction[]> = {};
@@ -82,25 +92,13 @@ export function PokerDogTable({ participants, bench = [], revealed, average, rea
     }
   }, [reactions]);
 
-  // voto majoritário (consenso) pra destacar verde vs outlier vermelho
+  // moda do round vem do servidor. Só destacamos quando ≥2 pessoas concordam
+  // (a UI fica confusa se "consenso" aparecer com 1 voto só).
   const consensus = useMemo(() => {
-    if (!revealed) return null;
-    const counts = new Map<string, number>();
-    for (const p of participants) {
-      if (p.vote && !NON_NUMERIC.has(p.vote)) {
-        counts.set(p.vote, (counts.get(p.vote) ?? 0) + 1);
-      }
-    }
-    let best: string | null = null;
-    let max = 0;
-    for (const [v, c] of counts) {
-      if (c > max) {
-        max = c;
-        best = v;
-      }
-    }
-    return max >= 2 ? best : null;
-  }, [participants, revealed]);
+    if (!revealed || !results || !results.mode) return null;
+    const topCount = results.distribution[0]?.[1] ?? 0;
+    return topCount >= 2 ? results.mode : null;
+  }, [revealed, results]);
 
   // votação conta mesa + banco (espectadores não entram)
   const voters = [...participants, ...bench];
@@ -123,7 +121,7 @@ export function PokerDogTable({ participants, bench = [], revealed, average, rea
         }
 
         const notVoted = !revealed && !p.voted;
-        const isNum = p.vote && !NON_NUMERIC.has(p.vote);
+        const isNum = p.vote != null && deck.numericValues[p.vote] !== undefined;
         const isConsensus = revealed && consensus !== null && p.vote === consensus;
         const isOutlier = revealed && consensus !== null && isNum && p.vote !== consensus;
         // fallback: se o servidor ainda não manda dogId, deriva pelo assento
@@ -208,11 +206,49 @@ export function PokerDogTable({ participants, bench = [], revealed, average, rea
       })}
 
       <div className="pdog__center">
-        {revealed && average !== null ? (
+        {revealed && results && results.distribution.length > 0 ? (
           <div className="pdog__avg">
-            <span>Média</span>
-            <strong>{average}</strong>
-            {consensus && <em>🎉 consenso em {consensus}</em>}
+            {results.average !== null && (
+              <>
+                <span>Média</span>
+                <strong>{results.average}</strong>
+              </>
+            )}
+            {results.average === null && results.mode && (
+              <>
+                <span>Mais votado</span>
+                <strong>{results.mode}</strong>
+              </>
+            )}
+            {results.consensus !== 'none' && results.mode && (
+              <em
+                className={`pdog__consensus pdog__consensus--${results.consensus}`}
+                title={
+                  results.consensus === 'full'
+                    ? 'Todos concordaram'
+                    : results.consensus === 'strong'
+                      ? '80% ou mais concordaram'
+                      : 'Maioria concordou'
+                }
+              >
+                {results.consensus === 'full' && '🎯 consenso total'}
+                {results.consensus === 'strong' && '✅ consenso forte'}
+                {results.consensus === 'partial' && '👌 consenso parcial'}
+              </em>
+            )}
+            {results.distribution.length > 1 && (
+              <div className="pdog__dist">
+                {results.distribution.map(([card, count]) => (
+                  <span
+                    key={card}
+                    className={`pdog__dist-item${card === results.mode ? ' is-top' : ''}`}
+                  >
+                    <strong>{card}</strong>
+                    <span>×{count}</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="pdog__status">

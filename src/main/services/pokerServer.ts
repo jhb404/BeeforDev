@@ -2,6 +2,13 @@ import os from 'node:os';
 import http from 'node:http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { logger } from '../logger';
+import {
+  computeRoundResults,
+  DEFAULT_DECK_ID,
+  getDeck,
+  type DeckId,
+  type RoundResults,
+} from '../../shared/poker/decks';
 
 /**
  * Servidor WebSocket local para Planning Poker.
@@ -13,9 +20,6 @@ import { logger } from '../logger';
  */
 
 const PORT = Number(process.env.POKER_PORT) || 4242;
-
-/** Cartas válidas (mesmo set do renderer). Não-numéricas saem da média. */
-const NON_NUMERIC = new Set(['?', '☕']);
 
 const DOG_COUNT = 14;
 const MAX_SEATS = 7; // lugares na mesa; excedente vai pro banco
@@ -35,11 +39,13 @@ interface Room {
   participants: Participant[];
   revealed: boolean;
   lastActivity: number;
+  /** Deck escolhido pelo host na criação da sala. Persiste enquanto a sala existir. */
+  deckId: DeckId;
 }
 
 /** Mensagens que o renderer envia. */
 type ClientMessage =
-  | { type: 'join'; roomId: string; name: string; dogId?: number; role?: Role }
+  | { type: 'join'; roomId: string; name: string; dogId?: number; role?: Role; deckId?: DeckId }
   | { type: 'rename'; name: string }
   | { type: 'changeDog'; dogId: number }
   | { type: 'sit'; dogId?: number } // entra/volta pra mesa (ou banco se cheia)
@@ -72,11 +78,13 @@ function touch(room: Room): void {
 
 /** Payload broadcastado: voto só vai junto quando revelado. */
 function roomPayload(room: Room) {
+  const results = room.revealed ? roundResults(room) : null;
   return {
     type: 'roomUpdate' as const,
     room: {
       id: room.id,
       revealed: room.revealed,
+      deckId: room.deckId,
       participants: room.participants.map((p) => ({
         id: p.id,
         name: p.name,
@@ -89,7 +97,9 @@ function roomPayload(room: Room) {
       takenDogs: room.participants.filter((p) => p.role === 'seated').map((p) => p.dogId),
       seatsTaken: room.participants.filter((p) => p.role === 'seated').length,
       maxSeats: MAX_SEATS,
-      average: room.revealed ? average(room) : null,
+      // mantém `average` no payload pra clientes antigos; results tem o set completo.
+      average: results?.average ?? null,
+      results,
     },
   };
 }
@@ -122,16 +132,17 @@ function pickDog(room: Room, preferred?: number, excludeId?: string): number {
   return (room.participants.length % DOG_COUNT) + 1; // sala cheia: recicla
 }
 
-/** Média ignorando `?`, `☕` e espectadores. null se ninguém votou em número. */
-function average(room: Room): number | null {
-  const nums = room.participants
+/**
+ * Resultado da rodada usando o deck da sala — média + distribuição + consenso.
+ * Ignora espectadores e participantes sem voto.
+ */
+function roundResults(room: Room): RoundResults {
+  const deck = getDeck(room.deckId);
+  const votes = room.participants
     .filter((p) => p.role !== 'spectator')
     .map((p) => p.vote)
-    .filter((v): v is string => v !== null && !NON_NUMERIC.has(v))
-    .map(Number)
-    .filter((n) => !Number.isNaN(n));
-  if (nums.length === 0) return null;
-  return Math.round((nums.reduce((a, b) => a + b, 0) / nums.length) * 10) / 10;
+    .filter((v): v is string => v !== null);
+  return computeRoundResults(deck, votes);
 }
 
 function broadcast(room: Room): void {
@@ -173,7 +184,15 @@ function handleMessage(ws: WebSocket, raw: ClientMessage): void {
     if (!roomId) return;
     let room = rooms.get(roomId);
     if (!room) {
-      room = { id: roomId, participants: [], revealed: false, lastActivity: Date.now() };
+      // Deck só é fixado pelo PRIMEIRO membro a entrar (host). Convidados ignoram.
+      const deckId = (raw.deckId && getDeck(raw.deckId).id) || DEFAULT_DECK_ID;
+      room = {
+        id: roomId,
+        participants: [],
+        revealed: false,
+        lastActivity: Date.now(),
+        deckId,
+      };
       rooms.set(roomId, room);
     }
     const participantId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -245,7 +264,12 @@ function handleMessage(ws: WebSocket, raw: ClientMessage): void {
     }
     case 'vote': {
       const p = room.participants.find((x) => x.id === st.participantId);
-      if (p) p.vote = String(raw.value);
+      if (p) {
+        const value = String(raw.value);
+        // só aceita carta válida do deck da sala — evita lixo no broadcast.
+        const deck = getDeck(room.deckId);
+        if (deck.cards.includes(value)) p.vote = value;
+      }
       touch(room);
       broadcast(room);
       break;

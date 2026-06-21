@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { DeckId, RoundResults } from '../../../shared/poker/decks';
+import { DEFAULT_DECK_ID } from '../../../shared/poker/decks';
 
 /** Participante como o servidor expõe (voto oculto até revelar). */
 export type PokerRole = 'seated' | 'bench' | 'spectator';
@@ -15,17 +17,21 @@ export interface PokerParticipant {
 export interface PokerRoom {
   id: string;
   revealed: boolean;
+  deckId: DeckId;
   participants: PokerParticipant[];
   takenDogs: number[];
   seatsTaken: number;
   maxSeats: number;
   average: number | null;
+  results: RoundResults | null;
 }
 
 /** Snapshot de um round encerrado, guardado no histórico local. */
 export interface RoundRecord {
   roundIndex: number;
   average: number | null;
+  results: RoundResults | null;
+  deckId: DeckId;
   votes: { name: string; vote: string | null }[];
   at: number; // Date.now()
 }
@@ -51,13 +57,22 @@ interface UsePokerRoomArgs {
   dogId?: number;
   /** papel inicial ao entrar: 'seated' (default) ou 'spectator'. */
   initialRole?: PokerRole;
+  /** Deck escolhido pelo host na criação. Convidados podem passar undefined. */
+  deckId?: DeckId;
 }
 
 /**
  * Conexão WebSocket nativa com o servidor de poker.
  * Reconecta com backoff simples e reenvia o `join` ao religar.
  */
-export function usePokerRoom({ wsUrl, roomId, name, dogId, initialRole }: UsePokerRoomArgs) {
+export function usePokerRoom({
+  wsUrl,
+  roomId,
+  name,
+  dogId,
+  initialRole,
+  deckId,
+}: UsePokerRoomArgs) {
   const [room, setRoom] = useState<PokerRoom | null>(null);
   const [conn, setConn] = useState<ConnState>('connecting');
   const [reactions, setReactions] = useState<LiveReaction[]>([]);
@@ -77,9 +92,11 @@ export function usePokerRoom({ wsUrl, roomId, name, dogId, initialRole }: UsePok
   const nameRef = useRef(name);
   const dogIdRef = useRef(dogId);
   const roleRef = useRef<PokerRole>(initialRole ?? 'seated');
+  const deckIdRef = useRef<DeckId | undefined>(deckId);
   nameRef.current = name;
   dogIdRef.current = dogId;
   if (initialRole) roleRef.current = initialRole;
+  deckIdRef.current = deckId;
 
   const send = useCallback((msg: unknown) => {
     const ws = wsRef.current;
@@ -122,6 +139,7 @@ export function usePokerRoom({ wsUrl, roomId, name, dogId, initialRole }: UsePok
             name: nameRef.current,
             dogId: dogIdRef.current,
             role: roleRef.current,
+            deckId: deckIdRef.current,
           }),
         );
       };
@@ -142,6 +160,8 @@ export function usePokerRoom({ wsUrl, roomId, name, dogId, initialRole }: UsePok
                 {
                   roundIndex: roundIndexRef.current++,
                   average: snap.average,
+                  results: snap.results,
+                  deckId: snap.deckId ?? DEFAULT_DECK_ID,
                   votes: snap.participants.map((p) => ({ name: p.name, vote: p.vote })),
                   at: Date.now(),
                 },
@@ -200,7 +220,6 @@ export function usePokerRoom({ wsUrl, roomId, name, dogId, initialRole }: UsePok
       setConn('closed');
     };
     // ATENÇÃO: name/dogId/role NÃO entram aqui (lidos por ref) — senão reconecta e duplica.
-     
   }, [wsUrl, roomId]);
 
   const vote = useCallback((value: string) => send({ type: 'vote', value }), [send]);

@@ -218,10 +218,20 @@
 .poker-room__bar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
   flex-shrink: 0;
 }
+
+.poker-room__cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.poker-room__cluster--id { flex-shrink: 0; }
+.poker-room__cluster--actions { flex-shrink: 0; margin-left: auto; }
 
 /* "Sala CÓDIGO" — código em destaque, fácil de achar na barra */
 .poker-room__code {
@@ -310,11 +320,22 @@
 }
 
 .poker-conn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 999px;
   border: 1px solid var(--border);
+}
+
+.poker-conn__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
 }
 
 .poker-conn--connected {
@@ -325,6 +346,15 @@
 .poker-conn--connecting,
 .poker-conn--reconnecting {
   color: var(--warn);
+}
+.poker-conn--connecting .poker-conn__dot,
+.poker-conn--reconnecting .poker-conn__dot {
+  animation: poker-conn-blink 0.9s ease-in-out infinite;
+}
+
+@keyframes poker-conn-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 
 .poker-conn--closed {
@@ -935,6 +965,85 @@
   font-size: 12px;
   font-style: normal;
   color: var(--ok);
+}
+
+.pdog__consensus--full {
+  color: var(--ok);
+}
+.pdog__consensus--strong {
+  color: var(--warm);
+}
+.pdog__consensus--partial {
+  color: var(--text-muted);
+}
+
+.pdog__dist {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  max-width: 220px;
+}
+
+.pdog__dist-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.pdog__dist-item.is-top {
+  background: rgba(255, 200, 100, 0.12);
+  border-color: var(--warm);
+  color: var(--warm);
+}
+
+.pdog__dist-item strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.pdog__dist-item span {
+  font-size: 10px;
+  color: inherit;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── deck select (tela de entrada) ─────────────────────────────────── */
+.poker-select {
+  appearance: none;
+  width: 100%;
+  padding: 8px 32px 8px 10px;
+  background: rgba(255, 255, 255, 0.05)
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffb060' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")
+    no-repeat right 10px center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+.poker-select:hover { border-color: rgba(255, 255, 255, 0.25); }
+.poker-select:focus-visible {
+  outline: none;
+  border-color: var(--warm);
+  box-shadow: 0 0 0 2px rgba(255, 200, 100, 0.18);
+}
+.poker-select option { background: #1a1a1a; color: #fff; }
+
+.poker-field__hint {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 /* status "aguardando todos votarem" + bolinhas de progresso */
