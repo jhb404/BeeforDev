@@ -1,6 +1,7 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
+import https from 'node:https';
 import { app } from 'electron';
 import { logger } from '../logger';
 import { getPokerPort } from './pokerServer';
@@ -71,6 +72,12 @@ export function startTunnel(): Promise<string> {
         settled = true;
         publicUrl = m[1];
         logger.info(`[tunnel] URL pública: ${publicUrl}`);
+        // Probe de alcance em background — só pra logar; não bloqueia o host.
+        // O host conecta via ws://localhost, então não depende desse DNS.
+        // Convidados podem precisar esperar a propagação ao clicar no convite.
+        probeReachability(publicUrl).catch(() => {
+          /* log apenas — não interrompe */
+        });
         resolve(publicUrl);
       }
     };
@@ -97,12 +104,13 @@ export function startTunnel(): Promise<string> {
       }
     });
 
-    // Timeout de segurança — túnel costuma subir em <10s.
+    // Timeout de segurança — só dispara se a URL nunca aparecer no log.
+    // A espera de propagação tem seu próprio timeout em waitUntilReachable.
     setTimeout(() => {
       if (!settled) {
         settled = true;
         stopTunnel();
-        reject(new Error('Timeout ao abrir túnel (30s)'));
+        reject(new Error('Timeout ao abrir túnel (30s sem URL no log)'));
       }
     }, 30_000);
   });
@@ -125,4 +133,41 @@ export function stopTunnel(): void {
 
 export function getTunnelUrl(): string | null {
   return publicUrl;
+}
+
+/**
+ * Probe não bloqueante — só registra no log quando o edge da Cloudflare passa a
+ * responder. Útil pra diagnóstico: se o host vê "tunnel pronto", convidados conseguem
+ * conectar. Se nunca passa, provavelmente é DNS local ruim pra *.trycloudflare.com.
+ */
+function probeReachability(url: string, totalTimeoutMs = 60_000): Promise<void> {
+  const start = Date.now();
+  return new Promise((resolve, reject) => {
+    let lastErr: Error | null = null;
+
+    const probe = () => {
+      const req = https.request(url, { method: 'GET', timeout: 4000 }, (res) => {
+        res.resume();
+        logger.info(`[tunnel] edge respondeu (${res.statusCode}) — convidados podem entrar`);
+        resolve();
+      });
+      req.on('timeout', () => req.destroy(new Error('probe timeout')));
+      req.on('error', (err) => {
+        lastErr = err as Error;
+        if (Date.now() - start >= totalTimeoutMs) {
+          logger.warn(
+            `[tunnel] edge ainda não respondeu após ${totalTimeoutMs}ms (${lastErr.message}). ` +
+              `DNS local pode estar lento pra resolver *.trycloudflare.com — convidados ` +
+              `precisarão esperar a propagação ao clicar no convite.`,
+          );
+          reject(lastErr);
+          return;
+        }
+        setTimeout(probe, 1500);
+      });
+      req.end();
+    };
+
+    probe();
+  });
 }

@@ -10,9 +10,11 @@
  * Rodar manualmente: node scripts/fetch-cloudflared.mjs
  * Para baixar de outra plataforma (build cross): TARGET=darwin node scripts/...
  */
-import { createWriteStream, existsSync, mkdirSync, chmodSync } from 'node:fs';
+import { createWriteStream, existsSync, mkdirSync, chmodSync, renameSync, rmSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import https from 'node:https';
 import os from 'node:os';
 
@@ -57,16 +59,35 @@ if (existsSync(dest)) {
   process.exit(0);
 }
 
-if (tgz) {
-  console.error(
-    `[!] ${url} é um .tgz. Baixe e extraia o binário "cloudflared" para resources/${file} manualmente,\n` +
-      `    depois rode: chmod +x resources/${file}\n` +
-      `    (a release macOS não é um binário cru; automatizar exige descompactar tar.gz).`,
-  );
-  process.exit(1);
+mkdirSync(dirname(dest), { recursive: true });
+
+function finalize(fileOut) {
+  if (exec) {
+    try {
+      chmodSync(fileOut, 0o755);
+    } catch {
+      /* chmod falha no Windows — ok */
+    }
+  }
+  console.log(`${file} pronto em resources/${file}.`);
 }
 
-mkdirSync(dirname(dest), { recursive: true });
+function extractTgz(tgzPath) {
+  const extractDir = resolve(tmpdir(), `cloudflared-extract-${Date.now()}`);
+  mkdirSync(extractDir, { recursive: true });
+  const res = spawnSync('tar', ['-xzf', tgzPath, '-C', extractDir], { stdio: 'inherit' });
+  if (res.status !== 0) {
+    throw new Error(`tar -xzf falhou (status ${res.status}). Extraia ${tgzPath} manualmente.`);
+  }
+  const extractedBin = resolve(extractDir, 'cloudflared');
+  if (!existsSync(extractedBin)) {
+    throw new Error(`Binário "cloudflared" não encontrado após extração em ${extractDir}.`);
+  }
+  renameSync(extractedBin, dest);
+  rmSync(extractDir, { recursive: true, force: true });
+  rmSync(tgzPath, { force: true });
+  finalize(dest);
+}
 
 function download(downloadUrl, fileOut, redirects = 0) {
   if (redirects > 5) throw new Error('Excesso de redirects');
@@ -83,14 +104,16 @@ function download(downloadUrl, fileOut, redirects = 0) {
       res.pipe(out);
       out.on('finish', () =>
         out.close(() => {
-          if (exec) {
+          if (tgz) {
             try {
-              chmodSync(fileOut, 0o755);
-            } catch {
-              /* chmod falha no Windows — ok */
+              extractTgz(fileOut);
+            } catch (err) {
+              console.error('Erro ao extrair .tgz:', err.message);
+              process.exit(1);
             }
+            return;
           }
-          console.log(`${file} baixado.`);
+          finalize(fileOut);
         }),
       );
     })
@@ -100,4 +123,5 @@ function download(downloadUrl, fileOut, redirects = 0) {
     });
 }
 
-download(url, dest);
+const downloadTarget = tgz ? resolve(tmpdir(), `cloudflared-${Date.now()}.tgz`) : dest;
+download(url, downloadTarget);

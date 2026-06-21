@@ -109,6 +109,9 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
   const [dogId, setDogId] = useState(1);
 
   const [wsUrl, setWsUrl] = useState<string | null>(null);
+  // URL pública (tunnel) — só usada pro convite. O host conecta via ws://localhost
+  // pra não depender de DNS do *.trycloudflare.com propagar antes do WebSocket abrir.
+  const [publicInviteUrl, setPublicInviteUrl] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [copied, setCopied] = useState<'link' | 'direct' | null>(null);
@@ -142,6 +145,7 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
     if (open) return;
     if (isHost) void system.pokerStopTunnel();
     setWsUrl(null);
+    setPublicInviteUrl(null);
     setRoomId(null);
     setIsHost(false);
     setInviteInput('');
@@ -159,24 +163,29 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
     setRoomId(initialInvite.roomId);
   }, [open, initialInvite]);
 
-  // convite = link https clicável; fallback texto antigo se algo faltar
-  const inviteLink = wsUrl && roomId ? buildInviteLink(wsUrl, roomId) : null;
-  const inviteText = wsUrl && roomId ? `${wsUrl}|${roomId}` : null;
+  // convite usa SEMPRE a URL pública do túnel (única que convidados conseguem alcançar);
+  // o host conecta via ws://localhost (wsUrl) — ver createRoom.
+  const inviteSourceUrl = publicInviteUrl ?? wsUrl;
+  const inviteLink = inviteSourceUrl && roomId ? buildInviteLink(inviteSourceUrl, roomId) : null;
+  const inviteText = inviteSourceUrl && roomId ? `${inviteSourceUrl}|${roomId}` : null;
 
   const createRoom = async () => {
     if (!name.trim()) return setEntryError('Digite seu nome.');
     setEntryError(null);
     setCreating(true);
-    const res = await system.pokerStartTunnel();
+    const [tunnelRes, port] = await Promise.all([system.pokerStartTunnel(), system.pokerGetPort()]);
     setCreating(false);
-    if (!res.ok || !res.data) {
+    if (!tunnelRes.ok || !tunnelRes.data) {
       setEntryError('Não foi possível abrir o túnel. Tente de novo.');
       return;
     }
-    const url = res.data.replace(/^https:/i, 'wss:');
+    const tunnelWs = tunnelRes.data.replace(/^https:/i, 'wss:');
     setInitialRole('seated'); // host senta direto
     setIsHost(true);
-    setWsUrl(url);
+    setPublicInviteUrl(tunnelWs);
+    // host conecta direto no servidor local — não passa pelo edge da Cloudflare,
+    // evita ERR_NAME_NOT_RESOLVED enquanto o DNS do subdomínio propaga.
+    setWsUrl(`ws://localhost:${port}`);
     setRoomId(genRoomCode());
   };
 
