@@ -236,19 +236,6 @@ export function PokerDogTable({
                 {results.consensus === 'partial' && '👌 consenso parcial'}
               </em>
             )}
-            {results.distribution.length > 1 && (
-              <div className="pdog__dist">
-                {results.distribution.map(([card, count]) => (
-                  <span
-                    key={card}
-                    className={`pdog__dist-item${card === results.mode ? ' is-top' : ''}`}
-                  >
-                    <strong>{card}</strong>
-                    <span>×{count}</span>
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
         ) : (
           <div className="pdog__status">

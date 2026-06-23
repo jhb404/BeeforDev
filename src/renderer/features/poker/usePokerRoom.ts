@@ -34,6 +34,8 @@ export interface RoundRecord {
   deckId: DeckId;
   votes: { name: string; vote: string | null }[];
   at: number; // Date.now()
+  /** rótulo customizado dado pelo usuário; cai pro "Round N" se vazio. */
+  name?: string;
 }
 
 export type ConnState = 'connecting' | 'connected' | 'reconnecting' | 'closed';
@@ -80,7 +82,6 @@ export function usePokerRoom({
   const [selfId, setSelfId] = useState<string | null>(null);
   // host encerrou a sala — convidados são desconectados sem reconectar
   const [closedByHost, setClosedByHost] = useState(false);
-  const roundIndexRef = useRef(0);
   const prevRevealedRef = useRef(false);
   const lastRevealedRef = useRef<PokerRoom | null>(null);
   const reactionSeq = useRef(0);
@@ -112,7 +113,6 @@ export function usePokerRoom({
     setReactions([]);
     setSelfId(null);
     setClosedByHost(false);
-    roundIndexRef.current = 0;
     prevRevealedRef.current = false;
     lastRevealedRef.current = null;
   }, [wsUrl, roomId]);
@@ -158,10 +158,14 @@ export function usePokerRoom({
             // no StrictMode, que invoca o updater de setRoom 2x em dev.
             if (prevRevealedRef.current && !incoming.revealed && lastRevealedRef.current) {
               const snap = lastRevealedRef.current;
+              lastRevealedRef.current = null;
+              // roundIndex = posição na lista (h.length). Derivar do array mantém
+              // a numeração sequencial mesmo se o updater rodar 2x no StrictMode —
+              // antes usávamos um ref com `++` aqui dentro e ele pulava (2,4,5…).
               setHistory((h) => [
                 ...h,
                 {
-                  roundIndex: roundIndexRef.current++,
+                  roundIndex: h.length,
                   average: snap.average,
                   results: snap.results,
                   deckId: snap.deckId ?? DEFAULT_DECK_ID,
@@ -169,7 +173,6 @@ export function usePokerRoom({
                   at: Date.now(),
                 },
               ]);
-              lastRevealedRef.current = null;
             }
             if (incoming.revealed) lastRevealedRef.current = incoming;
             setRoom(incoming);
@@ -235,6 +238,11 @@ export function usePokerRoom({
   const reveal = useCallback(() => send({ type: 'reveal' }), [send]);
   const reset = useCallback(() => send({ type: 'reset' }), [send]);
   const closeRoom = useCallback(() => send({ type: 'close' }), [send]);
+  // rótulo local do round (histórico é por-cliente; não vai pro servidor)
+  const renameRound = useCallback((roundIndex: number, label: string) => {
+    const name = label.trim() || undefined;
+    setHistory((h) => h.map((r) => (r.roundIndex === roundIndex ? { ...r, name } : r)));
+  }, []);
   const sendReaction = useCallback(
     (emoji: string, sound?: string) => send({ type: 'reaction', emoji, sound }),
     [send],
@@ -277,6 +285,7 @@ export function usePokerRoom({
     reveal,
     reset,
     closeRoom,
+    renameRound,
     sendReaction,
     rename,
     changeDog,

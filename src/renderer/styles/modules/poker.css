@@ -220,7 +220,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* nunca quebra linha — barra fica sempre em 1 linha */
   flex-shrink: 0;
 }
 
@@ -228,9 +228,10 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: 0; /* deixa o cluster encolher sem empurrar pra próxima linha */
 }
 
-.poker-room__cluster--id { flex-shrink: 0; }
+.poker-room__cluster--id { flex-shrink: 1; }
 .poker-room__cluster--actions { flex-shrink: 0; margin-left: auto; }
 
 /* "Sala 📋 CÓDIGO" — o próprio chip é o botão que copia o convite */
@@ -522,13 +523,52 @@
   /* visible pra os popovers (reações / trocar personagem) não serem cortados;
      a mesa em si fica contida pelo .pdog (max-width + centralizado). */
   overflow: visible;
+  /* transição suave ao abrir/fechar a arquibancada */
+  transition: padding-left 0.22s ease;
 }
 
+/* arquibancada aberta → reserva espaço à esquerda; a mesa desliza pra direita
+   (jogador "senta na mesa" com a torcida ocupando a lateral). */
+.poker-table-wrap.has-bleachers {
+  padding-left: 206px; /* 190 da arquibancada + 16 de respiro */
+}
+
+@media (max-width: 640px) {
+  .poker-table-wrap.has-bleachers {
+    padding-left: 162px; /* arquibancada estreita (150) + respiro */
+  }
+
+  /* barra compacta pra caber tudo em 1 linha sem quebrar */
+  .poker-room__bar { gap: 6px; }
+  .poker-room__cluster { gap: 5px; }
+
+  /* chip "Sala" enxuto: tira o letterspacing largo e diminui fonte */
+  .poker-room__code { padding: 6px 9px; gap: 5px; }
+  .poker-room__code strong { letter-spacing: 1.5px; font-size: 15px; }
+  .poker-room__code-label { display: none; } /* esconde a palavra "Sala" */
+
+  /* botões de ação menores (Banco/Histórico/Encerrar) */
+  .poker-room__cluster--actions .secondary.compact {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  /* "convite direto" vira só o ícone (esconde o texto) */
+  .poker-room__copydirect { padding: 6px 7px; }
+}
+
+/* reações: lado direito, ao lado do seletor de personagem */
 .poker-reactmenu {
   position: absolute;
   top: 8px;
-  left: 8px;
+  right: 56px;
   z-index: 6;
+  transition: right 0.18s ease;
+}
+
+/* sem seletor de personagem (espectador) → reações ocupam o canto dele */
+.poker-reactmenu.is-solo {
+  right: 8px;
 }
 
 .poker-reactmenu__toggle {
@@ -552,7 +592,7 @@
 .poker-reactmenu__panel {
   position: absolute;
   top: 46px;
-  left: 0;
+  right: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -569,6 +609,15 @@
 
 .poker-reactmenu__panel * {
   box-sizing: border-box;
+}
+
+.poker-reactmenu__heading {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
 }
 
 .poker-reactmenu__group {
@@ -883,7 +932,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 20px;
+  /* padding acompanha a largura disponível — encolhe junto com a mesa */
+  padding: clamp(5px, 1.4vw, 8px) clamp(12px, 2.6vw, 20px);
   background: rgba(0, 0, 0, 0.6);
   border: 1px solid var(--warm);
   border-radius: 12px;
@@ -896,14 +946,16 @@
 }
 
 .pdog__avg span {
-  font-size: 11px;
+  font-size: clamp(9px, 1.4vw, 11px);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .pdog__avg strong {
-  font-size: 48px;
+  /* número da média escala com a largura do modal (gigante no grande,
+     compacto no pequeno) */
+  font-size: clamp(26px, 6vw, 48px);
   color: var(--warm);
   line-height: 1;
   font-weight: 900;
@@ -1059,6 +1111,30 @@
   border-radius: 999px;
 }
 
+/* botão-ícone padrão (fechar modal, etc.) — mesma moldura/altura do
+   toggle de trocar personagem pra ficarem visualmente iguais */
+.poker-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: var(--text-muted);
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.poker-iconbtn:hover {
+  background: var(--bg-3);
+  color: var(--text);
+  transform: scale(1.08);
+}
+
 /* ============ dog picker inline (canto direito da mesa) ============ */
 .poker-dogpick {
   position: absolute;
@@ -1125,6 +1201,195 @@
   cursor: not-allowed;
 }
 
+/* ============ arquibancada (espectadores, lateral esquerda) ============ */
+.poker-bleachers {
+  position: absolute;
+  top: 8px; /* topo da mesa, lado esquerdo (abaixo da barra "Sala") */
+  left: 8px;
+  z-index: 5;
+  width: 190px;
+  max-height: calc(100% - 16px);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: pdog-pop 0.18s ease;
+}
+
+.poker-bleachers__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.poker-bleachers__title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.poker-bleachers__count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0 7px;
+  line-height: 16px;
+}
+
+.poker-bleachers__collapse {
+  margin-left: auto;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.poker-bleachers__collapse:hover {
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+.poker-bleachers__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.poker-bleachers__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: var(--bg-2);
+}
+
+/* emoji de reação flutuando sobre o espectador (igual ao da mesa) */
+.poker-bleachers__reaction {
+  position: absolute;
+  top: 0;
+  right: 6px;
+  z-index: 6;
+  font-size: 18px;
+  pointer-events: none;
+  animation: pdog-react-side 2.4s ease-out forwards;
+}
+
+@keyframes pdog-react-side {
+  0% { transform: translateY(0) scale(0.4); opacity: 0; }
+  15% { transform: translateY(-8px) scale(1.2); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translateY(-44px) scale(1); opacity: 0; }
+}
+
+.poker-bleachers__item.is-me {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+}
+
+.poker-bleachers__item img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.poker-bleachers__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.poker-bleachers__swap {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 13px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.poker-bleachers__swap:hover {
+  background: var(--bg-3);
+}
+
+.poker-bleachers__pick {
+  padding: 8px;
+  border-top: 1px solid var(--border);
+}
+
+/* FAB: arquibancada recolhida vira só um ícone com contador */
+.poker-bleachers__fab {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+  height: 40px;
+  font-size: 18px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.poker-bleachers__fab:hover {
+  background: var(--bg-3);
+  transform: scale(1.06);
+}
+
+.poker-bleachers__fab-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0 6px;
+  line-height: 16px;
+}
+
+/* telas pequenas: arquibancada estreita pra não comer a mesa */
+@media (max-width: 640px) {
+  .poker-bleachers {
+    width: 150px;
+  }
+}
+
 /* ============ histórico de rounds ============ */
 .poker-histmenu {
   position: relative;
@@ -1182,6 +1447,36 @@
 .poker-histmenu__round-head strong {
   color: var(--warm);
   font-size: 13px;
+}
+
+/* nome do round = botão clicável que vira input ao editar */
+.poker-histmenu__name {
+  padding: 1px 4px;
+  margin: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.poker-histmenu__name:hover {
+  background: var(--bg-3);
+  border-color: var(--border);
+}
+
+.poker-histmenu__rename {
+  width: 120px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg-3);
+  border: 1px solid var(--accent);
+  border-radius: 5px;
 }
 
 .poker-histmenu__votes {

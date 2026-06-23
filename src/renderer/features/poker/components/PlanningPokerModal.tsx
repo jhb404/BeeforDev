@@ -3,7 +3,7 @@ import type { SessionStatus } from '@shared/types/index';
 import { useIpc } from '../../../services/ipc';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import { StatusBadge } from '../../../components/common/StatusBadge';
-import { Check, Copy, Eye, RotateCcw, Spade } from '../../../components/common/Icons';
+import { Check, Copy, Eye, RotateCcw, Spade, X } from '../../../components/common/Icons';
 import { playUiSound } from '../../../utils/alarm';
 import {
   usePokerRoom,
@@ -170,6 +170,7 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
     reveal,
     reset,
     closeRoom,
+    renameRound,
     sendReaction,
     rename,
     changeDog,
@@ -317,8 +318,14 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
             <Spade size={18} /> Planning Poker
           </h2>
         </div>
-        <button className="secondary compact" onClick={onClose} data-sound="close">
-          Fechar
+        <button
+          className="poker-iconbtn"
+          onClick={onClose}
+          data-sound="close"
+          title="Fechar"
+          aria-label="Fechar"
+        >
+          <X size={18} />
         </button>
       </div>
 
@@ -369,6 +376,7 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
             sit(id);
           }}
           onSpectate={spectate}
+          onRenameRound={renameRound}
         />
       )}
     </ModalShell>
@@ -521,6 +529,7 @@ function RoomScreen({
   onChangeDog,
   onSit,
   onSpectate,
+  onRenameRound,
 }: {
   roomId: string;
   conn: ConnState;
@@ -543,6 +552,7 @@ function RoomScreen({
   onChangeDog: (id: number) => void;
   onSit: (id?: number) => void;
   onSpectate: () => void;
+  onRenameRound: (roundIndex: number, label: string) => void;
 }) {
   // wrappers locais pra controlar a overlay de escolha junto com o WS
   const [selected, setSelected] = useState<string | null>(null);
@@ -553,6 +563,12 @@ function RoomScreen({
   const [reactOpen, setReactOpen] = useState(false);
   const [histOpen, setHistOpen] = useState(false);
   const [dogPickOpen, setDogPickOpen] = useState(false);
+  // histórico: round em edição de nome + rascunho do rótulo
+  const [editingRound, setEditingRound] = useState<number | null>(null);
+  const [roundDraft, setRoundDraft] = useState('');
+  // arquibancada: aberta por padrão; recolhe pra ícone em telas pequenas
+  const [bleachersOpen, setBleachersOpen] = useState(true);
+  const [specDogPickOpen, setSpecDogPickOpen] = useState(false);
   const reactMenuRef = useRef<HTMLDivElement>(null);
   const histRef = useRef<HTMLDivElement>(null);
   const dogPickRef = useRef<HTMLDivElement>(null);
@@ -616,6 +632,9 @@ function RoomScreen({
   const participants = room?.participants ?? [];
   const seated = participants.filter((p) => p.role === 'seated');
   const bench = participants.filter((p) => p.role === 'bench');
+  const spectators = participants.filter((p) => p.role === 'spectator');
+  // dogs em uso por QUALQUER um (mesa, banco, arquibancada) — trava na troca
+  const allTakenDogs = participants.map((p) => p.dogId);
   const me = selfId ? participants.find((p) => p.id === selfId) : undefined;
   const myRole = me?.role ?? 'spectator';
   const amSpectator = myRole === 'spectator';
@@ -626,6 +645,10 @@ function RoomScreen({
   const loading = (conn === 'connecting' || conn === 'reconnecting') && !room;
   const takenDogs = room?.takenDogs ?? [];
   const dogs = Array.from({ length: 14 }, (_, i) => i + 1);
+
+  // arquibancada aberta com gente → empurra a mesa pra direita (sensação de
+  // estar "participando" com a torcida ocupando a esquerda).
+  const bleachersActive = !loading && spectators.length > 0 && bleachersOpen;
 
   // entrou sem nome → pede o nome antes de qualquer coisa
   const needName = !loading && room !== null && !myName.trim();
@@ -665,15 +688,17 @@ function RoomScreen({
             )}
             <strong>{roomId}</strong>
           </button>
-          <StatusBadge status={CONN_STATUS[conn]} />
+          {/* badge só aparece enquanto NÃO está conectado (conectando/reconectando/
+              caído) — some assim que conecta */}
+          {conn !== 'connected' && <StatusBadge status={CONN_STATUS[conn]} />}
           <button
             type="button"
             className="poker-room__copydirect"
             onClick={onCopyDirect}
-            title="Convite direto — se o link não abrir no chat, cole isto no campo 'cole o convite' do app"
+            title="Convite Direto — se o link não abrir no chat, cole isto no campo 'cole o convite' do app"
           >
             {copied === 'direct' ? <Check size={13} /> : <Copy size={13} />}
-            {copied === 'direct' ? 'ok' : 'direto'}
+            {copied === 'direct' ? 'ok' : 'Direto'}
           </button>
         </div>
 
@@ -717,10 +742,40 @@ function RoomScreen({
                           : r.results?.mode
                             ? `Mais votado: ${r.results.mode}`
                             : 'Sem voto';
+                      const roundName = r.name ?? `Round ${r.roundIndex + 1}`;
+                      const commitRound = () => {
+                        onRenameRound(r.roundIndex, roundDraft);
+                        setEditingRound(null);
+                      };
                       return (
                         <div key={r.roundIndex} className="poker-histmenu__round">
                           <div className="poker-histmenu__round-head">
-                            <span>Round {r.roundIndex + 1}</span>
+                            {editingRound === r.roundIndex ? (
+                              <input
+                                className="poker-histmenu__rename"
+                                value={roundDraft}
+                                autoFocus
+                                maxLength={40}
+                                onChange={(e) => setRoundDraft(e.target.value)}
+                                onBlur={commitRound}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') commitRound();
+                                  if (e.key === 'Escape') setEditingRound(null);
+                                }}
+                              />
+                            ) : (
+                              <button
+                                type="button"
+                                className="poker-histmenu__name"
+                                title="Renomear round"
+                                onClick={() => {
+                                  setEditingRound(r.roundIndex);
+                                  setRoundDraft(r.name ?? `Round ${r.roundIndex + 1}`);
+                                }}
+                              >
+                                {roundName} ✎
+                              </button>
+                            )}
                             <strong>{label}</strong>
                           </div>
                           <div className="poker-histmenu__votes">
@@ -745,9 +800,13 @@ function RoomScreen({
         </div>
       </div>
 
-      <div className="poker-table-wrap">
-        {/* menu de reações */}
-        <div className="poker-reactmenu" ref={reactMenuRef}>
+      <div className={`poker-table-wrap${bleachersActive ? ' has-bleachers' : ''}`}>
+        {/* menu de reações — quando NÃO tem seletor de personagem (espectador),
+            assume o canto dele (top-right); senão fica ao lado dele */}
+        <div
+          className={`poker-reactmenu${amSpectator || needPick ? ' is-solo' : ''}`}
+          ref={reactMenuRef}
+        >
           <button
             className={`poker-reactmenu__toggle${reactOpen ? ' is-open' : ''}`}
             onClick={() => setReactOpen((v) => !v)}
@@ -757,6 +816,7 @@ function RoomScreen({
           </button>
           {reactOpen && (
             <div className="poker-reactmenu__panel">
+              <p className="poker-reactmenu__heading">Reações</p>
               <div className="poker-reactmenu__group">
                 {EMOJI_REACTIONS.map((e) => (
                   <button key={e} className="poker-reactmenu__emoji" onClick={() => onReact(e)}>
@@ -764,7 +824,7 @@ function RoomScreen({
                   </button>
                 ))}
               </div>
-              <div className="poker-reactmenu__divider" />
+              <p className="poker-reactmenu__heading">Efeitos Sonoros</p>
               <div className="poker-reactmenu__sounds">
                 {SOUND_REACTIONS.map((s) => (
                   <button
@@ -818,6 +878,97 @@ function RoomScreen({
             )}
           </div>
         )}
+
+        {/* arquibancada: espectadores na lateral; recolhe pra ícone em telas pequenas */}
+        {!loading &&
+          spectators.length > 0 &&
+          (bleachersOpen ? (
+            <div className="poker-bleachers">
+              <div className="poker-bleachers__head">
+                <span className="poker-bleachers__title">👀 Arquibancada</span>
+                <span className="poker-bleachers__count">{spectators.length}</span>
+                <button
+                  type="button"
+                  className="poker-bleachers__collapse"
+                  onClick={() => {
+                    setBleachersOpen(false);
+                    setSpecDogPickOpen(false);
+                  }}
+                  title="Recolher arquibancada"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="poker-bleachers__list">
+                {spectators.map((s) => {
+                  const isMe = s.id === selfId;
+                  const myReactions = reactions.filter((r) => r.fromId === s.id);
+                  return (
+                    <div
+                      key={s.id}
+                      className={`poker-bleachers__item${isMe ? ' is-me' : ''}`}
+                      title={`${s.name} — Cachorro ${s.dogId}`}
+                    >
+                      <img src={pokerAsset(`dog-${s.dogId}.png`)} alt={`Cachorro ${s.dogId}`} />
+                      <span className="poker-bleachers__name">
+                        {s.name}
+                        {isMe ? ' (você)' : ''}
+                      </span>
+                      {isMe && (
+                        <button
+                          type="button"
+                          className="poker-bleachers__swap"
+                          onClick={() => setSpecDogPickOpen((v) => !v)}
+                          title="Trocar personagem"
+                        >
+                          🔄
+                        </button>
+                      )}
+                      {myReactions.map((r) => (
+                        <span key={r.key} className="poker-bleachers__reaction">
+                          {r.emoji}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+              {amSpectator && specDogPickOpen && (
+                <div className="poker-bleachers__pick">
+                  <p className="poker-dogpick__label">Escolha seu cachorro</p>
+                  <div className="poker-charpick poker-charpick--sm">
+                    {dogs.map((d) => {
+                      const taken = allTakenDogs.includes(d) && d !== dogId;
+                      return (
+                        <button
+                          key={d}
+                          type="button"
+                          className={`poker-charpick__opt${dogId === d ? ' is-active' : ''}${taken ? ' is-taken' : ''}`}
+                          onClick={() => {
+                            if (taken) return;
+                            onChangeDog(d);
+                            setSpecDogPickOpen(false);
+                          }}
+                          title={taken ? `Cachorro ${d} — já escolhido` : `Cachorro ${d}`}
+                        >
+                          <img src={pokerAsset(`dog-${d}.png`)} alt={`Cachorro ${d}`} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="poker-bleachers__fab"
+              onClick={() => setBleachersOpen(true)}
+              title="Abrir arquibancada"
+            >
+              👀<span className="poker-bleachers__fab-count">{spectators.length}</span>
+            </button>
+          ))}
 
         {loading ? (
           <div className="poker-loader">
