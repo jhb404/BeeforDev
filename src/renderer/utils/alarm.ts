@@ -739,6 +739,197 @@ export async function playUiDrumroll(): Promise<void> {
   osc.stop(at + 0.4);
 }
 
+// airhorn — buzina de festa: blasts sawtooth graves com vibrato
+export async function playUiAirhorn(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  const blasts = [
+    { t: 0, d: 0.18 },
+    { t: 0.24, d: 0.18 },
+    { t: 0.48, d: 0.5 },
+  ];
+  for (const b of blasts) {
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    const lfo = audio.createOscillator();
+    const lfoG = audio.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.value = 220;
+    lfo.frequency.value = 7; // vibrato
+    lfoG.gain.value = 12;
+    lfo.connect(lfoG).connect(osc.frequency);
+    const filter = audio.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 1600;
+    g.gain.setValueAtTime(0.0001, s + b.t);
+    g.gain.exponentialRampToValueAtTime(0.22, s + b.t + 0.02);
+    g.gain.setValueAtTime(0.22, s + b.t + b.d - 0.04);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + b.t + b.d);
+    osc.connect(filter).connect(g).connect(audio.destination);
+    osc.start(s + b.t);
+    lfo.start(s + b.t);
+    osc.stop(s + b.t + b.d + 0.02);
+    lfo.stop(s + b.t + b.d + 0.02);
+  }
+}
+
+// sad-trombone — "womp womp womp wooomp": 4 notas descendentes com glide
+export async function playUiSadTrombone(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  const notes = [
+    { f: 311, to: 294, t: 0.0, d: 0.28 }, // Eb4→D4
+    { f: 294, to: 277, t: 0.3, d: 0.28 }, // D4→C#4
+    { f: 277, to: 262, t: 0.6, d: 0.28 }, // C#4→C4
+    { f: 262, to: 196, t: 0.9, d: 0.6 }, // C4→G3 (wooomp)
+  ];
+  for (const n of notes) {
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    const filter = audio.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 1200;
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(n.f, s + n.t);
+    osc.frequency.linearRampToValueAtTime(n.to, s + n.t + n.d);
+    g.gain.setValueAtTime(0.0001, s + n.t);
+    g.gain.exponentialRampToValueAtTime(0.2, s + n.t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + n.t + n.d);
+    osc.connect(filter).connect(g).connect(audio.destination);
+    osc.start(s + n.t);
+    osc.stop(s + n.t + n.d + 0.02);
+  }
+}
+
+// crickets — silêncio constrangedor: chirps agudos repetidos, baixinho
+export async function playUiCrickets(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  for (let i = 0; i < 4; i++) {
+    const base = s + i * 0.4;
+    // cada cricri = 3 chirps rápidos
+    for (let j = 0; j < 3; j++) {
+      const t = base + j * 0.04;
+      const osc = audio.createOscillator();
+      const g = audio.createGain();
+      osc.type = 'square';
+      osc.frequency.value = 4400;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.05, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+      osc.connect(g).connect(audio.destination);
+      osc.start(t);
+      osc.stop(t + 0.04);
+    }
+  }
+}
+
+// tada — fanfarra de vitória: acorde maior + brilho
+export async function playUiTada(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  // pickup rápido C5→G5 e acorde sustentado C maior
+  const lead = [
+    { f: 523, t: 0.0, d: 0.1 },
+    { f: 784, t: 0.08, d: 0.1 },
+  ];
+  for (const n of lead) {
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = n.f;
+    g.gain.setValueAtTime(0.0001, s + n.t);
+    g.gain.exponentialRampToValueAtTime(0.2, s + n.t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + n.t + n.d);
+    osc.connect(g).connect(audio.destination);
+    osc.start(s + n.t);
+    osc.stop(s + n.t + n.d + 0.02);
+  }
+  const chord = [523, 659, 784, 1047]; // C E G C
+  for (const f of chord) {
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, s + 0.18);
+    g.gain.exponentialRampToValueAtTime(0.16, s + 0.2);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + 0.7);
+    osc.connect(g).connect(audio.destination);
+    osc.start(s + 0.18);
+    osc.stop(s + 0.72);
+  }
+}
+
+// fart — pum cômico: sawtooth grave com wobble de pitch + lowpass
+export async function playUiFart(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  const osc = audio.createOscillator();
+  const g = audio.createGain();
+  const filter = audio.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 600;
+  osc.type = 'sawtooth';
+  // pitch que sobe e desce esquisito
+  osc.frequency.setValueAtTime(120, s);
+  osc.frequency.linearRampToValueAtTime(90, s + 0.08);
+  osc.frequency.linearRampToValueAtTime(150, s + 0.18);
+  osc.frequency.linearRampToValueAtTime(70, s + 0.4);
+  const lfo = audio.createOscillator();
+  const lfoG = audio.createGain();
+  lfo.frequency.value = 22;
+  lfoG.gain.value = 30;
+  lfo.connect(lfoG).connect(osc.frequency);
+  g.gain.setValueAtTime(0.0001, s);
+  g.gain.exponentialRampToValueAtTime(0.22, s + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001, s + 0.42);
+  osc.connect(filter).connect(g).connect(audio.destination);
+  osc.start(s);
+  lfo.start(s);
+  osc.stop(s + 0.45);
+  lfo.stop(s + 0.45);
+}
+
+// howl — uivo de lobo/cão: glide subindo até o ápice e descendo lento,
+// sawtooth com vibrato + lowpass, sustentado (~1.2s)
+export async function playUiHowl(): Promise<void> {
+  const audio = getCtx();
+  await ensureRunning(audio);
+  const s = audio.currentTime;
+  const dur = 1.2;
+  const osc = audio.createOscillator();
+  const g = audio.createGain();
+  osc.type = 'sawtooth';
+  // contorno do uivo: sobe rápido, segura agudo, cai lento
+  osc.frequency.setValueAtTime(300, s);
+  osc.frequency.linearRampToValueAtTime(560, s + 0.25);
+  osc.frequency.setValueAtTime(560, s + 0.7);
+  osc.frequency.linearRampToValueAtTime(360, s + dur);
+  // vibrato (trêmulo do uivo)
+  const lfo = audio.createOscillator();
+  const lfoG = audio.createGain();
+  lfo.frequency.value = 6;
+  lfoG.gain.value = 14;
+  lfo.connect(lfoG).connect(osc.frequency);
+  const filter = audio.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 1500;
+  g.gain.setValueAtTime(0.0001, s);
+  g.gain.exponentialRampToValueAtTime(0.2, s + 0.12);
+  g.gain.setValueAtTime(0.2, s + dur - 0.35);
+  g.gain.exponentialRampToValueAtTime(0.0001, s + dur);
+  osc.connect(filter).connect(g).connect(audio.destination);
+  osc.start(s);
+  lfo.start(s);
+  osc.stop(s + dur + 0.05);
+  lfo.stop(s + dur + 0.05);
+}
+
 export type UiSoundKind =
   | 'click'
   | 'close'
@@ -768,7 +959,13 @@ export type UiSoundKind =
   | 'poker-reveal'
   | 'boo'
   | 'clap'
-  | 'drumroll';
+  | 'drumroll'
+  | 'airhorn'
+  | 'sad-trombone'
+  | 'crickets'
+  | 'tada'
+  | 'fart'
+  | 'howl';
 
 export function playUiSound(kind: UiSoundKind): void {
   switch (kind) {
@@ -858,6 +1055,24 @@ export function playUiSound(kind: UiSoundKind): void {
       return;
     case 'drumroll':
       void playUiDrumroll();
+      return;
+    case 'airhorn':
+      void playUiAirhorn();
+      return;
+    case 'sad-trombone':
+      void playUiSadTrombone();
+      return;
+    case 'crickets':
+      void playUiCrickets();
+      return;
+    case 'tada':
+      void playUiTada();
+      return;
+    case 'fart':
+      void playUiFart();
+      return;
+    case 'howl':
+      void playUiHowl();
       return;
   }
 }

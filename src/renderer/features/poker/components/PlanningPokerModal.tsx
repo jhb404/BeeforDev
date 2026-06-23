@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import type { SessionStatus } from '@shared/types/index';
 import { useIpc } from '../../../services/ipc';
 import { ModalShell } from '../../../components/ui/ModalShell';
+import { StatusBadge } from '../../../components/common/StatusBadge';
 import { Check, Copy, Eye, RotateCcw, Spade } from '../../../components/common/Icons';
 import { playUiSound } from '../../../utils/alarm';
 import {
@@ -14,12 +16,37 @@ import { cardTier, pokerAsset } from '../cardTier';
 import { PokerDogTable } from './PokerDogTable';
 import { DECKS, DEFAULT_DECK_ID, getDeck, type DeckId } from '../../../../shared/poker/decks';
 
-const EMOJI_REACTIONS = ['🔥', '👏', '😂', '👍', '❤️', '🤔'];
+const EMOJI_REACTIONS = [
+  '🔥',
+  '👏',
+  '😂',
+  '👍',
+  '❤️',
+  '🤔',
+  '🎉',
+  '😱',
+  '🙌',
+  '🚀',
+  '👀',
+  '🤯',
+  '🥳',
+  '😴',
+  '🤝',
+  '💯',
+  '😅',
+  '🤡',
+];
 const SOUND_REACTIONS: { emoji: string; label: string; sound: string }[] = [
   { emoji: '🐶', label: 'Latido', sound: 'dog-bark' },
+  { emoji: '🐺', label: 'Uivo', sound: 'howl' },
   { emoji: '👏', label: 'Aplauso', sound: 'clap' },
   { emoji: '👎', label: 'Vaia', sound: 'boo' },
   { emoji: '🥁', label: 'Suspense', sound: 'drumroll' },
+  { emoji: '📢', label: 'Buzina', sound: 'airhorn' },
+  { emoji: '🎺', label: 'Womp womp', sound: 'sad-trombone' },
+  { emoji: '🦗', label: 'Grilos', sound: 'crickets' },
+  { emoji: '🎉', label: 'Tadá', sound: 'tada' },
+  { emoji: '💨', label: 'Pum', sound: 'fart' },
 ];
 
 interface Props {
@@ -96,6 +123,14 @@ const CONN_LABEL: Record<ConnState, string> = {
   connected: 'Conectado',
   reconnecting: 'Reconectando…',
   closed: 'Desconectado',
+};
+
+// reusa o mesmo StatusBadge do "Abrir Beefor no Navegador" — sem componente próprio
+const CONN_STATUS: Record<ConnState, SessionStatus> = {
+  connecting: 'loading',
+  connected: 'connected',
+  reconnecting: 'reconnecting',
+  closed: 'disconnected',
 };
 
 export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
@@ -614,32 +649,26 @@ function RoomScreen({
   return (
     <div className="poker-room">
       <div className="poker-room__bar">
-        {/* cluster 1: identidade da sala */}
+        {/* cluster 1: identidade da sala — o próprio código copia o convite */}
         <div className="poker-room__cluster poker-room__cluster--id">
-          <span className="poker-room__code">
-            <span className="poker-room__code-label">Sala</span>
-            <strong>{roomId}</strong>
-          </span>
-          <span className={`poker-conn poker-conn--${conn}`} title={CONN_LABEL[conn]}>
-            <span className="poker-conn__dot" aria-hidden="true" />
-            {CONN_LABEL[conn]}
-          </span>
-        </div>
-
-        {/* cluster 2: convite — ação principal + fallback direto */}
-        <div className="poker-invite" role="group" aria-label="Convidar time">
           <button
             type="button"
-            className="poker-invite__main"
+            className={`poker-room__code${copied === 'link' ? ' is-copied' : ''}`}
             onClick={onCopyLink}
-            title="Copia o link clicável — mande no Discord/Slack/WhatsApp, é só clicar pra entrar"
+            title="Copiar convite — manda no Discord/Slack/WhatsApp, é só clicar pra entrar"
           >
-            {copied === 'link' ? <Check size={15} /> : <Copy size={15} />}
-            {copied === 'link' ? 'Convite copiado!' : 'Copiar convite'}
+            <span className="poker-room__code-label">Sala</span>
+            {copied === 'link' ? (
+              <Check size={15} className="poker-room__code-ico" />
+            ) : (
+              <Copy size={15} className="poker-room__code-ico" />
+            )}
+            <strong>{roomId}</strong>
           </button>
+          <StatusBadge status={CONN_STATUS[conn]} />
           <button
             type="button"
-            className="poker-invite__alt"
+            className="poker-room__copydirect"
             onClick={onCopyDirect}
             title="Convite direto — se o link não abrir no chat, cole isto no campo 'cole o convite' do app"
           >

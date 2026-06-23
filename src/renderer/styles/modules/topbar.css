@@ -291,9 +291,9 @@
   align-items: center;
   gap: 8px;
   padding: 4px 10px 4px 4px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-2);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius);
   cursor: pointer;
   color: var(--text);
   font-size: 12px;
@@ -302,13 +302,13 @@
 }
 
 .org-switcher__chip:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: var(--bg-3);
+  border-color: var(--border-strong);
 }
 
 .org-switcher__chip.is-open {
-  border-color: var(--accent, #ffb060);
-  background: rgba(255, 200, 100, 0.08);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .org-switcher__avatar {
@@ -318,7 +318,7 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: #ffb060;
+  background: var(--accent);
   color: #1a1208;
   font-size: 11px;
   font-weight: 800;
@@ -373,8 +373,8 @@
   max-height: 460px;
   display: flex;
   flex-direction: column;
-  background: var(--panel-bg, #181818);
-  border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.12));
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
   border-radius: 14px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
   padding: 12px;
@@ -409,6 +409,37 @@
   padding-left: 4px;
 }
 
+.org-switcher__search {
+  width: 100%;
+  padding: 6px 10px;
+  margin: 2px 0 4px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.org-switcher__search::placeholder {
+  color: var(--text-muted);
+}
+
+.org-switcher__search:focus {
+  border-color: var(--accent);
+  background: var(--bg-2);
+}
+
+.org-switcher__empty {
+  margin: 4px 0;
+  padding: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+}
+
 .org-switcher__orgs {
   display: flex;
   flex-direction: column;
@@ -431,17 +462,17 @@
 }
 
 .org-switcher__org-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--selectable-hover-bg);
 }
 
 .org-switcher__org-item.is-active {
-  background: rgba(255, 200, 100, 0.1);
-  border-color: rgba(255, 200, 100, 0.35);
+  background: var(--selectable-active-bg);
+  border-color: var(--selectable-active-border);
 }
 
 .org-switcher__check {
   margin-left: auto;
-  color: var(--warm, #ffb060);
+  color: var(--warm);
   flex-shrink: 0;
 }
 
@@ -449,24 +480,6 @@
   height: 1px;
   background: var(--border);
   margin: 2px 0;
-}
-
-.org-switcher__group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 6px;
-}
-
-.org-switcher__group-title {
-  margin: 0;
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px 4px;
-  opacity: 0.7;
 }
 
 .org-switcher__team-item {
@@ -486,17 +499,17 @@
 }
 
 .org-switcher__team-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--selectable-hover-bg);
 }
 
 .org-switcher__team-item.is-active {
-  background: rgba(255, 200, 100, 0.08);
-  border-color: rgba(255, 200, 100, 0.3);
+  background: var(--selectable-active-bg);
+  border-color: var(--selectable-active-border);
 }
 
 .org-switcher__team-item.is-fav {
-  background: rgba(255, 215, 0, 0.06);
-  border-color: rgba(255, 215, 0, 0.18);
+  background: color-mix(in srgb, var(--warm) 8%, transparent);
+  border-color: color-mix(in srgb, var(--warm) 22%, transparent);
 }
 
 .org-switcher__team-name {
@@ -517,21 +530,24 @@
 .org-switcher__star {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
+  opacity: 0.5;
   font-size: 14px;
   cursor: pointer;
   padding: 0 2px;
-  transition: color 0.1s ease, transform 0.1s ease;
+  transition: color 0.1s ease, opacity 0.1s ease, transform 0.1s ease;
 }
 
 .org-switcher__star:hover {
-  color: #ffd54f;
+  color: var(--warm);
+  opacity: 1;
   transform: scale(1.15);
 }
 
 .org-switcher__star.is-fav {
-  color: #ffd54f;
-  text-shadow: 0 0 6px rgba(255, 213, 79, 0.4);
+  color: var(--warm);
+  opacity: 1;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--warm) 40%, transparent);
 }
 
 .org-switcher__hint {

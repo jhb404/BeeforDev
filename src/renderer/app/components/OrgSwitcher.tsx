@@ -56,6 +56,8 @@ export function OrgSwitcher() {
   const [favoriteTeamId, setFavoriteTeamId] = useState(
     MOCK_ORGS[0].teams.find((t) => t.favorite)?.id ?? null,
   );
+  const [orgQuery, setOrgQuery] = useState('');
+  const [teamQuery, setTeamQuery] = useState('');
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -67,12 +69,27 @@ export function OrgSwitcher() {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
+  // limpa buscas ao fechar
+  useEffect(() => {
+    if (!open) {
+      setOrgQuery('');
+      setTeamQuery('');
+    }
+  }, [open]);
+
   const activeOrg = MOCK_ORGS.find((o) => o.id === activeOrgId) ?? MOCK_ORGS[0];
   const activeTeam = activeOrg.teams.find((t) => t.id === activeTeamId) ?? activeOrg.teams[0];
-  const groups = Array.from(new Set(activeOrg.teams.map((t) => t.group)));
+
+  const filteredOrgs = MOCK_ORGS.filter((o) =>
+    o.name.toLowerCase().includes(orgQuery.trim().toLowerCase()),
+  );
+  const filteredTeams = activeOrg.teams.filter((t) =>
+    t.name.toLowerCase().includes(teamQuery.trim().toLowerCase()),
+  );
 
   const handleSwitchOrg = (id: string) => {
     setActiveOrgId(id);
+    setTeamQuery('');
     const first = MOCK_ORGS.find((o) => o.id === id)?.teams[0];
     if (first) setActiveTeamId(first.id);
   };
@@ -104,8 +121,19 @@ export function OrgSwitcher() {
         <div className="org-switcher__panel" role="menu">
           <div className="org-switcher__section">
             <p className="org-switcher__section-title">Organização</p>
+            <input
+              type="text"
+              className="org-switcher__search"
+              placeholder="Buscar organização…"
+              value={orgQuery}
+              onChange={(e) => setOrgQuery(e.target.value)}
+              aria-label="Buscar organização"
+            />
             <div className="org-switcher__orgs">
-              {MOCK_ORGS.map((o) => (
+              {filteredOrgs.length === 0 && (
+                <p className="org-switcher__empty">Nenhuma organização encontrada</p>
+              )}
+              {filteredOrgs.map((o) => (
                 <button
                   key={o.id}
                   type="button"
@@ -144,7 +172,6 @@ export function OrgSwitcher() {
                     aria-checked={fav.id === activeTeamId}
                   >
                     <span className="org-switcher__team-name">{fav.name}</span>
-                    <span className="org-switcher__team-group">{fav.group}</span>
                     {fav.id === activeTeamId && <Check size={14} className="org-switcher__check" />}
                   </button>
                 );
@@ -154,36 +181,40 @@ export function OrgSwitcher() {
 
           <div className="org-switcher__section org-switcher__section--scroll">
             <p className="org-switcher__section-title">Times</p>
-            {groups.map((g) => (
-              <div key={g} className="org-switcher__group">
-                <p className="org-switcher__group-title">{g}</p>
-                {activeOrg.teams
-                  .filter((t) => t.group === g)
-                  .map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      className={`org-switcher__team-item${t.id === activeTeamId ? ' is-active' : ''}`}
-                      onClick={() => setActiveTeamId(t.id)}
-                      role="menuitemradio"
-                      aria-checked={t.id === activeTeamId}
-                    >
-                      <span className="org-switcher__team-name">{t.name}</span>
-                      <button
-                        type="button"
-                        className={`org-switcher__star${t.id === favoriteTeamId ? ' is-fav' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFavoriteTeamId(t.id === favoriteTeamId ? null : t.id);
-                        }}
-                        title={t.id === favoriteTeamId ? 'Remover favorito' : 'Marcar favorito'}
-                        aria-label="Favoritar time"
-                      >
-                        ★
-                      </button>
-                    </button>
-                  ))}
-              </div>
+            <input
+              type="text"
+              className="org-switcher__search"
+              placeholder="Buscar time…"
+              value={teamQuery}
+              onChange={(e) => setTeamQuery(e.target.value)}
+              aria-label="Buscar time"
+            />
+            {filteredTeams.length === 0 && (
+              <p className="org-switcher__empty">Nenhum time encontrado</p>
+            )}
+            {filteredTeams.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={`org-switcher__team-item${t.id === activeTeamId ? ' is-active' : ''}`}
+                onClick={() => setActiveTeamId(t.id)}
+                role="menuitemradio"
+                aria-checked={t.id === activeTeamId}
+              >
+                <span className="org-switcher__team-name">{t.name}</span>
+                <button
+                  type="button"
+                  className={`org-switcher__star${t.id === favoriteTeamId ? ' is-fav' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFavoriteTeamId(t.id === favoriteTeamId ? null : t.id);
+                  }}
+                  title={t.id === favoriteTeamId ? 'Remover favorito' : 'Marcar favorito'}
+                  aria-label="Favoritar time"
+                >
+                  ★
+                </button>
+              </button>
             ))}
           </div>
 

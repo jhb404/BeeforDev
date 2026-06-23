@@ -233,10 +233,10 @@
 .poker-room__cluster--id { flex-shrink: 0; }
 .poker-room__cluster--actions { flex-shrink: 0; margin-left: auto; }
 
-/* "Sala CÓDIGO" — código em destaque, fácil de achar na barra */
+/* "Sala 📋 CÓDIGO" — o próprio chip é o botão que copia o convite */
 .poker-room__code {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   padding: 7px 14px;
   background: var(--accent-soft);
@@ -244,6 +244,15 @@
   border: 1px solid var(--accent);
   border-radius: var(--radius);
   font-size: 13px;
+  cursor: pointer;
+  transition:
+    filter 0.12s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+
+.poker-room__code:hover {
+  filter: brightness(1.08);
 }
 
 .poker-room__code-label {
@@ -254,51 +263,32 @@
   letter-spacing: 0.5px;
 }
 
+.poker-room__code-ico {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
 .poker-room__code strong {
   letter-spacing: 3px;
   font-size: 18px;
   color: var(--accent);
 }
 
-.poker-room__copied {
-  font-size: 11px;
+/* estado "copiado" — vira verde rapidinho */
+.poker-room__code.is-copied {
+  border-color: var(--ok);
+}
+.poker-room__code.is-copied .poker-room__code-ico,
+.poker-room__code.is-copied strong {
   color: var(--ok);
-  font-weight: 700;
-}
-
-/* convite: botão primário (link clicável p/ Discord) + ghost (convite direto) */
-.poker-invite {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* primário — "Copiar convite": link clicável, manda no chat e é só clicar */
-.poker-invite__main {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
-  background: var(--accent);
-  color: #1a1208;
-  border: none;
-  border-radius: var(--radius);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: filter 0.12s ease;
-}
-
-.poker-invite__main:hover {
-  filter: brightness(1.08);
 }
 
 /* ghost — "convite direto": fallback se o link não abrir (cola no campo) */
-.poker-invite__alt {
+.poker-room__copydirect {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 7px 11px;
+  padding: 6px 10px;
   background: transparent;
   color: var(--text-muted);
   border: 1px solid var(--border-strong);
@@ -313,54 +303,13 @@
     border-color 0.12s ease;
 }
 
-.poker-invite__alt:hover {
+.poker-room__copydirect:hover {
   background: var(--bg-2);
   color: var(--text);
   border-color: var(--accent);
 }
 
-.poker-conn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-}
-
-.poker-conn__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 6px currentColor;
-}
-
-.poker-conn--connected {
-  color: var(--ok);
-  border-color: var(--ok-border);
-}
-
-.poker-conn--connecting,
-.poker-conn--reconnecting {
-  color: var(--warn);
-}
-.poker-conn--connecting .poker-conn__dot,
-.poker-conn--reconnecting .poker-conn__dot {
-  animation: poker-conn-blink 0.9s ease-in-out infinite;
-}
-
-@keyframes poker-conn-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-
-.poker-conn--closed {
-  color: var(--err);
-  border-color: var(--err-border);
-}
+/* badge de conexão = StatusBadge compartilhado (.status), sem CSS próprio aqui */
 
 .poker-room__spacer {
   flex: 1;
