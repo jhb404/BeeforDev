@@ -130,9 +130,11 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
     reactions,
     history,
     selfId,
+    closedByHost,
     vote,
     reveal,
     reset,
+    closeRoom,
     sendReaction,
     rename,
     changeDog,
@@ -169,6 +171,7 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
   // convite via deep link: ao abrir, entra direto na sala como convidado
   useEffect(() => {
     if (!open || !initialInvite) return;
+    endedByMe.current = false;
     setInitialRole('spectator');
     setIsHost(false);
     setWsUrl(initialInvite.wsUrl);
@@ -184,6 +187,7 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
   const createRoom = async () => {
     if (!name.trim()) return setEntryError('Digite seu nome.');
     setEntryError(null);
+    endedByMe.current = false;
     setCreating(true);
     const [tunnelRes, port] = await Promise.all([system.pokerStartTunnel(), system.pokerGetPort()]);
     setCreating(false);
@@ -206,6 +210,7 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
     const parsed = parseInvite(inviteInput);
     if (!parsed) return setEntryError('Convite inválido. Cole o convite que o host enviou.');
     setEntryError(null);
+    endedByMe.current = false;
     setInitialRole('spectator'); // convidado escolhe dog na sala antes de sentar
     setIsHost(false);
     setWsUrl(parsed.wsUrl);
@@ -246,6 +251,25 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
     setRoomId(null);
     setIsHost(false);
   };
+
+  // quem encerrou não deve ver o aviso "encerrada pelo criador" (o próprio
+  // socket do host também recebe o roomClosed do servidor).
+  const endedByMe = useRef(false);
+
+  // host clica "Encerrar": fecha a sala pra todos no servidor, depois sai
+  const endRoom = () => {
+    endedByMe.current = true;
+    closeRoom();
+    leaveRoom();
+  };
+
+  // convidado: servidor avisou que o host encerrou → volta pra entrada com aviso
+  useEffect(() => {
+    if (!closedByHost) return;
+    if (!endedByMe.current) setEntryError('A sala foi encerrada pelo criador.');
+    leaveRoom();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [closedByHost]);
 
   const inRoom = wsUrl !== null && roomId !== null;
 
@@ -295,7 +319,7 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
           onVote={vote}
           onReveal={revealWithSound}
           onReset={reset}
-          onLeave={leaveRoom}
+          onLeave={isHost ? endRoom : leaveRoom}
           onReact={sendReaction}
           onRename={(n) => {
             setName(n);

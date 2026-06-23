@@ -41,6 +41,8 @@ interface Room {
   lastActivity: number;
   /** Deck escolhido pelo host na criação da sala. Persiste enquanto a sala existir. */
   deckId: DeckId;
+  /** participantId de quem criou a sala (host). Só ele pode encerrar pra todos. */
+  creatorId: string;
 }
 
 /** Mensagens que o renderer envia. */
@@ -54,6 +56,7 @@ type ClientMessage =
   | { type: 'reveal' }
   | { type: 'reset' }
   | { type: 'reaction'; emoji: string; sound?: string }
+  | { type: 'close' } // host encerra a sala pra todos
   | { type: 'leave' };
 
 const rooms = new Map<string, Room>();
@@ -192,10 +195,14 @@ function handleMessage(ws: WebSocket, raw: ClientMessage): void {
         revealed: false,
         lastActivity: Date.now(),
         deckId,
+        creatorId: '', // definido abaixo com o participantId do 1º membro
       };
       rooms.set(roomId, room);
     }
+    const isNewRoom = room.creatorId === '';
     const participantId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    // 1º membro a entrar vira host — só ele pode encerrar pra todos
+    if (isNewRoom) room.creatorId = participantId;
     // entra na mesa se tiver vaga; senão vai pro banco (reserva, vota igual)
     const role: Role =
       raw.role === 'spectator' ? 'spectator' : seatedCount(room) < MAX_SEATS ? 'seated' : 'bench';
@@ -299,11 +306,32 @@ function handleMessage(ws: WebSocket, raw: ClientMessage): void {
       );
       break;
     }
+    case 'close': {
+      // só o criador encerra a sala pra todos; demais são ignorados
+      if (st.participantId === room.creatorId) closeRoom(room);
+      break;
+    }
     case 'leave': {
       removeFromRoom(ws);
       break;
     }
   }
+}
+
+/** Host encerrou: avisa todos os sockets da sala, limpa estado e apaga a sala. */
+function closeRoom(room: Room): void {
+  if (!wss) {
+    rooms.delete(room.id);
+    return;
+  }
+  const data = JSON.stringify({ type: 'roomClosed' });
+  for (const client of wss.clients) {
+    const st = sockets.get(client);
+    if (st?.roomId !== room.id) continue;
+    if (client.readyState === WebSocket.OPEN) client.send(data);
+    sockets.delete(client); // mensagens posteriores desse socket viram no-op
+  }
+  rooms.delete(room.id);
 }
 
 /** Reação é efêmera — não guarda estado, só repassa pra todos da sala. */

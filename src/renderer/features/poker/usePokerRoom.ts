@@ -78,6 +78,8 @@ export function usePokerRoom({
   const [reactions, setReactions] = useState<LiveReaction[]>([]);
   const [history, setHistory] = useState<RoundRecord[]>([]);
   const [selfId, setSelfId] = useState<string | null>(null);
+  // host encerrou a sala — convidados são desconectados sem reconectar
+  const [closedByHost, setClosedByHost] = useState(false);
   const roundIndexRef = useRef(0);
   const prevRevealedRef = useRef(false);
   const lastRevealedRef = useRef<PokerRoom | null>(null);
@@ -109,6 +111,7 @@ export function usePokerRoom({
     setHistory([]);
     setReactions([]);
     setSelfId(null);
+    setClosedByHost(false);
     roundIndexRef.current = 0;
     prevRevealedRef.current = false;
     lastRevealedRef.current = null;
@@ -187,6 +190,12 @@ export function usePokerRoom({
             setTimeout(() => {
               setReactions((prev) => prev.filter((r) => r.key !== key));
             }, 2600);
+          } else if (data?.type === 'roomClosed') {
+            // host encerrou: não reconecta, fecha o socket e sinaliza pra UI
+            closedByUs.current = true;
+            setClosedByHost(true);
+            setConn('closed');
+            wsRef.current?.close();
           }
         } catch {
           /* ignora frame inválido */
@@ -225,6 +234,7 @@ export function usePokerRoom({
   const vote = useCallback((value: string) => send({ type: 'vote', value }), [send]);
   const reveal = useCallback(() => send({ type: 'reveal' }), [send]);
   const reset = useCallback(() => send({ type: 'reset' }), [send]);
+  const closeRoom = useCallback(() => send({ type: 'close' }), [send]);
   const sendReaction = useCallback(
     (emoji: string, sound?: string) => send({ type: 'reaction', emoji, sound }),
     [send],
@@ -262,9 +272,11 @@ export function usePokerRoom({
     reactions,
     history,
     selfId,
+    closedByHost,
     vote,
     reveal,
     reset,
+    closeRoom,
     sendReaction,
     rename,
     changeDog,
