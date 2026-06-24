@@ -593,26 +593,37 @@
 }
 
 .org-switcher__star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
   background: transparent;
   border: none;
+  border-radius: var(--radius);
   color: var(--text-muted);
-  opacity: 0.5;
+  opacity: 0.45;
   font-size: 14px;
+  line-height: 1;
   cursor: pointer;
-  padding: 0 2px;
-  transition: color 0.1s ease, opacity 0.1s ease, transform 0.1s ease;
+  padding: 0;
+  transition: color 0.12s ease, opacity 0.12s ease, background 0.12s ease;
 }
 
 .org-switcher__star:hover {
   color: var(--warm);
   opacity: 1;
-  transform: scale(1.15);
+  background: color-mix(in srgb, var(--warm) 16%, transparent);
 }
 
 .org-switcher__star.is-fav {
   color: var(--warm);
   opacity: 1;
-  text-shadow: 0 0 6px color-mix(in srgb, var(--warm) 40%, transparent);
+}
+
+.org-switcher__star.is-fav:hover {
+  background: color-mix(in srgb, var(--warm) 16%, transparent);
 }
 
 .org-switcher__hint {

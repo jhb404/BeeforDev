@@ -363,9 +363,10 @@ export function OrgSwitcher() {
               >
                 <TeamAvatar team={favoriteTeam} />
                 <span className="org-switcher__team-name">{favoriteTeam.nome}</span>
-                <button
-                  type="button"
+                <span
                   className="org-switcher__star is-fav"
+                  role="button"
+                  tabIndex={0}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleToggleFavorite(favoriteTeam.id);
@@ -374,7 +375,7 @@ export function OrgSwitcher() {
                   aria-label="Remover favorito"
                 >
                   ★
-                </button>
+                </span>
               </button>
             )}
 
@@ -406,9 +407,10 @@ export function OrgSwitcher() {
                   >
                     <TeamAvatar team={t} />
                     <span className="org-switcher__team-name">{t.nome}</span>
-                    <button
-                      type="button"
+                    <span
                       className={`org-switcher__star${t.favorito ? ' is-fav' : ''}`}
+                      role="button"
+                      tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleToggleFavorite(t.id);
@@ -417,7 +419,7 @@ export function OrgSwitcher() {
                       aria-label="Favoritar time"
                     >
                       ★
-                    </button>
+                    </span>
                   </button>
                 ))
               ))}
