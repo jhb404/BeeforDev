@@ -72,6 +72,11 @@ const EXPECTED_IPC = {
   API_TIME_SEARCH: 'api:timeSearch',
   API_ORG_LIST: 'api:orgList',
   API_ORG_SELECT: 'api:orgSelect',
+  API_ORG_SWITCH: 'api:orgSwitch',
+  API_TIME_LIST: 'api:timeList',
+  API_TIME_FAVORITE: 'api:timeFavorite',
+  API_TIME_UNFAVORITE: 'api:timeUnfavorite',
+  API_GRUPO_LIST: 'api:grupoList',
   API_TS_MONTH: 'api:tsMonth',
   API_TS_POST: 'api:tsPost',
   API_TS_AUTO: 'api:tsAuto',
@@ -127,6 +132,8 @@ const EXPECTED_IPC = {
   POKER_START_TUNNEL: 'poker:startTunnel',
   POKER_STOP_TUNNEL: 'poker:stopTunnel',
   CLIPBOARD_WRITE: 'clipboard:write',
+  DEEPLINK_CONSUME: 'deeplink:consume',
+  EVT_DEEPLINK_URL: 'deeplink:url',
 } as const satisfies typeof IPC;
 
 describe('IPC channels', () => {
