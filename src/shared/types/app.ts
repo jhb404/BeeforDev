@@ -124,6 +124,9 @@ export interface AppSettings {
 
   /** API environment toggle: 'local' (localhost:44341 / :5000) | 'prod' (apiteams.goobee.com.br) */
   beeforEnv?: BeeforEnv;
+
+  /** Home de Práticas Ágeis (gráficos do time). Ver docs/praticas-ageis-charts-map.md */
+  praticasHome?: import('./praticas').PraticasHomeConfig;
 }
 
 export interface TodayAlert {

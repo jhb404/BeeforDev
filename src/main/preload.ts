@@ -24,6 +24,8 @@ import type {
   TeamMember,
   TimesheetEntry,
   TodayAlert,
+  PraticaAgilTime,
+  TermometroGrafico,
 } from '../shared/types/index';
 
 type AlarmInfo = { title: string; body: string; kind?: Exclude<TodayAlert['kind'], 'birthday'> };
@@ -269,6 +271,29 @@ const httpApi = {
     unfavorite: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_TIME_UNFAVORITE),
     groups: (): Promise<ActionResult<Array<{ idGrupo: string; nome: string }>>> =>
       ipcRenderer.invoke(IPC.API_GRUPO_LIST),
+  },
+
+  // Práticas Ágeis (config-driven)
+  praticas: {
+    config: (idTime: string): Promise<ActionResult<PraticaAgilTime[]>> =>
+      ipcRenderer.invoke(IPC.API_PRATICAS_CONFIG, { idTime }),
+    card: <T = unknown>(chave: string, idTime: string): Promise<ActionResult<T>> =>
+      ipcRenderer.invoke(IPC.API_PRATICAS_CARD, { chave, idTime }),
+    realizarDaily: (idTime: string, dia?: string): Promise<ActionResult<{ ok: boolean }>> =>
+      ipcRenderer.invoke(IPC.API_PRATICAS_DAILY_REALIZAR, { idTime, dia }),
+    configurarDaily: (payload: {
+      idTime: string;
+      horarioDaily?: string;
+      onde?: string;
+      periodicidade?: number;
+    }): Promise<ActionResult<{ ok: boolean }>> =>
+      ipcRenderer.invoke(IPC.API_PRATICAS_DAILY_CONFIG, payload),
+    termometro: (
+      idTime: string,
+      praticas: boolean,
+      assessments: boolean,
+    ): Promise<ActionResult<TermometroGrafico>> =>
+      ipcRenderer.invoke(IPC.API_PRATICAS_TERMOMETRO, { idTime, praticas, assessments }),
   },
 
   // Timesheet

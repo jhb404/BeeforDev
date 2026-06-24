@@ -1,0 +1,536 @@
+/* praticas.css — Home de Práticas Ágeis (gráficos do time). */
+
+.praticas-dashboard {
+  margin: 0 0 12px;
+}
+
+.praticas-dashboard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.praticas-dashboard-head h2 {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* nome do time ativo (vem do seletor global do topo) — só leitura */
+.praticas-time-label {
+  max-width: 240px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text, #eee);
+  background: var(--bg-2, #1a1a1a);
+  border: 1px solid var(--border, #333);
+  border-radius: 999px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.praticas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.praticas-card {
+  padding: 12px;
+}
+
+.praticas-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.praticas-card-head h3 {
+  font-size: 13px;
+  margin: 0;
+}
+
+.praticas-card-sub {
+  font-size: 11px;
+  color: var(--text-muted, #999);
+  margin: 0 0 6px;
+}
+
+.praticas-legend {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--text-muted, #999);
+}
+
+.praticas-chart-empty,
+.praticas-loading,
+.praticas-error {
+  font-size: 12px;
+  color: var(--text-muted, #999);
+  padding: 16px 4px;
+}
+
+.praticas-error {
+  color: #e5484d;
+}
+
+/* box-resumo (Capacity, Movimento, Delegation, Dicas, Backlog, TeamMood) */
+.praticas-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 0;
+}
+.praticas-box-valor {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text, #eee);
+  line-height: 1;
+}
+.praticas-box-sub {
+  font-size: 11px;
+  color: var(--text-muted, #999);
+}
+.praticas-box-sec {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--warm, #f5871f);
+}
+
+/* lista de eventos (Daily/Planning/Review/Retro) */
+.praticas-eventos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+}
+.praticas-eventos li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+.praticas-evento-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.praticas-evento-dot.ok {
+  background: #42d6a4;
+}
+.praticas-evento-dot.pend {
+  background: var(--border, #666);
+}
+.praticas-evento-data {
+  color: var(--text-muted, #999);
+  font-variant-numeric: tabular-nums;
+}
+.praticas-evento-titulo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* legenda da pizza */
+.praticas-legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 11px;
+}
+.praticas-legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+.praticas-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* termômetro */
+.praticas-termometro {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+.praticas-termometro-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.praticas-termometro-info small {
+  color: var(--text-muted, #999);
+  font-size: 11px;
+}
+
+/* faixa de mini-cards de resumo no topo (alinhada à direita) */
+.praticas-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.praticas-minicard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 130px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border, #333);
+  background: linear-gradient(
+    135deg,
+    var(--accent-2-soft, rgba(255, 148, 0, 0.1)),
+    var(--summary-bg, #1a1a1a) 60%
+  );
+  color: var(--text, #eee);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+.praticas-minicard:hover {
+  border-color: var(--warm, #ff9400);
+  box-shadow: 0 0 0 1px var(--warm, #ff9400), 0 4px 14px rgba(255, 148, 0, 0.15);
+  transform: translateY(-1px);
+}
+.praticas-minicard-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.praticas-minicard-nome {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #999);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.praticas-minicard-cfg {
+  font-size: 11px;
+  color: var(--text-muted, #777);
+  opacity: 0.6;
+}
+.praticas-minicard:hover .praticas-minicard-cfg {
+  opacity: 1;
+  color: var(--warm, #ff9400);
+}
+.praticas-minicard-body {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+}
+.praticas-chip-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+.praticas-chip-num {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--warm, #ff9400);
+}
+.praticas-minicard-sub {
+  font-size: 10px;
+  color: var(--text-muted, #888);
+}
+.praticas-chip-skel {
+  width: 40px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--border, #333);
+  opacity: 0.4;
+}
+
+/* cerimônia (Daily/Planning/Review/Retro) */
+.praticas-cerimonia-relogio {
+  font-size: 40px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--warm, #f5871f);
+  margin: 4px 0;
+}
+.praticas-cerimonia-contador {
+  text-align: center;
+  font-size: 13px;
+  margin: 8px 0 4px;
+}
+.praticas-cerimonia-datas {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted, #999);
+  margin-top: 6px;
+}
+
+/* modal config placeholder */
+.praticas-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.praticas-modal {
+  background: var(--panel-bg, #1e1e1e);
+  border: 1px solid var(--border, #333);
+  border-radius: 10px;
+  width: min(420px, 90vw);
+  padding: 0;
+  box-shadow: var(--shadow, 0 8px 32px rgba(0, 0, 0, 0.4));
+}
+.praticas-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border, #333);
+}
+.praticas-modal-head h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.praticas-modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted, #999);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.praticas-modal-body {
+  padding: 18px;
+}
+
+/* campos input (Daily dia/onde) */
+.praticas-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 8px 0;
+  font-size: 11px;
+  color: var(--text-muted, #999);
+}
+.praticas-field input {
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #333);
+  background: var(--input-bg, #141414);
+  color: var(--text, #eee);
+  font-size: 13px;
+}
+.praticas-field input:focus {
+  outline: none;
+  border-color: var(--warm, #ff9400);
+}
+
+/* footer de ações */
+.praticas-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border, #2a2a2a);
+}
+.praticas-action-btn {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #333);
+  background: transparent;
+  color: var(--text-muted, #aaa);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.praticas-action-btn:hover {
+  border-color: var(--warm, #ff9400);
+  color: var(--warm, #ff9400);
+}
+.praticas-action-btn.primary {
+  background: var(--warm, #ff9400);
+  border-color: var(--warm, #ff9400);
+  color: var(--text-on-warm, #fff);
+  font-weight: 600;
+}
+.praticas-action-btn.primary:hover {
+  background: var(--warm-hover, #e07f00);
+  color: var(--text-on-warm, #fff);
+}
+.praticas-action-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.praticas-realizar-btn {
+  width: 100%;
+  flex: none;
+  margin-top: 10px;
+}
+.praticas-msg {
+  margin-top: 6px;
+  text-align: center;
+}
+
+/* toggles do termômetro (pills com switch) */
+.praticas-term-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+.praticas-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px 5px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border, #333);
+  font-size: 12px;
+  color: var(--text-muted, #999);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s;
+}
+.praticas-toggle.on {
+  border-color: var(--warm, #ff9400);
+  color: var(--warm, #ff9400);
+  background: var(--accent-2-soft, rgba(255, 148, 0, 0.12));
+  font-weight: 600;
+}
+/* esconde checkbox nativo, mostra switch custom */
+.praticas-toggle input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 26px;
+  height: 15px;
+  border-radius: 999px;
+  background: var(--border, #444);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.praticas-toggle input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+.praticas-toggle input:checked {
+  background: var(--warm, #ff9400);
+}
+.praticas-toggle input:checked::after {
+  transform: translateX(11px);
+}
+
+/* barra de progresso (Planning) */
+.praticas-cerimonia-titulo {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--warm, #ff9400);
+  margin: 4px 0 8px;
+}
+.praticas-progress {
+  height: 22px;
+  border-radius: 999px;
+  background: var(--border, #2a2a2a);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.praticas-progress-fill {
+  height: 100%;
+  min-width: 24px;
+  background: var(--warm, #ff9400);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-on-warm, #fff);
+  font-size: 11px;
+  font-weight: 600;
+  transition: width 0.3s;
+}
+.praticas-cerimonia-status {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 6px 0;
+  color: var(--text-muted, #999);
+}
+.praticas-cerimonia-status.atrasada {
+  color: #e5484d;
+}
+
+/* delegation board */
+.praticas-deleg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+.praticas-deleg-nivel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.praticas-deleg-num {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--warm, #ff9400);
+}
+.praticas-deleg-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text, #eee);
+}
+.praticas-deleg-escala {
+  display: flex;
+  gap: 5px;
+}
+.praticas-deleg-dot {
+  width: 16px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--border, #333);
+}
+.praticas-deleg-dot.on {
+  background: var(--warm, #ff9400);
+}
+.praticas-deleg-sub {
+  text-align: center;
+}
+.praticas-term-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+}
+.praticas-term-lista li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border, #2a2a2a);
+}

@@ -7,3 +7,4 @@ export * from './team';
 export * from './coin2u';
 export * from './app';
 export * from './atividades';
+export * from './praticas';

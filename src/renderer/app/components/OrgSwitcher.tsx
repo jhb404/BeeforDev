@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check } from '../../components/common/Icons';
+import {
+  type Selection,
+  SELECTION_KEY,
+  CONTEXT_CHANGED_EVENT,
+  readSelection,
+} from '../contextSelection';
 
 /**
  * Botão de organização atual (chip) + popover de troca de org / time / grupo.
@@ -29,11 +35,6 @@ interface GroupItem {
   nome: string;
 }
 
-type Selection = { kind: 'org' } | { kind: 'team'; id: string } | { kind: 'group'; id: string };
-
-const SELECTION_KEY = 'beefor-contexto-selecionado';
-const CONTEXT_CHANGED_EVENT = 'beefor:context-changed';
-
 const AVATAR_COLORS = [
   '#7c5cbf',
   '#ff9400',
@@ -58,19 +59,6 @@ function colorFor(id: string): string {
   let hash = 0;
   for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0;
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
-function readSelection(): Selection {
-  try {
-    const raw = localStorage.getItem(SELECTION_KEY);
-    if (raw) {
-      const sel = JSON.parse(raw) as Selection;
-      if (sel && (sel.kind === 'org' || sel.kind === 'team' || sel.kind === 'group')) return sel;
-    }
-  } catch {
-    // ignore
-  }
-  return { kind: 'org' };
 }
 
 function norm(s: string): string {
