@@ -59,6 +59,8 @@
   height: 22px;
   background: var(--border-strong);
   margin: 0 4px;
+  flex-shrink: 0;
+  align-self: center;
 }
 
 .lunch-timer-pill {
@@ -181,17 +183,27 @@
   .topbar-home-link__label {
     display: none;
   }
+  /* Em Início o botão fica sem conteúdo visível: esconde p/ centrar de fato */
   .topbar-home-link--active {
     display: none;
   }
   .topbar-left {
     flex: 0 0 auto;
   }
+  /* Se o único filho (botão Início) está escondido, colapsa o left */
+  .topbar-left:has(> .topbar-home-link--active) {
+    display: none;
+  }
   .topbar-actions {
     flex: 1 1 auto;
     justify-content: center;
     flex-wrap: wrap;
     row-gap: 8px;
+  }
+  /* Divisor alinhado à altura dos itens (icon-btn 34px) */
+  .topbar-actions .topbar-divider {
+    height: 26px;
+    margin: 0 2px;
   }
 }
 

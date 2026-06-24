@@ -112,6 +112,9 @@ export function TopBar({
         </button>
 
         <StatusBadge status={sessionStatus} />
+
+        <span className="topbar-divider" aria-hidden="true" />
+
         <OrgSwitcher />
 
         <span className="topbar-divider" aria-hidden="true" />
