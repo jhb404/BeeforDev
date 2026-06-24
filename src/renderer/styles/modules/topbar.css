@@ -332,6 +332,71 @@
   font-size: 10px;
 }
 
+/* Grupo: avatar quadradinho p/ diferenciar de time/org (círculo). */
+.org-switcher__avatar--group {
+  border-radius: 6px;
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+/* Logo real do time. Fallback (iniciais) é o avatar--sm quando img quebra. */
+.org-switcher__team-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--bg-3);
+  flex-shrink: 0;
+}
+
+/* Cabeçalho colapsável de Times / Grupos. */
+.org-switcher__group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 5px 6px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+
+.org-switcher__group-head:hover {
+  background: var(--selectable-hover-bg);
+  color: var(--text);
+}
+
+.org-switcher__chevron {
+  width: 10px;
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+.org-switcher__count {
+  margin-left: auto;
+  min-width: 18px;
+  padding: 1px 6px;
+  background: var(--bg-3);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Item "Organização (Todos)". */
+.org-switcher__todos {
+  margin-bottom: 2px;
+}
+
 .org-switcher__labels {
   display: flex;
   flex-direction: column;

@@ -246,6 +246,29 @@ const httpApi = {
     list: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_ORG_LIST),
     select: (idOrganizacao: string): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_ORG_SELECT, idOrganizacao),
+    /** Troca de organização: pega token novo escopado + invalida caches. UI deve recarregar. */
+    switch: (
+      idOrganizacao: string,
+    ): Promise<
+      ActionResult<{
+        idOrganizacao: string | null;
+        idPessoa: string;
+        nome?: string;
+        nomeOrganizacao?: string;
+      }>
+    > => ipcRenderer.invoke(IPC.API_ORG_SWITCH, idOrganizacao),
+  },
+  team: {
+    list: (): Promise<
+      ActionResult<
+        Array<{ id: string; nome: string; favorito: boolean; idGrupo?: string; logo?: string }>
+      >
+    > => ipcRenderer.invoke(IPC.API_TIME_LIST),
+    favorite: (idTime: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_TIME_FAVORITE, idTime),
+    unfavorite: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_TIME_UNFAVORITE),
+    groups: (): Promise<ActionResult<Array<{ idGrupo: string; nome: string }>>> =>
+      ipcRenderer.invoke(IPC.API_GRUPO_LIST),
   },
 
   // Timesheet
