@@ -26,15 +26,17 @@ export function CardShell({
         <h3>{titulo}</h3>
         {temperatura != null && <TemperaturaBadge temperatura={temperatura} />}
       </header>
-      {loading ? (
-        <div className="praticas-loading">Carregando…</div>
-      ) : error ? (
-        <div className="praticas-error">{error}</div>
-      ) : vazio ? (
-        <div className="praticas-chart-empty">Sem dados.</div>
-      ) : (
-        children
-      )}
+      <div className="praticas-card-body">
+        {loading ? (
+          <div className="praticas-loading">Carregando…</div>
+        ) : error ? (
+          <div className="praticas-error">{error}</div>
+        ) : vazio ? (
+          <div className="praticas-chart-empty">Sem dados.</div>
+        ) : (
+          children
+        )}
+      </div>
     </div>
   );
 }

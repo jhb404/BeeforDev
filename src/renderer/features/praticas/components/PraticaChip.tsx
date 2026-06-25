@@ -23,7 +23,7 @@ interface ChipDef {
 /** Bateria SVG (Capacity) — nível 0..1. */
 function Battery({ nivel }: { nivel: number }) {
   const fill = Math.max(0, Math.min(1, nivel));
-  const cor = fill > 0.66 ? 'var(--warm)' : fill > 0.33 ? '#f2c037' : '#e5484d';
+  const cor = fill > 0.66 ? 'var(--ok-fill)' : fill > 0.33 ? 'var(--temp-3)' : 'var(--err-fill)';
   return (
     <svg viewBox="0 0 44 24" width="44" height="24" aria-hidden>
       <rect

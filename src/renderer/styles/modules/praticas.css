@@ -13,7 +13,7 @@
 }
 
 .praticas-dashboard-head h2 {
-  font-size: 14px;
+  font-size: 17px;
   margin: 0;
 }
 
@@ -34,12 +34,17 @@
 
 .praticas-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-auto-rows: 1fr; /* linhas uniformes — todos da linha crescem juntos */
+  gap: 14px;
+  align-items: stretch;
 }
 
 .praticas-card {
-  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 300px; /* altura mínima uniforme */
+  padding: 16px;
 }
 
 .praticas-card-head {
@@ -47,24 +52,34 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .praticas-card-head h3 {
-  font-size: 13px;
+  font-size: 15px;
   margin: 0;
 }
 
+/* corpo cresce p/ empurrar o footer pra base */
+.praticas-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.praticas-card-body > .praticas-card-footer {
+  margin-top: auto;
+}
+
 .praticas-card-sub {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-muted, #999);
   margin: 0 0 6px;
 }
 
 .praticas-legend {
   display: block;
-  margin-top: 4px;
-  font-size: 10px;
+  margin-top: 6px;
+  font-size: 12px;
   color: var(--text-muted, #999);
 }
 
@@ -77,7 +92,7 @@
 }
 
 .praticas-error {
-  color: #e5484d;
+  color: var(--err);
 }
 
 /* box-resumo (Capacity, Movimento, Delegation, Dicas, Backlog, TeamMood) */
@@ -124,7 +139,7 @@
   flex-shrink: 0;
 }
 .praticas-evento-dot.ok {
-  background: #42d6a4;
+  background: var(--ok);
 }
 .praticas-evento-dot.pend {
   background: var(--border, #666);
@@ -139,23 +154,42 @@
   white-space: nowrap;
 }
 
-/* legenda da pizza */
+/* container de gráfico — centraliza, chart maior, legenda abaixo */
+.praticas-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 1;
+  width: 100%;
+  padding: 8px 0;
+}
+.praticas-chart-label {
+  text-align: center;
+  margin: 0;
+}
+
+/* legenda (abaixo do gráfico, em linha) */
 .praticas-legend-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: 11px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 16px;
+  font-size: 13px;
 }
 .praticas-legend-list li {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 0;
 }
 .praticas-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
   flex-shrink: 0;
 }
 
@@ -276,187 +310,175 @@
   margin-top: 6px;
 }
 
-/* modal config placeholder */
+/* modal — usa o sistema oficial (.modal-backdrop / .modal-card) */
 .praticas-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  z-index: 80;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  padding: 22px;
+  background: rgba(4, 7, 12, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .praticas-modal {
-  background: var(--panel-bg, #1e1e1e);
-  border: 1px solid var(--border, #333);
-  border-radius: 10px;
-  width: min(420px, 90vw);
-  padding: 0;
-  box-shadow: var(--shadow, 0 8px 32px rgba(0, 0, 0, 0.4));
+  width: min(440px, 100%);
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 .praticas-modal-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border, #333);
+  gap: 16px;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border);
 }
 .praticas-modal-head h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: 18px;
+  font-weight: 700;
 }
 .praticas-modal-close {
-  background: none;
-  border: none;
-  color: var(--text-muted, #999);
-  font-size: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 20px;
   line-height: 1;
-  cursor: pointer;
+}
+.praticas-modal-close:hover:not(:disabled) {
+  background: var(--bg-3);
+  color: var(--text);
 }
 .praticas-modal-body {
-  padding: 18px;
+  padding: 16px 18px 18px;
 }
 
-/* campos input (Daily dia/onde) */
+/* campos input — herdam o estilo global de input */
 .praticas-field {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  margin: 8px 0;
-  font-size: 11px;
-  color: var(--text-muted, #999);
-}
-.praticas-field input {
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border, #333);
-  background: var(--input-bg, #141414);
-  color: var(--text, #eee);
+  gap: 5px;
+  margin: 10px 0;
   font-size: 13px;
+  color: var(--text-muted);
 }
 .praticas-field input:focus {
   outline: none;
-  border-color: var(--warm, #ff9400);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
-/* footer de ações */
-.praticas-card-actions {
+/* footer padrão dos cards: Detalhes sempre à direita */
+.praticas-card-footer {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border, #2a2a2a);
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
-.praticas-action-btn {
-  flex: 1;
-  padding: 6px 8px;
-  border-radius: 8px;
-  border: 1px solid var(--border, #333);
-  background: transparent;
-  color: var(--text-muted, #aaa);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+.praticas-card-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-.praticas-action-btn:hover {
-  border-color: var(--warm, #ff9400);
-  color: var(--warm, #ff9400);
-}
-.praticas-action-btn.primary {
-  background: var(--warm, #ff9400);
-  border-color: var(--warm, #ff9400);
-  color: var(--text-on-warm, #fff);
+/* Detalhes / Editar — links discretos (padrão do app) */
+.praticas-footer-link {
+  background: none;
+  border: none;
+  min-height: 0;
+  padding: 2px 0;
+  color: var(--text-muted);
+  font-size: 13px;
   font-weight: 600;
+  cursor: pointer;
+  transition: color 0.12s ease;
 }
-.praticas-action-btn.primary:hover {
-  background: var(--warm-hover, #e07f00);
-  color: var(--text-on-warm, #fff);
+.praticas-footer-link:hover:not(:disabled) {
+  background: none;
+  color: var(--accent);
 }
-.praticas-action-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.praticas-realizar-btn {
-  width: 100%;
-  flex: none;
-  margin-top: 10px;
-}
-.praticas-msg {
-  margin-top: 6px;
-  text-align: center;
-}
-
-/* toggles do termômetro (pills com switch) */
-.praticas-term-filtros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 0 4px;
-}
-.praticas-toggle {
+/* Adicionar — botão circular warm sólido */
+.praticas-add-btn {
+  width: 32px;
+  height: 32px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--warm);
+  background: var(--warm);
+  color: var(--text-on-warm);
+  font-size: 20px;
+  line-height: 1;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 5px 12px 5px 8px;
-  border-radius: 999px;
-  border: 1px solid var(--border, #333);
-  font-size: 12px;
-  color: var(--text-muted, #999);
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.15s;
+  justify-content: center;
 }
-.praticas-toggle.on {
-  border-color: var(--warm, #ff9400);
-  color: var(--warm, #ff9400);
-  background: var(--accent-2-soft, rgba(255, 148, 0, 0.12));
+.praticas-add-btn:hover:not(:disabled) {
+  background: var(--warm-hover);
+  border-color: var(--warm-hover);
+  color: var(--text-on-warm);
+}
+
+/* Realizar Daily — botão warm full-width (usa sistema via .warm) */
+.praticas-realizar-btn {
+  width: 100%;
+  margin-top: 12px;
+}
+.praticas-msg {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
   font-weight: 600;
 }
-/* esconde checkbox nativo, mostra switch custom */
-.praticas-toggle input {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 26px;
-  height: 15px;
-  border-radius: 999px;
-  background: var(--border, #444);
-  position: relative;
-  cursor: pointer;
-  transition: background 0.15s;
-  flex-shrink: 0;
+.praticas-msg.ok {
+  color: var(--ok);
 }
-.praticas-toggle input::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform 0.15s;
+.praticas-msg.erro {
+  color: var(--err);
 }
-.praticas-toggle input:checked {
-  background: var(--warm, #ff9400);
+
+/* filtros do termômetro — switch oficial empilhado */
+.praticas-term-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 4px;
+  font-size: 13px;
 }
-.praticas-toggle input:checked::after {
-  transform: translateX(11px);
+.praticas-term-filtros .switch-row label {
+  color: var(--text);
 }
 
 /* barra de progresso (Planning) */
 .praticas-cerimonia-titulo {
   text-align: center;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--warm, #ff9400);
-  margin: 4px 0 8px;
+  color: var(--warm);
+  margin: 4px 0 10px;
 }
 .praticas-progress {
-  height: 22px;
+  height: 24px;
   border-radius: 999px;
-  background: var(--border, #2a2a2a);
+  background: var(--chart-track);
   overflow: hidden;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .praticas-progress-fill {
   height: 100%;
@@ -479,7 +501,7 @@
   color: var(--text-muted, #999);
 }
 .praticas-cerimonia-status.atrasada {
-  color: #e5484d;
+  color: var(--err);
 }
 
 /* delegation board */

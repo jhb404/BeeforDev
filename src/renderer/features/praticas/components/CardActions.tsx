@@ -1,24 +1,49 @@
-interface Action {
-  label: string;
-  onClick: () => void;
-  primary?: boolean;
+interface CardActionsProps {
+  /** Botão "+" circular (Adicionar). */
+  onAdd?: () => void;
+  /** Botão "Editar" (rodapé esquerda). */
+  onEdit?: () => void;
+  /** Botão "Detalhes" (rodapé direita — padrão de todos os cards). */
+  onDetails?: () => void;
+  addTitle?: string;
 }
 
-/** Footer de ações dos cards (Adicionar / Detalhes / Editar / Realizar). */
-export function CardActions({ actions }: { actions: Action[] }) {
-  if (!actions.length) return null;
+/**
+ * Rodapé padrão dos cards. Detalhes SEMPRE à direita; Editar à esquerda;
+ * Adicionar é um "+" circular destacado.
+ */
+export function CardActions({
+  onAdd,
+  onEdit,
+  onDetails,
+  addTitle = 'Adicionar',
+}: CardActionsProps) {
+  if (!onAdd && !onEdit && !onDetails) return null;
   return (
-    <div className="praticas-card-actions">
-      {actions.map((a) => (
-        <button
-          key={a.label}
-          type="button"
-          className={`praticas-action-btn${a.primary ? ' primary' : ''}`}
-          onClick={a.onClick}
-        >
-          {a.label}
+    <div className="praticas-card-footer">
+      <div className="praticas-card-footer-left">
+        {onAdd && (
+          <button
+            type="button"
+            className="praticas-add-btn"
+            onClick={onAdd}
+            title={addTitle}
+            aria-label={addTitle}
+          >
+            +
+          </button>
+        )}
+        {onEdit && (
+          <button type="button" className="praticas-footer-link" onClick={onEdit}>
+            Editar
+          </button>
+        )}
+      </div>
+      {onDetails && (
+        <button type="button" className="praticas-footer-link" onClick={onDetails}>
+          Detalhes
         </button>
-      ))}
+      )}
     </div>
   );
 }

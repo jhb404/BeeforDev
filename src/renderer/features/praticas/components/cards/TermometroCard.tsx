@@ -5,11 +5,11 @@ import { CardActions } from '../CardActions';
 import type { CardProps } from './registry';
 
 const NIVEIS = [
-  { min: 9, label: 'Fervendo', color: '#e5484d', emoji: '🔥' },
-  { min: 7, label: 'Quente', color: '#ff9400', emoji: '☀️' },
-  { min: 5, label: 'Morno', color: '#f2c037', emoji: '⛅' },
-  { min: 3, label: 'Frio', color: '#7c5cbf', emoji: '🌬️' },
-  { min: 0, label: 'Congelado', color: '#5b8def', emoji: '❄️' },
+  { min: 9, label: 'Fervendo', color: 'var(--temp-5)', emoji: '🔥' },
+  { min: 7, label: 'Quente', color: 'var(--temp-4)', emoji: '☀️' },
+  { min: 5, label: 'Morno', color: 'var(--temp-3)', emoji: '⛅' },
+  { min: 3, label: 'Frio', color: 'var(--temp-2)', emoji: '🌬️' },
+  { min: 0, label: 'Congelado', color: 'var(--temp-1)', emoji: '❄️' },
 ];
 const nivel = (p: number) => NIVEIS.find((n) => p >= n.min) ?? NIVEIS[NIVEIS.length - 1];
 
@@ -72,27 +72,35 @@ export function TermometroCard({ idTime, nome }: CardProps) {
         </div>
       )}
 
-      {/* filtros abaixo do termômetro (igual web) */}
+      {/* filtros abaixo do termômetro — usa o switch oficial do app */}
       <div className="praticas-term-filtros">
-        <label className={`praticas-toggle${praticas ? ' on' : ''}`}>
-          <input
-            type="checkbox"
-            checked={praticas}
-            onChange={(e) => setPraticas(e.target.checked)}
-          />
-          Práticas Beefor
-        </label>
-        <label className={`praticas-toggle${assessments ? ' on' : ''}`}>
-          <input
-            type="checkbox"
-            checked={assessments}
-            onChange={(e) => setAssessments(e.target.checked)}
-          />
-          Assessments
-        </label>
+        <div className="switch-row">
+          <span className="switch">
+            <input
+              type="checkbox"
+              checked={praticas}
+              onChange={(e) => setPraticas(e.target.checked)}
+            />
+            <span className="switch__track" />
+            <span className="switch__thumb" />
+          </span>
+          <label>Práticas Beefor</label>
+        </div>
+        <div className="switch-row">
+          <span className="switch">
+            <input
+              type="checkbox"
+              checked={assessments}
+              onChange={(e) => setAssessments(e.target.checked)}
+            />
+            <span className="switch__track" />
+            <span className="switch__thumb" />
+          </span>
+          <label>Assessments</label>
+        </div>
       </div>
 
-      <CardActions actions={[{ label: 'Detalhes', onClick: () => setModal(true) }]} />
+      <CardActions onDetails={() => setModal(true)} />
 
       {modal && (
         <div className="praticas-modal-overlay" onClick={() => setModal(false)}>

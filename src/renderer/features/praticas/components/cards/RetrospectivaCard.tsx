@@ -47,11 +47,9 @@ export function RetrospectivaCard({ chave, idTime, nome }: CardProps) {
       </div>
 
       <CardActions
-        actions={[
-          { label: 'Adicionar', onClick: () => setModal('Adicionar Retrospectiva') },
-          { label: 'Detalhes', onClick: () => setModal('Histórico de Retrospectivas') },
-          { label: 'Editar', onClick: () => setModal('Editar configuração da Retrospectiva') },
-        ]}
+        onAdd={() => setModal('Adicionar Retrospectiva')}
+        onEdit={() => setModal('Editar configuração da Retrospectiva')}
+        onDetails={() => setModal('Histórico de Retrospectivas')}
       />
 
       {modal && (

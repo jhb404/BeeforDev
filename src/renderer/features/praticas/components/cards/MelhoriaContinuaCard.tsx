@@ -32,10 +32,8 @@ export function MelhoriaContinuaCard({ chave, idTime, nome }: CardProps) {
         </small>
       )}
       <CardActions
-        actions={[
-          { label: 'Adicionar', onClick: () => setModal('Adicionar Melhoria') },
-          { label: 'Detalhes', onClick: () => setModal('Melhorias Contínuas') },
-        ]}
+        onAdd={() => setModal('Adicionar Melhoria')}
+        onDetails={() => setModal('Melhorias Contínuas')}
       />
       {modal && <ConfigModal titulo={modal} valor="" onClose={() => setModal(null)} />}
     </CardShell>

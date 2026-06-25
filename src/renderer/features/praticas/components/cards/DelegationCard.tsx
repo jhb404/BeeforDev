@@ -56,10 +56,8 @@ export function DelegationCard({ chave, idTime, nome }: CardProps) {
       </p>
 
       <CardActions
-        actions={[
-          { label: 'Adicionar', onClick: () => setModal('Adicionar domínio') },
-          { label: 'Detalhes', onClick: () => setModal('Delegation Board') },
-        ]}
+        onAdd={() => setModal('Adicionar domínio')}
+        onDetails={() => setModal('Delegation Board')}
       />
       {modal && <ConfigModal titulo={modal} valor="" onClose={() => setModal(null)} />}
     </CardShell>

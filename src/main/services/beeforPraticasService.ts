@@ -414,21 +414,46 @@ export async function realizarDaily(
   return { ok: true };
 }
 
-/** Configura/edita Daily — define horário + onde (POST ConfigurarDaily). */
+/**
+ * Salva Onde/horário da Daily SEM perder os demais campos da config.
+ * Busca a config atual → faz merge → edita (PUT) se já existe, cria (POST) se não.
+ * Backend exige o objeto completo; mandar parcial dá 500.
+ */
 export async function configurarDaily(payload: {
   idTime: string;
   horarioDaily?: string;
   onde?: string;
-  periodicidade?: number;
 }): Promise<{ ok: boolean }> {
   const session = await getValidSession();
-  await beeforHttp.post('/PraticaAgil/ConfigurarDaily', {
+  const enc = encodeURIComponent(payload.idTime);
+  const atual = await beeforHttp
+    .get<any>(`/PraticaAgil/PegarConfiguracaoDaily/${enc}`)
+    .catch(() => null);
+
+  const idConfig = String(pick(atual, 'idConfiguracaoDaily', 'IdConfiguracaoDaily') ?? '');
+
+  // base = config atual completa (preserva tipoDaily, perguntas, notificacao, etc.)
+  const base = atual && typeof atual === 'object' ? { ...atual } : {};
+  const body: Record<string, unknown> = {
+    ...base,
     idTime: payload.idTime,
-    horarioDaily: payload.horarioDaily ?? '09:00',
-    onde: payload.onde ?? '',
-    periodicidade: payload.periodicidade ?? 1,
-    idResponsavelCriacao: session.idUsuario,
-  });
+    idResponsavelConfiguracao: session.idUsuario,
+  };
+  if (payload.onde !== undefined) body.onde = payload.onde;
+  if (payload.horarioDaily !== undefined) body.horarioDaily = payload.horarioDaily;
+
+  if (idConfig) {
+    body.idConfiguracaoDaily = idConfig;
+    await beeforHttp.put(
+      `/PraticaAgil/EditarConfiguracaoDaily/${encodeURIComponent(idConfig)}`,
+      body,
+    );
+  } else {
+    // sem config ainda → cria. Garante defaults mínimos.
+    body.horarioDaily = body.horarioDaily ?? '09:00';
+    body.onde = body.onde ?? '';
+    await beeforHttp.post('/PraticaAgil/ConfigurarDaily', body);
+  }
   return { ok: true };
 }
 

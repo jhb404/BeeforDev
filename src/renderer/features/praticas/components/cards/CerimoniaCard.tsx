@@ -76,11 +76,9 @@ export function CerimoniaCard({ chave, idTime, nome }: CardProps) {
       </div>
 
       <CardActions
-        actions={[
-          { label: 'Adicionar', onClick: () => setModal(`Adicionar ${data?.titulo}`) },
-          { label: 'Detalhes', onClick: () => setModal(`Histórico de ${data?.titulo}`) },
-          { label: 'Editar', onClick: () => setModal(`Editar ${data?.titulo}`) },
-        ]}
+        onAdd={() => setModal(`Adicionar ${data?.titulo}`)}
+        onEdit={() => setModal(`Editar ${data?.titulo}`)}
+        onDetails={() => setModal(`Histórico de ${data?.titulo}`)}
       />
       {modal && <ConfigModal titulo={modal} valor="" onClose={() => setModal(null)} />}
     </CardShell>

@@ -1,11 +1,14 @@
 import type { BoxResumo } from '@shared/types/index';
 import { usePraticaCard } from '../../hooks/usePraticasData';
+import { useDetalhes } from '../../hooks/useDetalhes';
 import { CardShell } from '../CardShell';
+import { CardActions } from '../CardActions';
 import type { CardProps } from './registry';
 
-/** Capacity, Movimento, Delegation Board, Dicas Agile Coach, Gestão Backlog. */
+/** Gestão de Backlog e outros boxes-resumo simples. */
 export function BoxCard({ chave, idTime, nome }: CardProps) {
   const { data, loading, error } = usePraticaCard<BoxResumo>(chave, idTime);
+  const det = useDetalhes();
   return (
     <CardShell
       titulo={nome || data?.titulo || '—'}
@@ -21,4 +24,8 @@ export function BoxCard({ chave, idTime, nome }: CardProps) {
       </div>
     </CardShell>
   );
+  <CardActions onDetails={() => det.open(`${nome || data?.titulo || 'Detalhes'} — detalhes`)} />;
+  {
+    det.node;
+  }
 }

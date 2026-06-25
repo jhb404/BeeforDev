@@ -17,15 +17,13 @@ export function TaxaSucessoCard({ chave, idTime, nome }: CardProps) {
       loading={loading}
       error={error}
     >
-      <Gauge valor={data?.taxa ?? null} color="#2bb673" />
+      <Gauge valor={data?.taxa ?? null} color="var(--ok-fill)" />
       <small className="praticas-legend">
         Média de objetivos de valor realizado de todas as entregas
       </small>
       <CardActions
-        actions={[
-          { label: 'Editar', onClick: () => setModal('Editar Taxa de Sucesso') },
-          { label: 'Detalhes', onClick: () => setModal('Taxa de Sucesso — detalhes') },
-        ]}
+        onEdit={() => setModal('Editar Taxa de Sucesso')}
+        onDetails={() => setModal('Taxa de Sucesso — detalhes')}
       />
       {modal && <ConfigModal titulo={modal} valor="" onClose={() => setModal(null)} />}
     </CardShell>

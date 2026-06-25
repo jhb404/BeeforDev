@@ -2,11 +2,11 @@ import type { Temperatura } from '@shared/types/index';
 
 /** TemperaturaTermometroEnum → rótulo + cor + emoji. */
 const MAP: Record<Temperatura, { label: string; color: string; emoji: string }> = {
-  1: { label: 'Congelado', color: '#5b8def', emoji: '🧊' },
-  2: { label: 'Frio', color: '#3fb6e8', emoji: '❄️' },
-  3: { label: 'Morno', color: '#f2c037', emoji: '🌤️' },
-  4: { label: 'Quente', color: '#f5871f', emoji: '🔥' },
-  5: { label: 'Fervendo', color: '#e5484d', emoji: '🌋' },
+  1: { label: 'Congelado', color: 'var(--temp-1)', emoji: '🧊' },
+  2: { label: 'Frio', color: 'var(--temp-2)', emoji: '❄️' },
+  3: { label: 'Morno', color: 'var(--temp-3)', emoji: '🌤️' },
+  4: { label: 'Quente', color: 'var(--temp-4)', emoji: '🔥' },
+  5: { label: 'Fervendo', color: 'var(--temp-5)', emoji: '🌋' },
 };
 
 export function TemperaturaBadge({ temperatura }: { temperatura: Temperatura | null }) {
@@ -19,11 +19,11 @@ export function TemperaturaBadge({ temperatura }: { temperatura: Temperatura | n
         display: 'inline-flex',
         alignItems: 'center',
         gap: 4,
-        padding: '2px 8px',
+        padding: '3px 10px',
         borderRadius: 999,
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: 600,
-        color: '#fff',
+        color: 'var(--text-on-warm, #fff)',
         background: t.color,
       }}
     >

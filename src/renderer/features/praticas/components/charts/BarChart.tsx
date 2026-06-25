@@ -11,8 +11,8 @@ interface BarChartProps {
 export function BarChart({
   data,
   meta,
-  height = 140,
-  color = 'var(--warm, #f5871f)',
+  height = 170,
+  color = 'var(--warm)',
   unidade = '',
 }: BarChartProps) {
   if (!data.length) {
@@ -36,7 +36,7 @@ export function BarChart({
           x2={W}
           y1={y(meta)}
           y2={y(meta)}
-          stroke="var(--danger, #e5484d)"
+          stroke="var(--err)"
           strokeWidth={1}
           strokeDasharray="4 3"
         />
@@ -53,10 +53,10 @@ export function BarChart({
               x={x + barW / 2}
               y={H - 6}
               textAnchor="middle"
-              fontSize={9}
-              fill="var(--text-muted, #888)"
+              fontSize={11}
+              fill="var(--text-muted)"
             >
-              {d.legenda.length > 6 ? d.legenda.slice(0, 6) : d.legenda}
+              {d.legenda.length > 7 ? `${d.legenda.slice(0, 7)}…` : d.legenda}
             </text>
           </g>
         );

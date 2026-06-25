@@ -16,24 +16,29 @@ export function DailyCard({ chave, idTime, nome }: CardProps) {
   const [dia, setDia] = useState(hojeISO());
   const [onde, setOnde] = useState('');
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ texto: string; erro: boolean } | null>(null);
   const [modal, setModal] = useState<string | null>(null);
 
   const ondeAtual = onde || data?.onde || '';
 
+  function flash(texto: string, erro = false) {
+    setMsg({ texto, erro });
+    window.setTimeout(() => setMsg(null), 3000);
+  }
+
   async function realizar() {
     setBusy(true);
-    setMsg(null);
     const res = await window.beeforHttp.praticas.realizarDaily(idTime, dia);
     setBusy(false);
-    setMsg(res.ok ? 'Daily registrada ✓' : `Falha: ${res.error}`);
+    flash(res.ok ? 'Daily registrada ✓' : 'Não foi possível registrar a daily.', !res.ok);
   }
 
   async function salvarConfig() {
     setBusy(true);
     const res = await window.beeforHttp.praticas.configurarDaily({ idTime, onde: ondeAtual });
     setBusy(false);
-    setMsg(res.ok ? 'Configuração salva ✓' : `Falha: ${res.error}`);
+    if (res.ok) flash('Local salvo ✓');
+    else flash('Não foi possível salvar o local.', true);
   }
 
   return (
@@ -65,20 +70,18 @@ export function DailyCard({ chave, idTime, nome }: CardProps) {
 
       <button
         type="button"
-        className="praticas-action-btn primary praticas-realizar-btn"
+        className="warm praticas-realizar-btn"
         onClick={realizar}
         disabled={busy}
       >
-        {busy ? '…' : 'Realizar Daily ⏱'}
+        {busy ? '…' : 'Realizar Daily'}
       </button>
 
-      {msg && <p className="praticas-card-sub praticas-msg">{msg}</p>}
+      {msg && <p className={`praticas-msg${msg.erro ? ' erro' : ' ok'}`}>{msg.texto}</p>}
 
       <CardActions
-        actions={[
-          { label: 'Editar', onClick: () => setModal('Editar configuração da Daily') },
-          { label: 'Detalhes', onClick: () => setModal('Histórico de Dailies') },
-        ]}
+        onEdit={() => setModal('Editar configuração da Daily')}
+        onDetails={() => setModal('Histórico de Dailies')}
       />
 
       {modal && <ConfigModal titulo={modal} valor="" onClose={() => setModal(null)} />}
