@@ -60,6 +60,38 @@
   margin: 0;
 }
 
+/* título + "?" de ajuda agrupados à esquerda */
+.praticas-card-head-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.praticas-card-head-title .praticas-card-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  padding: 0;
+  flex: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.praticas-card-help:hover {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--selectable-hover-bg);
+}
+
 /* corpo cresce p/ empurrar o footer pra base */
 .praticas-card-body {
   display: flex;
@@ -204,6 +236,21 @@
   gap: 22px;
   padding: 8px 0;
 }
+/* escala de ícones do termômetro (hover mostra o nome via <title>) */
+.praticas-term-svg .praticas-term-ico {
+  font-size: 16px;
+  opacity: 0.4;
+  cursor: default;
+  transition: opacity 0.2s ease, font-size 0.2s ease;
+}
+.praticas-term-svg .praticas-term-ico.on {
+  opacity: 1;
+  font-size: 19px;
+}
+.praticas-term-svg .praticas-term-ico:hover {
+  opacity: 1;
+  font-size: 22px;
+}
 .praticas-termometro-info {
   display: flex;
   flex-direction: column;
@@ -215,6 +262,30 @@
 .praticas-termometro-info small {
   color: var(--text-muted, #999);
   font-size: 12px;
+}
+.praticas-term-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent) !important;
+  font-weight: 600;
+  animation: praticas-term-pulse 1s ease-in-out infinite;
+}
+.praticas-term-loading::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: praticas-term-spin 0.7s linear infinite;
+}
+@keyframes praticas-term-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes praticas-term-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* faixa de mini-cards de resumo no topo (alinhada à direita) */
@@ -234,7 +305,7 @@
   border-radius: var(--radius);
   border: 1px solid var(--border);
   border-left-width: var(--selectable-left-width);
-  background: var(--bg-2);
+  background: var(--bg-1);
   color: var(--text);
   cursor: pointer;
   text-align: left;
@@ -244,7 +315,7 @@
   transform: translateY(-1px);
   border-color: var(--accent);
   background: var(--selectable-hover-bg);
-  box-shadow: var(--selectable-hover-shadow);
+  box-shadow: none;
 }
 .praticas-minicard-top {
   display: flex;
@@ -518,6 +589,10 @@
 .praticas-filtro-chip:hover:not(:disabled) {
   background: var(--selectable-hover-bg);
   color: var(--text);
+}
+.praticas-filtro-chip:disabled {
+  opacity: 0.55;
+  cursor: progress;
 }
 .praticas-filtro-chip.on,
 .praticas-filtro-chip.on:hover:not(:disabled) {

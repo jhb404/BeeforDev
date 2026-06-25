@@ -14,6 +14,7 @@ export function AssessmentCard({ chave, idTime, nome }: CardProps) {
   return (
     <CardShell
       titulo={nome || 'Assessment'}
+      chave={chave}
       loading={loading}
       error={error}
       vazio={eixos.length < 3}

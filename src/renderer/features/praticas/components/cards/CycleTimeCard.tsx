@@ -16,6 +16,7 @@ export function CycleTimeCard({ chave, idTime, nome }: CardProps) {
   return (
     <CardShell
       titulo={nome || 'Cycle Time'}
+      chave={chave}
       loading={loading}
       error={error}
       vazio={!data?.barra?.pontos?.length && data?.valor == null}

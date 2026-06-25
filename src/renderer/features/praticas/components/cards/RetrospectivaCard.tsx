@@ -21,6 +21,7 @@ export function RetrospectivaCard({ chave, idTime, nome }: CardProps) {
   return (
     <CardShell
       titulo={nome || 'Retrospectiva'}
+      chave={chave}
       temperatura={data?.temperatura}
       loading={loading}
       error={error}

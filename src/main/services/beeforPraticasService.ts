@@ -193,11 +193,11 @@ export async function getDelegationBox(idTime: string): Promise<BoxResumo> {
   );
   return {
     titulo: 'Delegation Board',
-    valorPrincipal: String(
+    valorPrincipal: String(num(pick(raw, 'mediaNivelAutoridade', 'MediaNivelAutoridade'))),
+    sub: 'Nível médio de autoridade',
+    valorSecundario: String(
       num(pick(raw, 'qtdDominiosDelegationBoard', 'QtdDominiosDelegationBoard')),
     ),
-    sub: 'Nível médio de autoridade',
-    valorSecundario: String(num(pick(raw, 'mediaNivelAutoridade', 'MediaNivelAutoridade'))),
     temperatura: temp(pick(raw, 'temperatura', 'Temperatura')),
   };
 }

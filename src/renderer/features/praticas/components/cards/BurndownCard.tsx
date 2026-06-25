@@ -13,6 +13,7 @@ export function BurndownCard({ chave, idTime, nome }: CardProps) {
   return (
     <CardShell
       titulo={nome || 'Progresso da Sprint'}
+      chave={chave}
       temperatura={data?.temperatura}
       loading={loading}
       error={error}

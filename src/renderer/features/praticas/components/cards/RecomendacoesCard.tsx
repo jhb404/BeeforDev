@@ -21,6 +21,7 @@ export function RecomendacoesCard({ chave, idTime, nome }: CardProps) {
   return (
     <CardShell
       titulo={nome || 'Recomendações'}
+      chave={chave}
       temperatura={data?.temperatura}
       loading={loading}
       error={error}

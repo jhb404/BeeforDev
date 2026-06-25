@@ -17,6 +17,7 @@ export function CfdCard({ chave, idTime, nome }: CardProps) {
   return (
     <CardShell
       titulo={nome || 'Gráfico CFD'}
+      chave={chave}
       loading={loading}
       error={error}
       vazio={!barras.length}

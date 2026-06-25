@@ -33,6 +33,7 @@ export function CerimoniaCard({ chave, idTime, nome }: CardProps) {
   return (
     <CardShell
       titulo={nome || data?.titulo || 'Cerimônia'}
+      chave={chave}
       temperatura={data?.temperatura}
       loading={loading}
       error={error}

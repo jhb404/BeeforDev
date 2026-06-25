@@ -13,6 +13,7 @@ export function TaxaSucessoCard({ chave, idTime, nome }: CardProps) {
   return (
     <CardShell
       titulo={nome || 'Taxa Sucesso Planning'}
+      chave={chave}
       temperatura={data?.temperatura}
       loading={loading}
       error={error}

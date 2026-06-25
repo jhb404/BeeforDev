@@ -10,16 +10,17 @@ import type { CardProps } from './registry';
 export function MelhoriaContinuaCard({ chave, idTime, nome }: CardProps) {
   const { data, loading, error } = usePraticaCard<MelhoriaContinuaGrafico>(chave, idTime);
   const [modal, setModal] = useState<string | null>(null);
+  // sem cor do backend → PieChart usa a paleta --chart-* do tema (reage ao preset)
   const fatias = (data?.fatias ?? []).map((f) => ({
     rotulo: f.rotulo,
     valor: f.valor,
-    cor: f.cor,
   }));
   const temDados = fatias.some((f) => f.valor > 0);
 
   return (
     <CardShell
       titulo={nome || 'Melhoria Contínua'}
+      chave={chave}
       temperatura={data?.temperatura}
       loading={loading}
       error={error}

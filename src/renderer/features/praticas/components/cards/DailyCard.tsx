@@ -44,6 +44,7 @@ export function DailyCard({ chave, idTime, nome }: CardProps) {
   return (
     <CardShell
       titulo={nome || 'Daily'}
+      chave={chave}
       temperatura={data?.temperatura}
       loading={loading}
       error={error}
