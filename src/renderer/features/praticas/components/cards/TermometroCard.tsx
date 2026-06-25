@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { TermometroGrafico } from '@shared/types/index';
 import { CardShell } from '../CardShell';
-import { CardActions } from '../CardActions';
 import type { CardProps } from './registry';
 
 const NIVEIS = [
@@ -50,20 +49,20 @@ export function TermometroCard({ idTime, nome }: CardProps) {
         <div className="praticas-chart-empty">Sem dados para os filtros selecionados.</div>
       ) : (
         <div className="praticas-termometro">
-          <svg viewBox="0 0 60 180" width="60" height="180" aria-hidden>
-            <rect x="24" y="10" width="12" height="140" rx="6" fill="var(--border,#333)" />
+          <svg viewBox="0 0 90 270" width="90" height="240" aria-hidden>
+            <rect x="36" y="15" width="18" height="210" rx="9" fill="var(--border,#333)" />
             <rect
-              x="24"
-              y={10 + (1 - frac) * 140}
-              width="12"
-              height={frac * 140}
-              rx="6"
+              x="36"
+              y={15 + (1 - frac) * 210}
+              width="18"
+              height={frac * 210}
+              rx="9"
               fill={n.color}
             />
-            <circle cx="30" cy="160" r="14" fill={n.color} />
+            <circle cx="45" cy="240" r="22" fill={n.color} />
           </svg>
           <div className="praticas-termometro-info">
-            <span style={{ fontSize: 28 }}>{n.emoji}</span>
+            <span style={{ fontSize: 42 }}>{n.emoji}</span>
             <strong style={{ color: n.color }}>{n.label}</strong>
             <small>
               Média {media.toFixed(1)} / 10 · {comps.length} competências
@@ -72,35 +71,32 @@ export function TermometroCard({ idTime, nome }: CardProps) {
         </div>
       )}
 
-      {/* filtros abaixo do termômetro — usa o switch oficial do app */}
-      <div className="praticas-term-filtros">
-        <div className="switch-row">
-          <span className="switch">
-            <input
-              type="checkbox"
-              checked={praticas}
-              onChange={(e) => setPraticas(e.target.checked)}
-            />
-            <span className="switch__track" />
-            <span className="switch__thumb" />
-          </span>
-          <label>Práticas Beefor</label>
+      {/* rodapé: 2 filtros (chips toggle) à esquerda, Detalhes à direita */}
+      <div className="praticas-card-footer">
+        <div className="praticas-card-footer-left praticas-term-filtros">
+          <button
+            type="button"
+            className={`praticas-filtro-chip${praticas ? ' on' : ''}`}
+            aria-pressed={praticas}
+            onClick={() => setPraticas((v) => !v)}
+            title="Práticas Beefor"
+          >
+            Práticas
+          </button>
+          <button
+            type="button"
+            className={`praticas-filtro-chip${assessments ? ' on' : ''}`}
+            aria-pressed={assessments}
+            onClick={() => setAssessments((v) => !v)}
+            title="Assessments"
+          >
+            Assessments
+          </button>
         </div>
-        <div className="switch-row">
-          <span className="switch">
-            <input
-              type="checkbox"
-              checked={assessments}
-              onChange={(e) => setAssessments(e.target.checked)}
-            />
-            <span className="switch__track" />
-            <span className="switch__thumb" />
-          </span>
-          <label>Assessments</label>
-        </div>
+        <button type="button" className="praticas-footer-link" onClick={() => setModal(true)}>
+          Detalhes
+        </button>
       </div>
-
-      <CardActions onDetails={() => setModal(true)} />
 
       {modal && (
         <div className="praticas-modal-overlay" onClick={() => setModal(false)}>

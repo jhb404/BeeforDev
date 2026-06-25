@@ -17,15 +17,17 @@ export function BoxCard({ chave, idTime, nome }: CardProps) {
       error={error}
       vazio={!data}
     >
-      <div className="praticas-box">
-        <span className="praticas-box-valor">{data?.valorPrincipal ?? '—'}</span>
-        {data?.sub && <span className="praticas-box-sub">{data.sub}</span>}
-        {data?.valorSecundario && <span className="praticas-box-sec">{data.valorSecundario}</span>}
+      <div className="praticas-card-center">
+        <div className="praticas-box">
+          <span className="praticas-box-valor">{data?.valorPrincipal ?? '—'}</span>
+          {data?.sub && <span className="praticas-box-sub">{data.sub}</span>}
+          {data?.valorSecundario && (
+            <span className="praticas-box-sec">{data.valorSecundario}</span>
+          )}
+        </div>
       </div>
+      <CardActions onDetails={() => det.open(`${nome || data?.titulo || 'Detalhes'} — detalhes`)} />
+      {det.node}
     </CardShell>
   );
-  <CardActions onDetails={() => det.open(`${nome || data?.titulo || 'Detalhes'} — detalhes`)} />;
-  {
-    det.node;
-  }
 }

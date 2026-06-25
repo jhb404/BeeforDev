@@ -54,10 +54,10 @@ export function RadarChart({
               y={ly}
               textAnchor="middle"
               dominantBaseline="middle"
-              fontSize={8}
+              fontSize={10}
               fill="var(--text-muted, #999)"
             >
-              {e.rotulo.length > 10 ? e.rotulo.slice(0, 10) : e.rotulo}
+              {e.rotulo.length > 12 ? e.rotulo.slice(0, 12) : e.rotulo}
             </text>
           </g>
         );

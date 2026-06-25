@@ -18,7 +18,9 @@ export function AssessmentCard({ chave, idTime, nome }: CardProps) {
       error={error}
       vazio={eixos.length < 3}
     >
-      <RadarChart eixos={eixos} />
+      <div className="praticas-chart">
+        <RadarChart eixos={eixos} size={270} />
+      </div>
     </CardShell>
   );
 }

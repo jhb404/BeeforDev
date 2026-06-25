@@ -34,26 +34,28 @@ export function DelegationCard({ chave, idTime, nome }: CardProps) {
       error={error}
       vazio={!data}
     >
-      <div className="praticas-deleg">
-        <div className="praticas-deleg-nivel">
-          <span className="praticas-deleg-num">{nivel || '—'}</span>
-          {nivelLabel && <span className="praticas-deleg-label">{nivelLabel}</span>}
+      <div className="praticas-card-center">
+        <div className="praticas-deleg">
+          <div className="praticas-deleg-nivel">
+            <span className="praticas-deleg-num">{nivel || '—'}</span>
+            {nivelLabel && <span className="praticas-deleg-label">{nivelLabel}</span>}
+          </div>
+          <div className="praticas-deleg-escala" aria-hidden>
+            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+              <span key={n} className={`praticas-deleg-dot${n <= nivel ? ' on' : ''}`} />
+            ))}
+          </div>
         </div>
-        <div className="praticas-deleg-escala" aria-hidden>
-          {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-            <span key={n} className={`praticas-deleg-dot${n <= nivel ? ' on' : ''}`} />
-          ))}
-        </div>
+        <p className="praticas-card-sub praticas-deleg-sub">
+          Nível médio de autoridade do time
+          {dominios && (
+            <>
+              <br />
+              <strong>{dominios}</strong> domínios configurados
+            </>
+          )}
+        </p>
       </div>
-      <p className="praticas-card-sub praticas-deleg-sub">
-        Nível médio de autoridade do time
-        {dominios && (
-          <>
-            <br />
-            <strong>{dominios}</strong> domínios configurados
-          </>
-        )}
-      </p>
 
       <CardActions
         onAdd={() => setModal('Adicionar domínio')}

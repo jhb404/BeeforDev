@@ -38,41 +38,50 @@ export function CerimoniaCard({ chave, idTime, nome }: CardProps) {
       error={error}
       vazio={!data}
     >
-      <p className="praticas-cerimonia-titulo">{data?.legendaPercent || 'Trabalho em progresso'}</p>
+      <div className="praticas-card-center">
+        <p className="praticas-cerimonia-titulo">
+          {data?.legendaPercent || 'Trabalho em progresso'}
+        </p>
 
-      {/* Planning: barra progresso com "N dias" */}
-      {!isReview && data?.percent != null && (
-        <div className="praticas-progress">
-          <div className="praticas-progress-fill" style={{ width: `${data.percent}%` }}>
-            {data.diasRestantes != null && (
-              <span>
-                {data.diasRestantes} dia{data.diasRestantes === 1 ? '' : 's'}
-              </span>
-            )}
+        {/* Planning: barra progresso com "N dias" */}
+        {!isReview && data?.percent != null && (
+          <div className="praticas-progress">
+            <div className="praticas-progress-fill" style={{ width: `${data.percent}%` }}>
+              {data.diasRestantes != null && (
+                <span>
+                  {data.diasRestantes} dia{data.diasRestantes === 1 ? '' : 's'}
+                </span>
+              )}
+            </div>
           </div>
+        )}
+
+        {/* Review: status de atraso */}
+        {statusReview && (
+          <p className={`praticas-cerimonia-status${atrasada ? ' atrasada' : ''}`}>
+            {statusReview}
+          </p>
+        )}
+
+        <p className="praticas-cerimonia-contador">
+          <strong>{data?.quantidade ?? 0}</strong> {(data?.titulo ?? '').toLowerCase()}(s)
+          realizada(s)
+        </p>
+      </div>
+
+      {/* bloco inferior fixo — Onde + datas no mesmo lugar em Planning/Review/Retro */}
+      <div className="praticas-cerimonia-foot">
+        {data?.onde && (
+          <label className="praticas-field">
+            <span>Onde?</span>
+            <input type="text" value={data.onde} readOnly />
+          </label>
+        )}
+
+        <div className="praticas-cerimonia-datas">
+          <span>Última: {dt(data?.ultimaData ?? '')}</span>
+          <span>Próxima: {dt(data?.proximaData ?? '')}</span>
         </div>
-      )}
-
-      {/* Review: status de atraso */}
-      {statusReview && (
-        <p className={`praticas-cerimonia-status${atrasada ? ' atrasada' : ''}`}>{statusReview}</p>
-      )}
-
-      {data?.onde && (
-        <label className="praticas-field">
-          <span>Onde?</span>
-          <input type="text" value={data.onde} readOnly />
-        </label>
-      )}
-
-      <p className="praticas-cerimonia-contador">
-        <strong>{data?.quantidade ?? 0}</strong> {(data?.titulo ?? '').toLowerCase()}(s)
-        realizada(s)
-      </p>
-
-      <div className="praticas-cerimonia-datas">
-        <span>Última: {dt(data?.ultimaData ?? '')}</span>
-        <span>Próxima: {dt(data?.proximaData ?? '')}</span>
       </div>
 
       <CardActions

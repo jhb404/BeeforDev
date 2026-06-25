@@ -26,24 +26,29 @@ export function RetrospectivaCard({ chave, idTime, nome }: CardProps) {
       error={error}
       vazio={!data}
     >
-      {data?.percent != null && (
-        <Gauge valor={data.percent} label={data.legendaPercent} color="var(--warm)" />
-      )}
+      <div className="praticas-card-center">
+        {data?.percent != null && (
+          <Gauge valor={data.percent} label={data.legendaPercent} color="var(--warm)" />
+        )}
 
-      <p className="praticas-cerimonia-contador">
-        <strong>{data?.quantidade ?? 0}</strong> retrospectiva(s) realizada(s)
-      </p>
+        <p className="praticas-cerimonia-contador">
+          <strong>{data?.quantidade ?? 0}</strong> retrospectiva(s) realizada(s)
+        </p>
+      </div>
 
-      {data?.onde && (
-        <label className="praticas-field">
-          <span>Onde?</span>
-          <input type="text" value={data.onde} readOnly />
-        </label>
-      )}
+      {/* bloco inferior fixo — Onde + datas no mesmo lugar em Planning/Review/Retro */}
+      <div className="praticas-cerimonia-foot">
+        {data?.onde && (
+          <label className="praticas-field">
+            <span>Onde?</span>
+            <input type="text" value={data.onde} readOnly />
+          </label>
+        )}
 
-      <div className="praticas-cerimonia-datas">
-        <span>Última: {dt(data?.ultimaData ?? '')}</span>
-        <span>Próxima: {dt(data?.proximaData ?? '')}</span>
+        <div className="praticas-cerimonia-datas">
+          <span>Última: {dt(data?.ultimaData ?? '')}</span>
+          <span>Próxima: {dt(data?.proximaData ?? '')}</span>
+        </div>
       </div>
 
       <CardActions
