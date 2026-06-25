@@ -16,7 +16,9 @@ export {
   Check,
   Clock,
   Coffee,
+  Copy,
   Download,
+  Eye,
   FileText,
   Flame,
   Globe,
@@ -33,6 +35,7 @@ export {
   Search,
   Settings,
   ShoppingBag,
+  Spade,
   Sparkles,
   Sun,
   Trophy,
@@ -42,6 +45,7 @@ export {
   // Aliases p/ compatibilidade com nomes antigos do projeto
   Zap as Bolt,
   RefreshCw as Refresh,
+  RotateCcw,
   LogOut as Logout,
   SquarePen as Edit3,
 } from 'lucide-react';

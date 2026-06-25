@@ -7,6 +7,7 @@ import {
   getCachedSession,
   clearCachedSession,
   clearCredentials,
+  clearActiveOrg,
 } from '../../services/beeforHttpClient';
 import {
   getCurrentMood,
@@ -27,6 +28,11 @@ import {
   listTimesCombo,
   listOrganizacoes,
   selecionarOrganizacao,
+  trocarOrganizacao,
+  listTimesComboFavorito,
+  listGruposCombo,
+  favoritarTime,
+  desfavoritarTime,
 } from '../../services/beeforPessoaService';
 import {
   getMonthPayload,
@@ -201,6 +207,7 @@ export function registerBeeforApiHandlers(): void {
     run: () => {
       clearCachedSession();
       clearCredentials();
+      clearActiveOrg();
       return ok();
     },
   });
@@ -312,6 +319,38 @@ export function registerBeeforApiHandlers(): void {
     schema: stringIdSchema,
     errorMessage: 'Org select failed',
     run: async ({ data }) => ok(await selecionarOrganizacao(data)),
+  });
+
+  defineHandler({
+    channel: IPC.API_ORG_SWITCH,
+    schema: stringIdSchema,
+    errorMessage: 'Org switch failed',
+    run: async ({ data }) => ok(await trocarOrganizacao(data)),
+  });
+
+  defineHandler({
+    channel: IPC.API_TIME_LIST,
+    errorMessage: 'Time list failed',
+    run: async () => ok(await listTimesComboFavorito()),
+  });
+
+  defineHandler({
+    channel: IPC.API_TIME_FAVORITE,
+    schema: stringIdSchema,
+    errorMessage: 'Time favorite failed',
+    run: async ({ data }) => ok(await favoritarTime(data)),
+  });
+
+  defineHandler({
+    channel: IPC.API_TIME_UNFAVORITE,
+    errorMessage: 'Time unfavorite failed',
+    run: async () => ok(await desfavoritarTime()),
+  });
+
+  defineHandler({
+    channel: IPC.API_GRUPO_LIST,
+    errorMessage: 'Grupo list failed',
+    run: async () => ok(await listGruposCombo()),
   });
 
   // ─── Timesheet (ProjectPro API) ────────────────────────

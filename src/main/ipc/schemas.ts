@@ -67,7 +67,7 @@ export const coin2uBuyItemSchema = z.object({
   price: z.number().int().positive().max(10_000_000),
 });
 
-export const notifyTestKindSchema = z.enum(['mood', 'lunch', 'kudocard', 'punch']);
+export const notifyTestKindSchema = z.enum(['mood', 'lunch', 'kudocard', 'punch', 'pj']);
 
 export const notifyWindowsArgsSchema = z.tuple([
   z.string().max(200),
@@ -96,6 +96,9 @@ export const settingsSchema = z
     kudocardNotification: z.boolean(),
     kudocardFrequency: z.enum(['once', 'twice', 'custom']),
     kudocardDays: z.array(z.number().int().min(1).max(31)).max(31),
+    pjAlarm: z.boolean(),
+    pjAlarmDay: z.number().int().min(1).max(31),
+    pjAlarmTime: timeStr,
     hoursPerDay: z.number().min(0).max(24),
     hourRate: z.number().min(0).max(10_000),
     uiSounds: z.boolean(),

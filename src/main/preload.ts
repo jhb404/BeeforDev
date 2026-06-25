@@ -84,7 +84,7 @@ const api = {
   relaunchApp: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.APP_RELAUNCH),
 
   // notification testing
-  testNotification: (kind: 'mood' | 'lunch' | 'kudocard' | 'punch'): Promise<ActionResult> =>
+  testNotification: (kind: 'mood' | 'lunch' | 'kudocard' | 'punch' | 'pj'): Promise<ActionResult> =>
     ipcRenderer.invoke(IPC.NOTIFY_TEST, kind),
 
   getTodayAlerts: (): Promise<ActionResult<TodayAlert[]>> =>
@@ -171,6 +171,23 @@ const api = {
     ipcRenderer.invoke(IPC.COIN2U_TRANSFER, payload),
   verifyCoin2u: (): Promise<ActionResult<{ userId: number; email: string }>> =>
     ipcRenderer.invoke(IPC.COIN2U_VERIFY),
+
+  // Planning Poker
+  pokerGetPort: (): Promise<number> => ipcRenderer.invoke(IPC.POKER_GET_PORT),
+  pokerGetLocalIp: (): Promise<string> => ipcRenderer.invoke(IPC.POKER_GET_LOCAL_IP),
+  pokerStartTunnel: (): Promise<ActionResult<string>> => ipcRenderer.invoke(IPC.POKER_START_TUNNEL),
+  pokerStopTunnel: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.POKER_STOP_TUNNEL),
+
+  clipboardWrite: (text: string): Promise<ActionResult> =>
+    ipcRenderer.invoke(IPC.CLIPBOARD_WRITE, text),
+
+  // Deep link beefor:// (convite de sala)
+  consumeDeepLink: (): Promise<string | null> => ipcRenderer.invoke(IPC.DEEPLINK_CONSUME),
+  onDeepLink: (cb: (url: string) => void): (() => void) => {
+    const listener = (_e: unknown, url: string) => cb(url);
+    ipcRenderer.on(IPC.EVT_DEEPLINK_URL, listener);
+    return () => ipcRenderer.removeListener(IPC.EVT_DEEPLINK_URL, listener);
+  },
 };
 
 const httpApi = {
@@ -229,6 +246,29 @@ const httpApi = {
     list: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_ORG_LIST),
     select: (idOrganizacao: string): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_ORG_SELECT, idOrganizacao),
+    /** Troca de organização: pega token novo escopado + invalida caches. UI deve recarregar. */
+    switch: (
+      idOrganizacao: string,
+    ): Promise<
+      ActionResult<{
+        idOrganizacao: string | null;
+        idPessoa: string;
+        nome?: string;
+        nomeOrganizacao?: string;
+      }>
+    > => ipcRenderer.invoke(IPC.API_ORG_SWITCH, idOrganizacao),
+  },
+  team: {
+    list: (): Promise<
+      ActionResult<
+        Array<{ id: string; nome: string; favorito: boolean; idGrupo?: string; logo?: string }>
+      >
+    > => ipcRenderer.invoke(IPC.API_TIME_LIST),
+    favorite: (idTime: string): Promise<ActionResult> =>
+      ipcRenderer.invoke(IPC.API_TIME_FAVORITE, idTime),
+    unfavorite: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_TIME_UNFAVORITE),
+    groups: (): Promise<ActionResult<Array<{ idGrupo: string; nome: string }>>> =>
+      ipcRenderer.invoke(IPC.API_GRUPO_LIST),
   },
 
   // Timesheet
@@ -343,14 +383,9 @@ const httpApi = {
         dataInicio: string | null;
       }>,
     ): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_ATIV_EDIT, { idCard, body }),
-    arquivar: (
-      idCard: string,
-      arquivado: boolean,
-      idQuadro?: string,
-    ): Promise<ActionResult> =>
+    arquivar: (idCard: string, arquivado: boolean, idQuadro?: string): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_ATIV_ARQUIVAR, { idCard, arquivado, idQuadro }),
-    logs: (idCard: string): Promise<ActionResult> =>
-      ipcRenderer.invoke(IPC.API_ATIV_LOGS, idCard),
+    logs: (idCard: string): Promise<ActionResult> => ipcRenderer.invoke(IPC.API_ATIV_LOGS, idCard),
     anexos: (idCard: string): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_ATIV_ANEXOS, idCard),
     removerAnexo: (idAnexo: string): Promise<ActionResult> =>

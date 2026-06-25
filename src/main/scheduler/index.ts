@@ -36,7 +36,13 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
     !alreadyFired('mood')
   ) {
     if (!weekend) {
-      notify(win, '😊 Mood do dia', 'Não esquece de marcar seu mood no Beefor!', s.moodAlarm, 'mood');
+      notify(
+        win,
+        '😊 Mood do dia',
+        'Não esquece de marcar seu mood no Beefor!',
+        s.moodAlarm,
+        'mood',
+      );
       markFired('mood');
     }
   }
@@ -54,8 +60,30 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
     const slots = await ensureKudocardSchedule(s);
     const todaySlot = slots.find((slot) => slot.day === todayDay && slot.time === hhmm);
     if (todaySlot && !alreadyFired('kudocard')) {
-      notify(win, '🏆 Kudocard', 'Hoje é dia de reconhecer alguém — manda um kudocard!', true, 'kudocard');
+      notify(
+        win,
+        '🏆 Kudocard',
+        'Hoje é dia de reconhecer alguém — manda um kudocard!',
+        true,
+        'kudocard',
+      );
       markFired('kudocard');
+    }
+  }
+
+  // PJ — Ajustar Pontos: dispara num dia fixo do mês (clamp p/ último dia se mês curto)
+  if (s.pjAlarm && s.pjAlarmTime === hhmm && !alreadyFired('pj')) {
+    const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    const targetDay = Math.min(s.pjAlarmDay, lastDay);
+    if (todayDay === targetDay) {
+      notify(
+        win,
+        '🧾 Ajustar Pontos (PJ)',
+        'Hoje é dia de ajustar os pontos no Beefor!',
+        true,
+        'pj',
+      );
+      markFired('pj');
     }
   }
 
@@ -98,7 +126,7 @@ export function stopScheduler(): void {
 /** Test hook — fires notif immediately for given kind. */
 export function fireTestNotification(
   win: BrowserWindow | null,
-  kind: 'mood' | 'lunch' | 'kudocard' | 'punch',
+  kind: 'mood' | 'lunch' | 'kudocard' | 'punch' | 'pj',
 ): void {
   if (!win) return;
   const map = {
@@ -118,6 +146,11 @@ export function fireTestNotification(
       alarm: true,
     },
     punch: { title: '🟢 Ponto — Entrada', body: 'Hora de bater o ponto.', alarm: true },
+    pj: {
+      title: '🧾 Ajustar Pontos (PJ)',
+      body: 'Hoje é dia de ajustar os pontos no Beefor!',
+      alarm: true,
+    },
   };
   const cfg = map[kind];
   notify(win, cfg.title, cfg.body, cfg.alarm, kind);

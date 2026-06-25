@@ -1,5 +1,5 @@
 import type { BrowserWindow } from 'electron';
-import { app } from 'electron';
+import { app, clipboard } from 'electron';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
@@ -9,13 +9,10 @@ import { fireTestNotification, getTodayAlerts } from '../../scheduler/index';
 import { getBuildAssetPath, getBuildAssetsDir } from '../../window';
 import { setLunchTimerActive } from '../../bootstrap/tray';
 import { notifyWindows } from '../../bootstrap/notifications';
+import { consumePendingUrl } from '../../services/deepLink';
 import { logger } from '../../logger';
 import { ok } from '../../../shared/result';
-import {
-  assetFileNameSchema,
-  notifyTestKindSchema,
-  notifyWindowsArgsSchema,
-} from '../schemas';
+import { assetFileNameSchema, notifyTestKindSchema, notifyWindowsArgsSchema } from '../schemas';
 import { defineEventHandler, defineHandler } from '../defineHandler';
 
 export function registerSystemHandlers(getWindow: () => BrowserWindow | null) {
@@ -70,6 +67,22 @@ export function registerSystemHandlers(getWindow: () => BrowserWindow | null) {
     channel: IPC.APP_GET_ASSET_PATH,
     errorMessage: 'Get asset path failed',
     run: () => getBuildAssetsDir(),
+  });
+
+  defineHandler({
+    channel: IPC.CLIPBOARD_WRITE,
+    schema: z.string(),
+    errorMessage: 'Clipboard write failed',
+    run: ({ data }) => {
+      clipboard.writeText(data);
+      return ok();
+    },
+  });
+
+  defineHandler({
+    channel: IPC.DEEPLINK_CONSUME,
+    errorMessage: 'Deep link consume failed',
+    run: () => consumePendingUrl(),
   });
 
   defineEventHandler({

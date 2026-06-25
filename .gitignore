@@ -13,3 +13,6 @@ codes.private.json
 .claude
 .squad
 
+# binário do cloudflared (baixado via scripts/fetch-cloudflared.mjs)
+resources/cloudflared.exe
+

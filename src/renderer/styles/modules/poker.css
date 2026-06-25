@@ -1,0 +1,1655 @@
+/* poker.css — Planning Poker modal. Segue tokens de base.css. */
+
+.poker-modal {
+  width: min(960px, calc(100vw - 24px));
+  height: min(800px, calc(100vh - 32px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* sala: barra topo + mesa que cresce + dock fixo embaixo */
+.poker-room {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+  padding: 14px 16px;
+  overflow: hidden;
+}
+
+.poker-modal .modal-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---------- entrada ---------- */
+
+/* tela de entrada ocupa 100% da modal — sem card/moldura, layout dinâmico */
+.poker-entry {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 4px;
+  overflow: hidden;
+}
+
+.poker-entry > * {
+  width: 100%;
+}
+
+.poker-entry__card {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 22px 12px;
+}
+
+/* o grid de personagem cresce pra ocupar o espaço livre da modal */
+.poker-entry__card .poker-field--grow {
+  flex: 1;
+  min-height: 0;
+}
+
+.poker-entry__card .poker-field--grow .poker-charpick--entry {
+  height: 100%;
+}
+
+/* hero topo: mascote + chamada em linha — compacto, não rouba altura do grid */
+.poker-entry__hero {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  text-align: left;
+  gap: 12px;
+}
+
+.poker-entry__hero-dog {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.poker-entry__hero-dog img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+  animation: pdog-pop 0.3s ease;
+}
+
+.poker-entry__hero-text h3 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.poker-entry__hero-text p {
+  margin: 1px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+/* grid dinâmico: nº de colunas se adapta à largura; células maiores */
+.poker-charpick--entry {
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  grid-auto-rows: minmax(52px, 1fr);
+  gap: 8px;
+  align-content: stretch;
+  overflow: hidden;
+}
+
+/* nas células do grid de entrada, deixa esticar (sem trava de quadrado) */
+.poker-charpick--entry .poker-charpick__opt {
+  aspect-ratio: auto;
+  min-height: 0;
+}
+
+.poker-entry__foot {
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* input de nome dentro da overlay (pedido ao entrar sem nome) */
+.poker-pickover__card--name {
+  width: min(420px, calc(100% - 24px));
+  align-items: stretch;
+}
+
+.poker-nameinput {
+  width: 100%;
+  font-size: 15px;
+}
+
+.poker-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.poker-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.poker-entry__create {
+  min-height: 44px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.poker-entry__or {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.poker-entry__or::before,
+.poker-entry__or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.poker-entry__join {
+  display: flex;
+  gap: 8px;
+}
+
+.poker-entry__join input {
+  flex: 1;
+}
+
+.poker-entry__join button {
+  flex-shrink: 0;
+}
+
+.poker-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.poker-hint code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+.poker-hint--foot {
+  text-align: center;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.poker-error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--err);
+}
+
+/* ---------- sala ---------- */
+
+.poker-room__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: nowrap; /* nunca quebra linha — barra fica sempre em 1 linha */
+  flex-shrink: 0;
+}
+
+.poker-room__cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0; /* deixa o cluster encolher sem empurrar pra próxima linha */
+}
+
+.poker-room__cluster--id { flex-shrink: 1; }
+.poker-room__cluster--actions { flex-shrink: 0; margin-left: auto; }
+
+/* "Sala 📋 CÓDIGO" — o próprio chip é o botão que copia o convite */
+.poker-room__code {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: var(--accent-soft);
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    filter 0.12s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+
+.poker-room__code:hover {
+  filter: brightness(1.08);
+}
+
+.poker-room__code-label {
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.poker-room__code-ico {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.poker-room__code strong {
+  letter-spacing: 3px;
+  font-size: 18px;
+  color: var(--accent);
+}
+
+/* estado "copiado" — vira verde rapidinho */
+.poker-room__code.is-copied {
+  border-color: var(--ok);
+}
+.poker-room__code.is-copied .poker-room__code-ico,
+.poker-room__code.is-copied strong {
+  color: var(--ok);
+}
+
+/* ghost — "convite direto": fallback se o link não abrir (cola no campo) */
+.poker-room__copydirect {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.poker-room__copydirect:hover {
+  background: var(--bg-2);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* badge de conexão = StatusBadge compartilhado (.status), sem CSS próprio aqui */
+
+.poker-room__spacer {
+  flex: 1;
+}
+
+/* ---------- dock embaixo: cartas + reações + ação ---------- */
+
+.poker-dock {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 4px 4px;
+  border-top: 1px solid var(--border);
+}
+
+.poker-dock__cards-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+
+.poker-dock__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.poker-dock__cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.poker-dock__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+}
+
+/* carta de voto — formato de carta de baralho, cor por dificuldade */
+.poker-card {
+  position: relative;
+  width: 52px;
+  height: 74px;
+  padding: 0;
+  background: var(--card-bg, #fff);
+  border: 2px solid var(--card-bd, var(--border));
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.poker-card__value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--card-fg, #222);
+}
+
+.poker-card__corner {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--card-fg, #222);
+  line-height: 1;
+}
+
+.poker-card__corner--tl {
+  top: 4px;
+  left: 5px;
+}
+
+.poker-card__corner--br {
+  bottom: 4px;
+  right: 5px;
+  transform: rotate(180deg);
+}
+
+.poker-card:hover:not(:disabled) {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  background: var(--card-bg, #fff);
+  border-color: var(--card-bd, var(--border-strong));
+}
+
+.poker-card:disabled {
+  opacity: 0.4;
+}
+
+.poker-card.is-selected {
+  transform: translateY(-10px);
+  box-shadow: 0 0 0 3px var(--card-bd), 0 10px 20px rgba(0, 0, 0, 0.4);
+  filter: saturate(1.2);
+}
+
+/* tiers de dificuldade — fácil (verde) → difícil (vermelho) */
+.poker-card.tier-1 {
+  --card-bg: #e9f9ef;
+  --card-bd: #3cba6f;
+  --card-fg: #1e7a45;
+}
+.poker-card.tier-2 {
+  --card-bg: #fff7e3;
+  --card-bd: #e8b54a;
+  --card-fg: #8a5e12;
+}
+.poker-card.tier-3 {
+  --card-bg: #ffefe0;
+  --card-bd: #e8843c;
+  --card-fg: #a8521a;
+}
+.poker-card.tier-4 {
+  --card-bg: #ffe6e6;
+  --card-bd: #e0545a;
+  --card-fg: #9e2b30;
+}
+.poker-card.tier-neutral {
+  --card-bg: #eef1f6;
+  --card-bd: #9aa6b6;
+  --card-fg: #4a5568;
+}
+
+/* ============ seleção de personagem (entrada) ============ */
+.poker-charpick {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.poker-charpick__opt {
+  aspect-ratio: 1 / 1;
+  padding: 3px;
+  background: var(--bg-2);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.poker-charpick__opt img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.poker-charpick__opt:hover {
+  background: var(--bg-3);
+  transform: translateY(-2px);
+}
+
+.poker-charpick__opt.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+/* ícone de carta no botão "Criar nova sala" */
+.poker-entry__create-icon {
+  width: 18px;
+  height: 24px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  margin-right: 4px;
+  vertical-align: middle;
+  border-radius: 2px;
+}
+
+/* ============ loader de conexão ============ */
+.poker-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex: 1;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.poker-loader__spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: poker-spin 0.8s linear infinite;
+}
+
+@keyframes poker-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============ menu de reações (canto da mesa) ============ */
+.poker-table-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  /* visible pra os popovers (reações / trocar personagem) não serem cortados;
+     a mesa em si fica contida pelo .pdog (max-width + centralizado). */
+  overflow: visible;
+  /* transição suave ao abrir/fechar a arquibancada */
+  transition: padding-left 0.22s ease;
+}
+
+/* arquibancada aberta → reserva espaço à esquerda; a mesa desliza pra direita
+   (jogador "senta na mesa" com a torcida ocupando a lateral). */
+.poker-table-wrap.has-bleachers {
+  padding-left: 206px; /* 190 da arquibancada + 16 de respiro */
+}
+
+@media (max-width: 640px) {
+  .poker-table-wrap.has-bleachers {
+    padding-left: 162px; /* arquibancada estreita (150) + respiro */
+  }
+
+  /* barra compacta pra caber tudo em 1 linha sem quebrar */
+  .poker-room__bar { gap: 6px; }
+  .poker-room__cluster { gap: 5px; }
+
+  /* chip "Sala" enxuto: tira o letterspacing largo e diminui fonte */
+  .poker-room__code { padding: 6px 9px; gap: 5px; }
+  .poker-room__code strong { letter-spacing: 1.5px; font-size: 15px; }
+  .poker-room__code-label { display: none; } /* esconde a palavra "Sala" */
+
+  /* botões de ação menores (Banco/Histórico/Encerrar) */
+  .poker-room__cluster--actions .secondary.compact {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  /* "convite direto" vira só o ícone (esconde o texto) */
+  .poker-room__copydirect { padding: 6px 7px; }
+}
+
+/* reações: lado direito, ao lado do seletor de personagem */
+.poker-reactmenu {
+  position: absolute;
+  top: 8px;
+  right: 56px;
+  z-index: 6;
+  transition: right 0.18s ease;
+}
+
+/* sem seletor de personagem (espectador) → reações ocupam o canto dele */
+.poker-reactmenu.is-solo {
+  right: 8px;
+}
+
+.poker-reactmenu__toggle {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  padding: 0;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.poker-reactmenu__toggle:hover,
+.poker-reactmenu__toggle.is-open {
+  background: var(--bg-3);
+  transform: scale(1.08);
+}
+
+.poker-reactmenu__panel {
+  position: absolute;
+  top: 46px;
+  right: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  animation: pdog-pop 0.18s ease;
+}
+
+.poker-reactmenu__panel * {
+  box-sizing: border-box;
+}
+
+.poker-reactmenu__heading {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.poker-reactmenu__group {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.poker-reactmenu__emoji {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  font-size: 20px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: transform 0.1s ease, background 0.12s ease;
+}
+
+.poker-reactmenu__emoji:hover {
+  background: var(--bg-3);
+  transform: scale(1.12);
+}
+
+.poker-reactmenu__divider {
+  height: 1px;
+  background: var(--border);
+}
+
+.poker-reactmenu__sounds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.poker-reactmenu__sound {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: background 0.12s ease;
+}
+
+.poker-reactmenu__sound:hover {
+  background: var(--bg-3);
+}
+
+.poker-reactmenu__sound span {
+  font-size: 14px;
+}
+
+/* ação principal (revelar / novo round) — só host */
+.poker-dock__action {
+  min-height: 40px;
+  padding: 8px 22px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.poker-dock__hint {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+/* ---------- mesa PokerDog ---------- */
+
+.pdog {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  user-select: none;
+}
+
+/* mesa pixel-art transparente, centralizada */
+.pdog__table {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 82%;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pdog__seat {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pdog__seat.is-empty {
+  width: 70px;
+  height: 70px;
+  border: 2px dashed var(--border-strong);
+  border-radius: 12px;
+  justify-content: center;
+}
+
+/* cão (sprite já vem com corpo + cartas) — sempre colorido */
+.pdog__dog {
+  image-rendering: pixelated;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.5)) saturate(0.35);
+  opacity: 0.85;
+  transition: filter 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
+}
+
+/* cão que já votou — cor plena */
+.pdog__seat.has-voted .pdog__dog {
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.5)) saturate(1);
+  opacity: 1;
+}
+
+/* consenso = brilho verde, outlier = brilho vermelho */
+.pdog__dog.is-consensus {
+  filter: drop-shadow(0 0 8px var(--ok)) drop-shadow(0 0 8px var(--ok));
+  opacity: 1;
+}
+
+.pdog__dog.is-outlier {
+  filter: drop-shadow(0 0 8px var(--err)) drop-shadow(0 0 8px var(--err));
+  opacity: 1;
+}
+
+/* carta destacada quando o dono já votou (antes do reveal) */
+.pdog__card.is-held {
+  filter: drop-shadow(0 0 5px rgba(255, 220, 100, 0.9));
+}
+
+.pdog__zzz {
+  position: absolute;
+  top: -6px;
+  right: 8px;
+  z-index: 4;
+  font-size: 15px;
+  font-weight: 800;
+  color: #cdd6e3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  animation: pdog-zzz 1.8s ease-in-out infinite;
+}
+
+@keyframes pdog-zzz {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* pulo ao votar */
+.pdog__seat.just-voted .pdog__dog {
+  animation: pdog-bounce 0.45s ease;
+}
+
+@keyframes pdog-bounce {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-14px) scale(1.06); }
+  70% { transform: translateY(0) scale(0.98); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.pdog__name {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  max-width: 100px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.78);
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdog__name.is-empty {
+  position: static;
+  transform: none;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* carta com flip 3D, usando os sprites de carta */
+.pdog__card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  perspective: 400px;
+}
+
+.pdog__card-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.45, 0.05, 0.2, 1.2);
+}
+
+.pdog__card.is-flipped .pdog__card-inner {
+  transform: rotateY(180deg);
+}
+
+.pdog__card-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+}
+
+.pdog__card-back {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+/* frente da carta revelada — herda a cor (tier) do voto, igual à escolha */
+.pdog__card-front {
+  transform: rotateY(180deg);
+  background: var(--card-bg, #fff);
+  color: var(--card-fg, #16432c);
+  font-size: 17px;
+  font-weight: 800;
+  border-radius: 4px;
+  border: 2px solid var(--card-bd, var(--accent));
+}
+
+.pdog__card-front.tier-1 {
+  --card-bg: #e9f9ef;
+  --card-bd: #3cba6f;
+  --card-fg: #1e7a45;
+}
+.pdog__card-front.tier-2 {
+  --card-bg: #fff7e3;
+  --card-bd: #e8b54a;
+  --card-fg: #8a5e12;
+}
+.pdog__card-front.tier-3 {
+  --card-bg: #ffefe0;
+  --card-bd: #e8843c;
+  --card-fg: #a8521a;
+}
+.pdog__card-front.tier-4 {
+  --card-bg: #ffe6e6;
+  --card-bd: #e0545a;
+  --card-fg: #9e2b30;
+}
+.pdog__card-front.tier-neutral {
+  --card-bg: #eef1f6;
+  --card-bd: #9aa6b6;
+  --card-fg: #4a5568;
+}
+
+/* centro da mesa: média / status — 44% alinha com o feltro oval */
+.pdog__center {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 44%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* emoji de reação flutuando sobre o cão */
+.pdog__reaction {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 5;
+  font-size: 22px;
+  pointer-events: none;
+  animation: pdog-react 2.4s ease-out forwards;
+}
+
+@keyframes pdog-react {
+  0% { transform: translate(-50%, 0) scale(0.4); opacity: 0; }
+  15% { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(-50%, -70px) scale(1); opacity: 0; }
+}
+
+/* reação flutuando sobre um item do banco (acima da pílula) */
+.pdog__reaction--bench {
+  top: -8px;
+  font-size: 18px;
+}
+
+.pdog__avg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* padding acompanha a largura disponível — encolhe junto com a mesa */
+  padding: clamp(5px, 1.4vw, 8px) clamp(12px, 2.6vw, 20px);
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--warm);
+  border-radius: 12px;
+  animation: pdog-pop 0.4s ease;
+}
+
+@keyframes pdog-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.pdog__avg span {
+  font-size: clamp(9px, 1.4vw, 11px);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pdog__avg strong {
+  /* número da média escala com a largura do modal (gigante no grande,
+     compacto no pequeno) */
+  font-size: clamp(26px, 6vw, 48px);
+  color: var(--warm);
+  line-height: 1;
+  font-weight: 900;
+}
+
+.pdog__avg em {
+  margin-top: 4px;
+  font-size: 12px;
+  font-style: normal;
+  color: var(--ok);
+}
+
+.pdog__consensus--full {
+  color: var(--ok);
+}
+.pdog__consensus--strong {
+  color: var(--warm);
+}
+.pdog__consensus--partial {
+  color: var(--text-muted);
+}
+
+.pdog__dist {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  max-width: 220px;
+}
+
+.pdog__dist-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.pdog__dist-item.is-top {
+  background: rgba(255, 200, 100, 0.12);
+  border-color: var(--warm);
+  color: var(--warm);
+}
+
+.pdog__dist-item strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.pdog__dist-item span {
+  font-size: 10px;
+  color: inherit;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── deck select (tela de entrada) ─────────────────────────────────── */
+.poker-select {
+  appearance: none;
+  width: 100%;
+  padding: 8px 32px 8px 10px;
+  background: rgba(255, 255, 255, 0.05)
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffb060' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")
+    no-repeat right 10px center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+.poker-select:hover { border-color: rgba(255, 255, 255, 0.25); }
+.poker-select:focus-visible {
+  outline: none;
+  border-color: var(--warm);
+  box-shadow: 0 0 0 2px rgba(255, 200, 100, 0.18);
+}
+.poker-select option { background: #1a1a1a; color: #fff; }
+
+.poker-field__hint {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* status "aguardando todos votarem" + bolinhas de progresso */
+.pdog__status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.pdog__status-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+}
+
+.pdog__paw {
+  font-size: 14px;
+}
+
+.pdog__dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pdog__dots-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.pdog__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pdog__dot.is-on {
+  background: var(--ok);
+  box-shadow: 0 0 6px var(--ok);
+}
+
+.pdog__overflow {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  padding: 2px 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border-radius: 999px;
+}
+
+/* botão-ícone padrão (fechar modal, etc.) — mesma moldura/altura do
+   toggle de trocar personagem pra ficarem visualmente iguais */
+.poker-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: var(--text-muted);
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.poker-iconbtn:hover {
+  background: var(--bg-3);
+  color: var(--text);
+  transform: scale(1.08);
+}
+
+/* ============ dog picker inline (canto direito da mesa) ============ */
+.poker-dogpick {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 6;
+}
+
+.poker-dogpick__toggle {
+  width: 40px;
+  height: 40px;
+  padding: 3px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.poker-dogpick__toggle:hover,
+.poker-dogpick__toggle.is-open {
+  background: var(--bg-3);
+  transform: scale(1.08);
+}
+
+.poker-dogpick__toggle img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.poker-dogpick__panel {
+  position: absolute;
+  top: 46px;
+  right: 0;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  padding: 12px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  animation: pdog-pop 0.18s ease;
+}
+
+.poker-dogpick__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+
+.poker-charpick--sm {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.poker-charpick__opt.is-taken {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ============ arquibancada (espectadores, lateral esquerda) ============ */
+.poker-bleachers {
+  position: absolute;
+  top: 8px; /* topo da mesa, lado esquerdo (abaixo da barra "Sala") */
+  left: 8px;
+  z-index: 5;
+  width: 190px;
+  max-height: calc(100% - 16px);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: pdog-pop 0.18s ease;
+}
+
+.poker-bleachers__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.poker-bleachers__title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.poker-bleachers__count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0 7px;
+  line-height: 16px;
+}
+
+.poker-bleachers__collapse {
+  margin-left: auto;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.poker-bleachers__collapse:hover {
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+.poker-bleachers__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.poker-bleachers__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: var(--bg-2);
+}
+
+/* emoji de reação flutuando sobre o espectador (igual ao da mesa) */
+.poker-bleachers__reaction {
+  position: absolute;
+  top: 0;
+  right: 6px;
+  z-index: 6;
+  font-size: 18px;
+  pointer-events: none;
+  animation: pdog-react-side 2.4s ease-out forwards;
+}
+
+@keyframes pdog-react-side {
+  0% { transform: translateY(0) scale(0.4); opacity: 0; }
+  15% { transform: translateY(-8px) scale(1.2); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translateY(-44px) scale(1); opacity: 0; }
+}
+
+.poker-bleachers__item.is-me {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+}
+
+.poker-bleachers__item img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.poker-bleachers__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.poker-bleachers__swap {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 13px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.poker-bleachers__swap:hover {
+  background: var(--bg-3);
+}
+
+.poker-bleachers__pick {
+  padding: 8px;
+  border-top: 1px solid var(--border);
+}
+
+/* FAB: arquibancada recolhida vira só um ícone com contador */
+.poker-bleachers__fab {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+  height: 40px;
+  font-size: 18px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.poker-bleachers__fab:hover {
+  background: var(--bg-3);
+  transform: scale(1.06);
+}
+
+.poker-bleachers__fab-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0 6px;
+  line-height: 16px;
+}
+
+/* telas pequenas: arquibancada estreita pra não comer a mesa */
+@media (max-width: 640px) {
+  .poker-bleachers {
+    width: 150px;
+  }
+}
+
+/* ============ histórico de rounds ============ */
+.poker-histmenu {
+  position: relative;
+}
+
+.poker-histmenu__toggle {
+  gap: 5px;
+}
+
+.poker-histmenu__panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 260px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: pdog-pop 0.18s ease;
+}
+
+.poker-histmenu__title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.poker-histmenu__round {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg-2);
+  border-radius: 8px;
+}
+
+.poker-histmenu__round-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.poker-histmenu__round-head strong {
+  color: var(--warm);
+  font-size: 13px;
+}
+
+/* nome do round = botão clicável que vira input ao editar */
+.poker-histmenu__name {
+  padding: 1px 4px;
+  margin: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.poker-histmenu__name:hover {
+  background: var(--bg-3);
+  border-color: var(--border);
+}
+
+.poker-histmenu__rename {
+  width: 120px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg-3);
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+}
+
+.poker-histmenu__votes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.poker-histmenu__vote {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  background: var(--bg-3);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.poker-histmenu__vote strong {
+  color: var(--text);
+  font-size: 12px;
+}
+
+/* ============ banco de reserva ============ */
+.pdog__bench {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 96%;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+}
+
+.pdog__bench-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.pdog__bench-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 4px);
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.pdog__bench-item.has-voted {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.pdog__bench-item img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.pdog__bench-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pdog__bench-status {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ok);
+}
+
+/* ============ modal de escolha de personagem ao entrar ============ */
+.poker-pickover {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  border-radius: inherit;
+}
+
+.poker-pickover__card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(620px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+  padding: 26px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  animation: pdog-pop 0.2s ease;
+}
+
+.poker-pickover__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.poker-pickover__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* grid grande dentro da modal de escolha (5 colunas = ícones grandes) */
+.poker-pickover .poker-charpick {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.poker-pickover .poker-charpick__opt {
+  padding: 8px;
+  border-radius: 14px;
+}
+
+.poker-pickover__spec {
+  align-self: center;
+  margin-top: 4px;
+}
+
+/* botão sair/encerrar — destaque sutil de risco no fim da barra */
+.poker-room__leave {
+  margin-left: 4px;
+}
+
+/* ============ balão pensando (antes de votar) ============ */
+.pdog__think {
+  position: absolute;
+  top: -8px;
+  right: 6px;
+  z-index: 4;
+  font-size: 16px;
+  animation: pdog-think 2.2s ease-in-out infinite;
+}
+
+@keyframes pdog-think {
+  0%, 100% { transform: scale(1) rotate(-5deg); opacity: 0.7; }
+  50% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+}
+
+@media (max-width: 560px) {
+  .poker-entry__split {
+    grid-template-columns: 1fr;
+  }
+  .poker-entry__divider {
+    display: none;
+  }
+}

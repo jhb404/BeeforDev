@@ -141,6 +141,7 @@
 .bell-item--mood     { border-left-color: var(--ok); }
 .bell-item--lunch    { border-left-color: var(--accent-2); }
 .bell-item--punch    { border-left-color: var(--accent); }
+.bell-item--pj       { border-left-color: #8b5cf6; }
 .bell-item--birthday {
   border-left-color: #e91e8c;
   background: rgba(233, 30, 140, 0.06);
