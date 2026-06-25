@@ -3,7 +3,7 @@ import type { SessionStatus } from '@shared/types/index';
 import { useIpc } from '../../../services/ipc';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import { StatusBadge } from '../../../components/common/StatusBadge';
-import { Check, Copy, Eye, RotateCcw, Spade, X } from '../../../components/common/Icons';
+import { Check, Copy, Eye, RotateCcw } from '../../../components/common/Icons';
 import { playUiSound } from '../../../utils/alarm';
 import {
   usePokerRoom,
@@ -314,18 +314,10 @@ export function PlanningPokerModal({ open, onClose, initialInvite }: Props) {
       <div className="modal-head">
         <div>
           <p className="eyebrow">Time</p>
-          <h2 id="poker-title">
-            <Spade size={18} /> Planning Poker
-          </h2>
+          <h2 id="poker-title">Planning Poker</h2>
         </div>
-        <button
-          className="poker-iconbtn"
-          onClick={onClose}
-          data-sound="close"
-          title="Fechar"
-          aria-label="Fechar"
-        >
-          <X size={18} />
+        <button type="button" className="secondary compact" onClick={onClose} data-sound="close">
+          Fechar
         </button>
       </div>
 

@@ -39,6 +39,13 @@ function normalizeMember(raw: unknown): TeamMember | null {
         })
         .filter((x): x is { titulo: string; resposta: string } => !!x)
     : [];
+  const idsTimes = Array.isArray(o.idsTimes)
+    ? (o.idsTimes as unknown[]).map((id) => asString(id)).filter(Boolean)
+    : Array.isArray(o.times)
+      ? (o.times as unknown[])
+          .map((t) => asString((t as Record<string, unknown>)?.id))
+          .filter(Boolean)
+      : [];
   return {
     nome,
     foto: asString(o.foto ?? o.Foto ?? o.fotoPerfil ?? ''),
@@ -48,11 +55,16 @@ function normalizeMember(raw: unknown): TeamMember | null {
     ultimoCliente: asNullableString(o.ultimoCliente ?? o.UltimoCliente),
     ultimoCheckpoint: asNullableString(o.ultimoCheckpoint ?? o.UltimoCheckpoint),
     respostasUltimoChecklist: respostas,
+    idsTimes,
   };
 }
 
-export async function fetchTeamMembers(teamClient: TeamClient): Promise<TeamMember[]> {
-  const res = await teamClient.fetchMembers();
+export async function fetchTeamMembers(
+  teamClient: TeamClient,
+  filter?: { idTime?: string; idGrupo?: string },
+): Promise<TeamMember[]> {
+  // Backend filtra por idTime/idGrupo no body e já vem paginado completo do main.
+  const res = await teamClient.fetchMembers(filter);
   if (!res.ok) throw new Error(getError(res) || 'Falha ao buscar time.');
   const list = Array.isArray(res.data) ? res.data : [];
   const out: TeamMember[] = [];
@@ -65,6 +77,12 @@ export async function fetchTeamMembers(teamClient: TeamClient): Promise<TeamMemb
     seen.add(key);
     out.push(m);
   }
-  out.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-  return out;
+  // Recorte por time via idsTimes de cada pessoa. Defensivo: se NENHUMA pessoa
+  // trouxe idsTimes (campo ausente — ex.: main desatualizado), não filtra (mostra
+  // todos) em vez de zerar a lista. Grupo não vem por pessoa → não recorta aqui.
+  const idTime = filter?.idTime;
+  const hasTeamData = out.some((m) => m.idsTimes.length > 0);
+  const scoped = idTime && hasTeamData ? out.filter((m) => m.idsTimes.includes(idTime)) : out;
+  scoped.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  return scoped;
 }

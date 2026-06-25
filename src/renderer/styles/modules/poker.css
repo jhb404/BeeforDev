@@ -109,6 +109,8 @@
   grid-auto-rows: minmax(52px, 1fr);
   gap: 8px;
   align-content: stretch;
+  /* respiro pro lift de hover (translateY -2px) não ser cortado pelo overflow */
+  padding: 4px;
   overflow: hidden;
 }
 
@@ -455,6 +457,8 @@
   padding: 3px;
   background: var(--bg-2);
   border: 2px solid var(--border);
+  /* faixa accent à esquerda = mesmo padrão "selecionável" dos mini-cards do perfil (.pfx-stat) */
+  border-left-width: var(--selectable-left-width);
   border-radius: 10px;
   transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
 }
@@ -466,8 +470,10 @@
   image-rendering: pixelated;
 }
 
-.poker-charpick__opt:hover {
-  background: var(--bg-3);
+/* hover = mesmo padrão dos mini-cards do perfil (.pfx-stat): borda accent + lift */
+.poker-charpick__opt:not(.is-taken):hover {
+  background: var(--selectable-hover-bg);
+  border-color: var(--accent);
   transform: translateY(-2px);
 }
 
@@ -1023,23 +1029,23 @@
   appearance: none;
   width: 100%;
   padding: 8px 32px 8px 10px;
-  background: rgba(255, 255, 255, 0.05)
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffb060' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")
+  background: var(--input-bg)
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237c5cbf' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")
     no-repeat right 10px center;
   border: 1px solid var(--border);
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text);
   font-size: 13px;
   cursor: pointer;
-  transition: border-color 0.12s ease;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
-.poker-select:hover { border-color: rgba(255, 255, 255, 0.25); }
+.poker-select:hover { border-color: var(--border-strong); }
 .poker-select:focus-visible {
   outline: none;
-  border-color: var(--warm);
-  box-shadow: 0 0 0 2px rgba(255, 200, 100, 0.18);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
-.poker-select option { background: #1a1a1a; color: #fff; }
+.poker-select option { background: var(--bg-2); color: var(--text); }
 
 .poker-field__hint {
   margin-top: 4px;
@@ -1109,30 +1115,6 @@
   background: rgba(0, 0, 0, 0.7);
   color: #fff;
   border-radius: 999px;
-}
-
-/* botão-ícone padrão (fechar modal, etc.) — mesma moldura/altura do
-   toggle de trocar personagem pra ficarem visualmente iguais */
-.poker-iconbtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  color: var(--text-muted);
-  background: var(--bg-2);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
-}
-
-.poker-iconbtn:hover {
-  background: var(--bg-3);
-  color: var(--text);
-  transform: scale(1.08);
 }
 
 /* ============ dog picker inline (canto direito da mesa) ============ */
