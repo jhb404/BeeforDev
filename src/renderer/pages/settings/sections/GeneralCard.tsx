@@ -28,6 +28,17 @@ export function GeneralCard({ settings, onUpdate }: GeneralCardProps) {
         onChange={(v) => onUpdate('uiSounds', v)}
         label="Efeitos sonoros da interface"
       />
+      <Switch
+        id="praticasHome"
+        checked={settings.praticasHome?.enabled ?? false}
+        onChange={(v) =>
+          onUpdate('praticasHome', {
+            enabled: v,
+            idTime: settings.praticasHome?.idTime ?? null,
+          })
+        }
+        label="Mostrar Práticas Ágeis na Home (gráficos do time)"
+      />
     </div>
   );
 }

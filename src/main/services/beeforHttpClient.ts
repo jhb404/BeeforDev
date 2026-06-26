@@ -229,6 +229,16 @@ interface HttpRequestOptions {
   query?: Record<string, string | number | boolean | undefined | null>;
   /** If true, do not auto-retry on 401. */
   noRetry?: boolean;
+  /** Internal: tentativa atual de retry p/ erros transitórios (5xx). */
+  _transientAttempt?: number;
+}
+
+/** Status transitórios do gateway/servidor — valem retry automático em GET. */
+const TRANSIENT_STATUS = new Set([502, 503, 504]);
+const MAX_TRANSIENT_RETRIES = 4;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function buildUrl(path: string, query?: HttpRequestOptions['query']): string {
@@ -294,6 +304,21 @@ export async function beeforHttpRequest<T = unknown>(
     logger.warn(`401 on ${method} ${url} — invalidating cache and retrying.`);
     clearCachedSession();
     return beeforHttpRequest<T>(pathOrUrl, { ...options, noRetry: true });
+  }
+
+  // 502/503/504 = blip transitório do gateway. Em GET (idempotente) tenta de novo
+  // algumas vezes com backoff antes de propagar o erro pra UI.
+  if (TRANSIENT_STATUS.has(response.status) && method === 'GET') {
+    const attempt = options._transientAttempt ?? 0;
+    if (attempt < MAX_TRANSIENT_RETRIES) {
+      await response.text().catch(() => ''); // drena o corpo p/ liberar a conexão
+      const wait = 400 * 2 ** attempt; // 400, 800, 1600, 3200ms
+      logger.warn(
+        `${response.status} on GET ${url} — retry ${attempt + 1}/${MAX_TRANSIENT_RETRIES} em ${wait}ms`,
+      );
+      await sleep(wait);
+      return beeforHttpRequest<T>(pathOrUrl, { ...options, _transientAttempt: attempt + 1 });
+    }
   }
 
   if (!response.ok) {

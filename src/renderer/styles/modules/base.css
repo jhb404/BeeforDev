@@ -69,6 +69,24 @@
   --selectable-active-border: var(--warm);
   --selectable-left-width: 4px;
   --selectable-hover-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+  /* paleta de gráficos (Práticas) — derivada dos tokens do tema, reage ao preset */
+  --chart-1: var(--accent);
+  --chart-2: var(--warm);
+  --chart-3: var(--ok);
+  --chart-4: var(--accent-2);
+  --chart-5: var(--err);
+  --chart-6: var(--warn);
+  --chart-grid: var(--border-strong);
+  --chart-track: var(--bg-3);
+  /* temperatura (Congelado→Fervendo) — frio→quente derivado do tema */
+  --temp-1: var(--accent);
+  --temp-2: var(--accent-2);
+  --temp-3: var(--warn);
+  --temp-4: var(--warm);
+  --temp-5: var(--err);
+  /* preenchimentos semânticos — seguem ok/err do tema */
+  --ok-fill: var(--ok);
+  --err-fill: var(--err);
   color-scheme: dark;
   font-family: -apple-system, "SF Pro Display", "Segoe UI", Arial, sans-serif;
 }

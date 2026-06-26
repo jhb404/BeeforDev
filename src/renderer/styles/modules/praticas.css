@@ -1,0 +1,704 @@
+/* praticas.css — Home de Práticas Ágeis (gráficos do time). */
+
+.praticas-dashboard {
+  margin: 0 0 12px;
+}
+
+.praticas-dashboard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.praticas-dashboard-head h2 {
+  font-size: 17px;
+  margin: 0;
+}
+
+/* nome do time ativo (vem do seletor global do topo) — só leitura */
+.praticas-time-label {
+  max-width: 240px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text, #eee);
+  background: var(--bg-2, #1a1a1a);
+  border: 1px solid var(--border, #333);
+  border-radius: 999px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.praticas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-auto-rows: 1fr; /* linhas uniformes — todos da linha crescem juntos */
+  gap: 14px;
+  align-items: stretch;
+}
+
+.praticas-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 300px; /* altura mínima uniforme */
+  padding: 16px;
+}
+
+.praticas-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.praticas-card-head h3 {
+  font-size: 15px;
+  margin: 0;
+}
+
+/* título + "?" de ajuda agrupados à esquerda */
+.praticas-card-head-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.praticas-card-head-title .praticas-card-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  padding: 0;
+  flex: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.praticas-card-help:hover {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--selectable-hover-bg);
+}
+
+/* corpo cresce p/ empurrar o footer pra base */
+.praticas-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.praticas-card-body > .praticas-card-footer {
+  margin-top: auto;
+}
+
+.praticas-card-sub {
+  font-size: 13px;
+  color: var(--text-muted, #999);
+  margin: 0 0 6px;
+}
+
+.praticas-legend {
+  display: block;
+  margin: 12px 0 6px;
+  padding: 8px 16px 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted, #999);
+}
+
+.praticas-chart-empty,
+.praticas-loading,
+.praticas-error {
+  font-size: 12px;
+  color: var(--text-muted, #999);
+  padding: 16px 4px;
+}
+
+.praticas-error {
+  color: var(--err);
+}
+
+/* box-resumo (Capacity, Movimento, Delegation, Dicas, Backlog, TeamMood) */
+.praticas-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 0;
+}
+.praticas-box-valor {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text, #eee);
+  line-height: 1;
+}
+.praticas-box-sub {
+  font-size: 11px;
+  color: var(--text-muted, #999);
+}
+.praticas-box-sec {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--warm, #f5871f);
+}
+
+/* lista de eventos (Daily/Planning/Review/Retro) */
+.praticas-eventos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+}
+.praticas-eventos li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+.praticas-evento-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.praticas-evento-dot.ok {
+  background: var(--ok);
+}
+.praticas-evento-dot.pend {
+  background: var(--border, #666);
+}
+.praticas-evento-data {
+  color: var(--text-muted, #999);
+  font-variant-numeric: tabular-nums;
+}
+.praticas-evento-titulo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* container de gráfico — centraliza, chart maior, legenda abaixo */
+.praticas-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 1;
+  width: 100%;
+  padding: 8px 0;
+}
+.praticas-chart-label {
+  text-align: center;
+  margin: 0;
+}
+
+/* legenda (abaixo do gráfico, em linha) */
+.praticas-legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 16px;
+  font-size: 13px;
+}
+.praticas-legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.praticas-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* termômetro */
+.praticas-termometro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 22px;
+  padding: 8px 0;
+}
+/* escala de ícones do termômetro (hover mostra o nome via <title>) */
+.praticas-term-svg .praticas-term-ico {
+  font-size: 16px;
+  opacity: 0.4;
+  cursor: default;
+  transition: opacity 0.2s ease, font-size 0.2s ease;
+}
+.praticas-term-svg .praticas-term-ico.on {
+  opacity: 1;
+  font-size: 19px;
+}
+.praticas-term-svg .praticas-term-ico:hover {
+  opacity: 1;
+  font-size: 22px;
+}
+.praticas-termometro-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.praticas-termometro-info strong {
+  font-size: 20px;
+}
+.praticas-termometro-info small {
+  color: var(--text-muted, #999);
+  font-size: 12px;
+}
+.praticas-term-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent) !important;
+  font-weight: 600;
+  animation: praticas-term-pulse 1s ease-in-out infinite;
+}
+.praticas-term-loading::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: praticas-term-spin 0.7s linear infinite;
+}
+@keyframes praticas-term-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes praticas-term-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* faixa de mini-cards de resumo no topo (alinhada à direita) */
+.praticas-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.praticas-minicard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 130px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  border-left-width: var(--selectable-left-width);
+  background: var(--bg-1);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+.praticas-minicard:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: var(--selectable-hover-bg);
+  box-shadow: none;
+}
+.praticas-minicard-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.praticas-minicard-nome {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #999);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.praticas-minicard-cfg {
+  font-size: 11px;
+  color: var(--text-muted, #777);
+  opacity: 0.6;
+}
+.praticas-minicard:hover .praticas-minicard-cfg {
+  opacity: 1;
+  color: var(--warm, #ff9400);
+}
+.praticas-minicard-body {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+}
+.praticas-chip-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+.praticas-chip-num {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--warm, #ff9400);
+}
+.praticas-minicard-sub {
+  font-size: 10px;
+  color: var(--text-muted, #888);
+}
+.praticas-chip-skel {
+  width: 40px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--border, #333);
+  opacity: 0.4;
+}
+
+/* cerimônia (Daily/Planning/Review/Retro) */
+.praticas-cerimonia-relogio {
+  font-size: 40px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--warm, #f5871f);
+  margin: 4px 0;
+}
+.praticas-cerimonia-contador {
+  text-align: center;
+  font-size: 13px;
+  margin: 8px 0 4px;
+}
+.praticas-cerimonia-datas {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-muted, #999);
+  padding: 0 2px;
+}
+
+/* bloco inferior fixo (Onde + datas) — mesma posição em Planning/Review/Retro */
+.praticas-cerimonia-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+}
+.praticas-cerimonia-foot .praticas-field {
+  margin: 0;
+}
+
+/* modal — usa o sistema oficial (.modal-backdrop / .modal-card) */
+.praticas-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(4, 7, 12, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.praticas-modal {
+  width: min(440px, 100%);
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.praticas-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.praticas-modal-head h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+.praticas-modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+}
+.praticas-modal-close:hover:not(:disabled) {
+  background: var(--bg-3);
+  color: var(--text);
+}
+.praticas-modal-body {
+  padding: 16px 18px 18px;
+}
+
+/* campos input — herdam o estilo global de input */
+.praticas-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 10px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.praticas-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+/* footer padrão dos cards: Detalhes sempre à direita */
+.praticas-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.praticas-card-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+/* Detalhes / Editar — links discretos (padrão do app) */
+.praticas-footer-link {
+  background: none;
+  border: none;
+  min-height: 0;
+  padding: 2px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.12s ease;
+}
+.praticas-footer-link:hover:not(:disabled) {
+  background: none;
+  color: var(--accent);
+}
+/* Adicionar — [+] com a borda da app (não mais bolinha cheia) */
+.praticas-add-btn {
+  width: 30px;
+  height: 30px;
+  min-height: 0;
+  padding: 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-1);
+  color: var(--warm);
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.14s, border-color 0.14s, color 0.14s, transform 0.1s;
+}
+.praticas-add-btn:hover:not(:disabled) {
+  background: var(--selectable-hover-bg);
+  border-color: var(--accent);
+  color: var(--warm);
+  transform: translateY(-1px);
+}
+
+/* Editar — botão fantasma com ícone de lápis (alternativa ao link cru) */
+.praticas-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 0;
+  padding: 4px 11px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.14s, border-color 0.14s, color 0.14s, transform 0.1s;
+}
+.praticas-edit-btn svg {
+  display: block;
+}
+.praticas-edit-btn:hover:not(:disabled) {
+  background: var(--selectable-hover-bg);
+  border-color: var(--accent);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+/* Realizar Daily — botão warm full-width (usa sistema via .warm) */
+.praticas-realizar-btn {
+  width: 100%;
+  margin-top: 12px;
+}
+.praticas-msg {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+.praticas-msg.ok {
+  color: var(--ok);
+}
+.praticas-msg.erro {
+  color: var(--err);
+}
+
+/* filtros do termômetro — chips toggle compactos (ficam no rodapé, ao lado de Detalhes) */
+.praticas-term-filtros {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.praticas-filtro-chip {
+  min-height: 0;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-muted);
+  transition: background 0.14s, border-color 0.14s, color 0.14s;
+}
+.praticas-filtro-chip:hover:not(:disabled) {
+  background: var(--selectable-hover-bg);
+  color: var(--text);
+}
+.praticas-filtro-chip:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+.praticas-filtro-chip.on,
+.praticas-filtro-chip.on:hover:not(:disabled) {
+  background: var(--tab-active-bg);
+  border-color: var(--tab-active-border);
+  color: var(--tab-active-text);
+}
+
+/* wrapper que centraliza verticalmente o conteúdo do card (Planning/Review/Retro/Delegation) */
+.praticas-card-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* barra de progresso (Planning) */
+.praticas-cerimonia-titulo {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--warm);
+  margin: 4px 0 10px;
+}
+.praticas-progress {
+  height: 24px;
+  border-radius: 999px;
+  background: var(--chart-track);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.praticas-progress-fill {
+  height: 100%;
+  min-width: 24px;
+  background: var(--warm, #ff9400);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-on-warm, #fff);
+  font-size: 11px;
+  font-weight: 600;
+  transition: width 0.3s;
+}
+.praticas-cerimonia-status {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 6px 0;
+  color: var(--text-muted, #999);
+}
+.praticas-cerimonia-status.atrasada {
+  color: var(--err);
+}
+
+/* delegation board */
+.praticas-deleg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 0;
+}
+.praticas-deleg-nivel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.praticas-deleg-num {
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--warm, #ff9400);
+}
+.praticas-deleg-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text, #eee);
+}
+.praticas-deleg-escala {
+  display: flex;
+  gap: 7px;
+}
+.praticas-deleg-dot {
+  width: 24px;
+  height: 11px;
+  border-radius: 5px;
+  background: var(--border, #333);
+}
+.praticas-deleg-dot.on {
+  background: var(--warm, #ff9400);
+}
+.praticas-deleg-sub {
+  text-align: center;
+}
+.praticas-term-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+}
+.praticas-term-lista li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border, #2a2a2a);
+}

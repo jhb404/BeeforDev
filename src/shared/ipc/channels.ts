@@ -156,6 +156,13 @@ export const IPC = {
   API_PERFIL_EDIT_SAVE: 'api:perfilEditSave',
   API_PERFIL_GESTORES: 'api:perfilGestores',
 
+  // práticas ágeis (config-driven — espelha goobeeteams praticas-ageis)
+  API_PRATICAS_CONFIG: 'api:praticasConfig',
+  API_PRATICAS_CARD: 'api:praticasCard',
+  API_PRATICAS_DAILY_REALIZAR: 'api:praticasDailyRealizar',
+  API_PRATICAS_DAILY_CONFIG: 'api:praticasDailyConfig',
+  API_PRATICAS_TERMOMETRO: 'api:praticasTermometro',
+
   // planning poker (servidor WS local no main)
   POKER_GET_PORT: 'poker:getPort',
   POKER_GET_LOCAL_IP: 'poker:getLocalIp',

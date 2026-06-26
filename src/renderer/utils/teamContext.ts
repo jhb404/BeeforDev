@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 /**
  * Contexto selecionado no OrgSwitcher (Organização / Time / Grupo).
  * Fonte única: localStorage + evento — compartilhado entre o switcher (topbar)
@@ -37,4 +39,30 @@ export function contextCacheKey(sel: Selection): string {
   if (sel.kind === 'team') return `team:${sel.id}`;
   if (sel.kind === 'group') return `group:${sel.id}`;
   return 'org';
+}
+
+/**
+ * Id do time ativo no topo; null quando o contexto é org-wide ou grupo.
+ * Reage à troca no OrgSwitcher (evento) e a trocas em outra janela (storage).
+ */
+export function useSelectedTeamId(): string | null {
+  const [teamId, setTeamId] = useState<string | null>(() => {
+    const s = readSelection();
+    return s.kind === 'team' ? s.id : null;
+  });
+
+  useEffect(() => {
+    const update = () => {
+      const s = readSelection();
+      setTeamId(s.kind === 'team' ? s.id : null);
+    };
+    window.addEventListener(CONTEXT_CHANGED_EVENT, update);
+    window.addEventListener('storage', update);
+    return () => {
+      window.removeEventListener(CONTEXT_CHANGED_EVENT, update);
+      window.removeEventListener('storage', update);
+    };
+  }, []);
+
+  return teamId;
 }

@@ -26,6 +26,7 @@ import { APP_EVENTS, onAppEvent } from '../app/events';
 import { useMoodFlow } from './home/hooks/useMoodFlow';
 import { useTimesheetData } from './home/hooks/useTimesheetData';
 import { usePrefetch } from '../app/hooks/usePrefetch';
+import { PraticasDashboard } from '../features/praticas';
 
 /** parse beefor://join?ws=<enc>&room=<CODE> → { wsUrl, roomId } */
 function parsePokerDeepLink(raw: string): { wsUrl: string; roomId: string } | null {
@@ -213,6 +214,8 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
 
   const hoursPerDayMin = (settings?.hoursPerDay ?? 8) * 60;
 
+  const praticasHome = settings?.praticasHome;
+
   const summary = useMemo(() => {
     let workedTotal = 0;
     let saldoTotal = 0;
@@ -279,6 +282,8 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
         onOpenAtividades={() => setShowAtividades(true)}
         onOpenPoker={() => setShowPoker(true)}
       />
+
+      {praticasHome?.enabled && ready && <PraticasDashboard />}
 
       <MoodPanel
         loading={showMoodLoader}
