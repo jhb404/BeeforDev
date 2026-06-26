@@ -11,6 +11,8 @@ import { useBirthdayWatcher } from './app/hooks/useBirthdayWatcher';
 import { useTeamPhotoPreload } from './app/hooks/useTeamPhotoPreload';
 import { TopBar } from './app/components/TopBar';
 import { PatchJournalModal } from './app/components/PatchJournalModal';
+import { PjAlertModal } from './app/components/PjAlertModal';
+import { usePjAlert } from './app/hooks/usePjAlert';
 import { OnboardingModal } from './app/components/OnboardingModal';
 import { ThemePreviewBanner } from './app/components/ThemePreviewBanner';
 import { ToastProvider, useToast } from './app/providers/ToastProvider';
@@ -74,6 +76,7 @@ function AppShell() {
   } = usePatchJournal();
 
   const alerts = useAlerts();
+  const pjAlert = usePjAlert();
   const birthday = useBirthdayWatcher(startupComplete, !!appSettings?.uiSounds, teamModalOpen);
 
   useUiSoundsDelegate(!!appSettings?.uiSounds);
@@ -205,6 +208,13 @@ function AppShell() {
       />
 
       <OnboardingModal open={onboardingOpen} onClose={() => setOnboardingOpen(false)} />
+
+      <PjAlertModal
+        open={pjAlert.open}
+        title={pjAlert.title}
+        body={pjAlert.body}
+        onClose={pjAlert.close}
+      />
 
       <ThemePreviewBanner />
 

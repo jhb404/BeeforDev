@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "private": true,
   "scripts": {
-    "predev": "node scripts/free-port.mjs 5177 && node scripts/build-preload.mjs",
+    "predev": "node scripts/fetch-cloudflared.mjs && node scripts/free-port.mjs 5177 && node scripts/build-preload.mjs",
     "dev": "concurrently -k -n vite,tsc,preload,electron \"npm:dev:renderer\" \"npm:dev:tsc\" \"npm:dev:preload\" \"npm:dev:electron\"",
     "dev:renderer": "vite",
     "dev:tsc": "tsc -p tsconfig.main.json -w --preserveWatchOutput",
@@ -15,11 +15,12 @@
     "dev:electron": "wait-on tcp:5177 file:dist/main/index.js file:dist/main/preload.js && cross-env NODE_ENV=development electron .",
     "kill:port": "node scripts/free-port.mjs 5177",
     "codes:hash": "node scripts/hash-codes.mjs",
+    "poker:art": "node scripts/sync-poker-art.mjs",
     "build:renderer": "vite build",
     "build:main": "tsc -p tsconfig.main.json && node scripts/build-preload.mjs",
     "build": "npm run build:renderer && npm run build:main",
     "start": "electron .",
-    "package:win": "npm run build && electron-builder --win --publish always",
+    "package:win": "node scripts/fetch-cloudflared.mjs && npm run build && electron-builder --win --publish always",
     "package:mac": "npm run build && electron-builder --mac --publish always",
     "test": "vitest run",
     "lint": "tsc --noEmit && eslint src --max-warnings 0",
@@ -31,6 +32,7 @@
     "electron-updater": "^6.8.3",
     "keytar": "^7.9.0",
     "lucide-react": "^1.18.0",
+    "ws": "^8.21.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -41,6 +43,7 @@
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.59.3",
     "@typescript-eslint/parser": "^8.59.3",
     "@vitejs/plugin-react": "^4.3.1",
@@ -91,7 +94,13 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "extraResources": [
+        {
+          "from": "resources/cloudflared.exe",
+          "to": "cloudflared.exe"
+        }
+      ]
     },
     "mac": {
       "target": "dmg",
@@ -99,7 +108,13 @@
       "icon": "build/icon.icns",
       "identity": null,
       "hardenedRuntime": false,
-      "gatekeeperAssess": false
+      "gatekeeperAssess": false,
+      "extraResources": [
+        {
+          "from": "resources/cloudflared-darwin",
+          "to": "cloudflared-darwin"
+        }
+      ]
     },
     "nsis": {
       "oneClick": true,

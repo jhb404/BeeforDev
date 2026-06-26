@@ -1,3 +1,33 @@
+- v0.2.6: POOOOKER BABYYY 🃏🐝
+
+Gente, subi umas par de coisa e não escrevi aq...foram ajustes bons saibam disso kk
+
+🃏 Resumidamente eu adicionei um planning poker top pra vcs brincarem ai com o time.
+
+Vcs tão careca de saber como funciona, mas tu vai, bota teu nome, cria a sala e compartilha o link...yeaaah, a diferença é que o nosso é melhor q os concorrente :D
+    -Tu tem cachorrinhos pra escolher
+    -Painel de Sons
+    -Painel de Emojis
+    -Arquibancada pra quem quer escolher um dog e ver
+    -Historico das rodadas que é renomeavel
+    -...n vou escrever tudo n, vai ve lá
+
+🪙 Pra quem tem preguiça agora tem a opção de mandar coins pra varias pessoas viu, vai ser a mesma mensagem pra todos mas fazer oq, NINGUEM VAI SABER MESMO SKKSKSKS
+
+📅 Alarme de fim de mes com alerta especial pra PJ <3
+Pra ninguém mais esquecer de fechar as horas no fim do mês...pq nota fiscal infelizmente n se emite sozinha kk 😔
+
+👥 Time e Org
+Dá pra ver teu timão e trocar de organização sem dor de cabeça.
+
+...e uns ajustes ai
+
+https://i.pinimg.com/originals/07/3b/8f/073b8f05c7d81c57489811f272b46fcd.gif
+
+OBS: to viciado nessa musica aq: https://www.youtube.com/watch?v=3vj5HNChZvA mó boa
+
+---
+
 - v0.2.0: HOLY MOLY, TEMOS API E COISINHAS NOVAAAAAS ✨🔥 
 
 Gente, mó felicidade, me deram acesso a api do beefor...sinceramente não sei nem como kk

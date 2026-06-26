@@ -60,5 +60,18 @@ export async function getTodayAlerts(): Promise<TodayAlert[]> {
     }
   }
 
+  // PJ — independente de fim de semana, só no dia configurado (clamp p/ último dia do mês)
+  if (s.pjAlarm) {
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    if (todayDay === Math.min(s.pjAlarmDay, lastDay)) {
+      alerts.push({
+        kind: 'pj',
+        title: '🧾 Ajustar Pontos (PJ)',
+        body: 'Hoje é dia de ajustar os pontos no Beefor!',
+        time: s.pjAlarmTime,
+      });
+    }
+  }
+
   return alerts.sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''));
 }

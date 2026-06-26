@@ -59,6 +59,8 @@
   height: 22px;
   background: var(--border-strong);
   margin: 0 4px;
+  flex-shrink: 0;
+  align-self: center;
 }
 
 .lunch-timer-pill {
@@ -170,6 +172,41 @@
   line-height: 1;
 }
 
+/* Modo estreito: some o "Início" e centraliza a barra de ações */
+@media (max-width: 760px) {
+  .topbar {
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  /* Esconde o rótulo "Início"; mantém só a seta de voltar (em Configurações) */
+  .topbar-home-link__label {
+    display: none;
+  }
+  /* Em Início o botão fica sem conteúdo visível: esconde p/ centrar de fato */
+  .topbar-home-link--active {
+    display: none;
+  }
+  .topbar-left {
+    flex: 0 0 auto;
+  }
+  /* Se o único filho (botão Início) está escondido, colapsa o left */
+  .topbar-left:has(> .topbar-home-link--active) {
+    display: none;
+  }
+  .topbar-actions {
+    flex: 1 1 auto;
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  /* Divisor alinhado à altura dos itens (icon-btn 34px) */
+  .topbar-actions .topbar-divider {
+    height: 26px;
+    margin: 0 2px;
+  }
+}
+
 /* === Gear menu (settings + theme + patch notes) === */
 .gear-menu-wrap {
   position: relative;
@@ -255,3 +292,357 @@
   border: 1px solid color-mix(in srgb, var(--warm) 40%, transparent);
 }
 
+
+/* ─── Organization Switcher (chip + popover) ─────────────────────────── */
+.org-switcher {
+  position: relative;
+}
+
+.org-switcher__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--text);
+  font-size: 12px;
+  transition: border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+  max-width: 220px;
+}
+
+.org-switcher__chip:hover {
+  background: var(--bg-3);
+  border-color: var(--border-strong);
+}
+
+.org-switcher__chip.is-open {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.org-switcher__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #1a1208;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.org-switcher__avatar--sm {
+  width: 22px;
+  height: 22px;
+  font-size: 10px;
+}
+
+/* Grupo: avatar quadradinho p/ diferenciar de time/org (círculo). */
+.org-switcher__avatar--group {
+  border-radius: 6px;
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+/* Logo real do time. Fallback (iniciais) é o avatar--sm quando img quebra. */
+.org-switcher__team-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--bg-3);
+  flex-shrink: 0;
+}
+
+/* Cabeçalho colapsável de Times / Grupos. */
+.org-switcher__group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 5px 6px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+
+.org-switcher__group-head:hover {
+  background: var(--selectable-hover-bg);
+  color: var(--text);
+}
+
+.org-switcher__chevron {
+  width: 10px;
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+.org-switcher__count {
+  margin-left: auto;
+  min-width: 18px;
+  padding: 1px 6px;
+  background: var(--bg-3);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Item "Organização (Todos)". */
+.org-switcher__todos {
+  margin-bottom: 2px;
+}
+
+.org-switcher__labels {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.org-switcher__org {
+  font-size: 12px;
+  font-weight: 700;
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.org-switcher__team {
+  font-size: 10px;
+  color: var(--text-muted);
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.org-switcher__caret {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+
+.org-switcher__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: 320px;
+  max-height: 460px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  padding: 12px;
+  gap: 8px;
+  animation: org-switcher-pop 0.16s ease;
+}
+
+@keyframes org-switcher-pop {
+  0% { transform: translateY(-4px) scale(0.98); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.org-switcher__section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.org-switcher__section--scroll {
+  overflow-y: auto;
+  max-height: 220px;
+  padding-right: 2px;
+}
+
+.org-switcher__section-title {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding-left: 4px;
+}
+
+.org-switcher__search {
+  width: 100%;
+  padding: 6px 10px;
+  margin: 2px 0 4px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.org-switcher__search::placeholder {
+  color: var(--text-muted);
+}
+
+.org-switcher__search:focus {
+  border-color: var(--accent);
+  background: var(--bg-2);
+}
+
+.org-switcher__empty {
+  margin: 4px 0;
+  padding: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+}
+
+.org-switcher__orgs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.org-switcher__org-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+  transition: background 0.1s ease, border-color 0.1s ease;
+}
+
+.org-switcher__org-item:hover {
+  background: var(--selectable-hover-bg);
+}
+
+.org-switcher__org-item.is-active {
+  background: var(--selectable-active-bg);
+  border-color: var(--selectable-active-border);
+}
+
+.org-switcher__check {
+  margin-left: auto;
+  color: var(--warm);
+  flex-shrink: 0;
+}
+
+.org-switcher__divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2px 0;
+}
+
+.org-switcher__team-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 12px;
+  text-align: left;
+  transition: background 0.1s ease, border-color 0.1s ease;
+  position: relative;
+}
+
+.org-switcher__team-item:hover {
+  background: var(--selectable-hover-bg);
+}
+
+.org-switcher__team-item.is-active {
+  background: var(--selectable-active-bg);
+  border-color: var(--selectable-active-border);
+}
+
+.org-switcher__team-item.is-fav {
+  background: color-mix(in srgb, var(--warm) 8%, transparent);
+  border-color: color-mix(in srgb, var(--warm) 22%, transparent);
+}
+
+.org-switcher__team-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.org-switcher__team-group {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.org-switcher__star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  opacity: 0.45;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.12s ease, opacity 0.12s ease, background 0.12s ease;
+}
+
+.org-switcher__star:hover {
+  color: var(--warm);
+  opacity: 1;
+  background: color-mix(in srgb, var(--warm) 16%, transparent);
+}
+
+.org-switcher__star.is-fav {
+  color: var(--warm);
+  opacity: 1;
+}
+
+.org-switcher__star.is-fav:hover {
+  background: color-mix(in srgb, var(--warm) 16%, transparent);
+}
+
+.org-switcher__hint {
+  margin: 6px 0 0;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+  opacity: 0.7;
+}

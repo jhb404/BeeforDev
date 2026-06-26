@@ -68,6 +68,13 @@ export interface AppSettings {
    */
   kudocardSchedule?: { ym: string; slots: Array<{ day: number; time: string }> };
 
+  /** Ajustar Pontos (PJ) — lembrete mensal num dia fixo do mês */
+  pjAlarm: boolean;
+  /** Dia do mês (1..31) em que o alerta PJ dispara */
+  pjAlarmDay: number;
+  /** Horário "HH:MM" do alerta PJ */
+  pjAlarmTime: string;
+
   hoursPerDay: number;
   hourRate: number;
   /** Show "Valor extras" summary card. Only relevant when hourRate > 0 */
@@ -120,7 +127,7 @@ export interface AppSettings {
 }
 
 export interface TodayAlert {
-  kind: 'kudocard' | 'mood' | 'lunch' | 'punch' | 'birthday';
+  kind: 'kudocard' | 'mood' | 'lunch' | 'punch' | 'birthday' | 'pj';
   title: string;
   body: string;
   time?: string; // "HH:MM" when scheduled

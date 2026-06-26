@@ -12,9 +12,12 @@ async function fetchKeepAlive(url: string, init: RequestInit): Promise<Response>
 export interface BeeforSession {
   token: string;
   idPessoa: string;
+  /** Id do usuário (≠ idPessoa). Necessário p/ TrocarOrganizacao. */
+  idUsuario: string | null;
   idOrganizacao: string | null;
   nome?: string;
   email?: string;
+  nomeOrganizacao?: string;
   cachedAt: number;
 }
 
@@ -28,6 +31,26 @@ const TTL_MS = 25 * 60 * 1000;
 let cached: BeeforSession | null = null;
 let pendingRefresh: Promise<BeeforSession | null> | null = null;
 let credentials: { usuario: string; senha: string } | null = null;
+
+/**
+ * Org selecionada manualmente via troca de organização. Sobrevive a re-logins:
+ * o login sempre volta na org default, então após cada refresh re-aplicamos
+ * TrocarOrganizacao se a org ativa diferir. Espelha o `window.location.reload`
+ * + token escopado do goobeeteams.
+ */
+let activeOrgId: string | null = null;
+
+export function setActiveOrg(idOrganizacao: string | null): void {
+  activeOrgId = idOrganizacao;
+}
+
+export function getActiveOrg(): string | null {
+  return activeOrgId;
+}
+
+export function clearActiveOrg(): void {
+  activeOrgId = null;
+}
 
 export class BeeforAuthError extends Error {
   constructor(
@@ -122,9 +145,12 @@ export async function loginHttp(usuario: string, senha: string): Promise<BeeforS
   const session: BeeforSession = {
     token,
     idPessoa,
+    idUsuario: data?.id ? String(data.id) : null,
     idOrganizacao: data?.idOrganizacao ? String(data.idOrganizacao) : null,
     nome: typeof data?.nome === 'string' ? (data.nome as string) : undefined,
     email: typeof data?.email === 'string' ? (data.email as string) : undefined,
+    nomeOrganizacao:
+      typeof data?.nomeOrganizacao === 'string' ? (data.nomeOrganizacao as string) : undefined,
     cachedAt: Date.now(),
   };
   setCachedSession(session);
@@ -160,7 +186,20 @@ async function refreshSession(): Promise<BeeforSession | null> {
   if (!pendingRefresh) {
     pendingRefresh = (async () => {
       try {
-        return await loginHttp(credentials!.usuario, credentials!.senha);
+        const session = await loginHttp(credentials!.usuario, credentials!.senha);
+        // Login volta na org default. Se havia org selecionada manualmente, re-aplica
+        // o token escopado pra manter a troca através de refreshes (TTL/401).
+        if (activeOrgId && activeOrgId !== session.idOrganizacao) {
+          try {
+            return await trocarOrganizacaoToken(activeOrgId);
+          } catch (err) {
+            logger.warn(
+              `Re-scope de org pós-refresh falhou (${activeOrgId}): ${err instanceof Error ? err.message : String(err)}`,
+            );
+            return session;
+          }
+        }
+        return session;
       } catch (err) {
         logger.warn(
           `Auto-refresh login failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -273,6 +312,52 @@ export async function beeforHttpRequest<T = unknown>(
   } catch {
     return text as unknown as T;
   }
+}
+
+/**
+ * Troca a organização ativa: pede um token novo escopado pra org (POST /Token/TrocarOrganizacao),
+ * substitui a sessão em cache e marca a org como ativa (sobrevive a re-logins).
+ * Espelha `pegarNovoToken` do goobeeteams. O caller deve recarregar/invalidar dados org-scoped.
+ */
+export async function trocarOrganizacaoToken(idOrganizacao: string): Promise<BeeforSession> {
+  const current = await getValidSession();
+  if (!current.idUsuario) {
+    throw new BeeforAuthError(
+      'Sessão sem idUsuario — login não retornou `id`, impossível trocar de organização.',
+    );
+  }
+
+  const data = await beeforHttpRequest<Record<string, unknown>>('/Token/TrocarOrganizacao', {
+    method: 'POST',
+    body: { IdUsuario: current.idUsuario, IdOrganizacao: idOrganizacao },
+    noRetry: true,
+  });
+
+  // Resposta vem double-wrapped (Ok(Ok(vm))): { value: {...} }. Espelha front: data.token ? data : data.value.
+  const raw: Record<string, unknown> = (data?.token ? data : (data?.value as any)) ?? data ?? {};
+
+  const token = String(raw?.token ?? '');
+  const idPessoa = String(raw?.idPessoa ?? current.idPessoa ?? '');
+  if (!token) {
+    throw new BeeforApiError('TrocarOrganizacao não retornou token.', 500);
+  }
+
+  const session: BeeforSession = {
+    token,
+    idPessoa,
+    idUsuario: raw?.id ? String(raw.id) : current.idUsuario,
+    idOrganizacao: raw?.idOrganizacao ? String(raw.idOrganizacao) : idOrganizacao,
+    nome: typeof raw?.nome === 'string' ? (raw.nome as string) : current.nome,
+    email: typeof raw?.email === 'string' ? (raw.email as string) : current.email,
+    nomeOrganizacao:
+      typeof raw?.nomeOrganizacao === 'string' ? (raw.nomeOrganizacao as string) : undefined,
+    cachedAt: Date.now(),
+  };
+
+  setCachedSession(session);
+  setActiveOrg(session.idOrganizacao);
+  logger.info(`Org trocada → ${session.idOrganizacao} (${session.nomeOrganizacao ?? '?'})`);
+  return session;
 }
 
 /**

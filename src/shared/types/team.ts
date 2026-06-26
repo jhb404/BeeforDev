@@ -12,4 +12,6 @@ export interface TeamMember {
   ultimoCliente: string | null;
   ultimoCheckpoint: string | null;
   respostasUltimoChecklist: TeamChecklistAnswer[];
+  /** Ids dos times a que a pessoa pertence — usado pra filtrar por time no cliente. */
+  idsTimes: string[];
 }

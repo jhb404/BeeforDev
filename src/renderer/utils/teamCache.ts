@@ -3,6 +3,11 @@ import type { TeamMember } from '@shared/types/index';
 const MEMBERS_KEY = 'beefor-team-members';
 const BIRTHDAY_KEY = 'beefor-team-birthdays';
 
+/** Cache de membros é por contexto (org/time/grupo) — sem sufixo = legado/org-wide. */
+function membersKey(contextKey?: string): string {
+  return contextKey ? `${MEMBERS_KEY}:${contextKey}` : MEMBERS_KEY;
+}
+
 export interface TeamMembersCache {
   members: TeamMember[];
   updatedAt: string;
@@ -17,9 +22,9 @@ export interface BirthdayEntry {
 
 export type TeamBirthdayCache = Record<string, BirthdayEntry>;
 
-export function loadMembersCache(): TeamMembersCache | null {
+export function loadMembersCache(contextKey?: string): TeamMembersCache | null {
   try {
-    const raw = window.localStorage.getItem(MEMBERS_KEY);
+    const raw = window.localStorage.getItem(membersKey(contextKey));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return null;
@@ -30,13 +35,13 @@ export function loadMembersCache(): TeamMembersCache | null {
   }
 }
 
-export function saveMembersCache(members: TeamMember[]): void {
+export function saveMembersCache(members: TeamMember[], contextKey?: string): void {
   try {
     const payload: TeamMembersCache = {
       members,
       updatedAt: new Date().toISOString(),
     };
-    window.localStorage.setItem(MEMBERS_KEY, JSON.stringify(payload));
+    window.localStorage.setItem(membersKey(contextKey), JSON.stringify(payload));
   } catch {
     // storage full / unavailable: ignore
   }
@@ -68,10 +73,7 @@ export function birthdayKey(member: Pick<TeamMember, 'email' | 'nome'>): string 
   return `name:${member.nome.trim().toLowerCase()}`;
 }
 
-export function mergeMembers(
-  apiList: TeamMember[],
-  cached: TeamMember[],
-): TeamMember[] {
+export function mergeMembers(apiList: TeamMember[], cached: TeamMember[]): TeamMember[] {
   if (apiList.length === 0) return cached;
   return apiList;
 }

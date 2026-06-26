@@ -9,6 +9,7 @@ import { GeneralCard } from './settings/sections/GeneralCard';
 import { KudoCardSettings } from './settings/sections/KudoCardSettings';
 import { LunchCard } from './settings/sections/LunchCard';
 import { MoodCard } from './settings/sections/MoodCard';
+import { PjCard } from './settings/sections/PjCard';
 import { PunchCard } from './settings/sections/PunchCard';
 import { SecurityCard } from './settings/sections/SecurityCard';
 import { TrayMenuCard } from './settings/sections/TrayMenuCard';
@@ -46,12 +47,13 @@ export function Settings() {
       settings.lunchAlarm ||
       settings.moodAlarm ||
       settings.moodNotification ||
-      settings.kudocardNotification) &&
+      settings.kudocardNotification ||
+      settings.pjAlarm) &&
     !settings.adminBannerDismissed;
 
   const dismissAdminBanner = () => void update('adminBannerDismissed', true);
 
-  const testNotif = async (kind: 'mood' | 'lunch' | 'kudocard' | 'punch') => {
+  const testNotif = async (kind: 'mood' | 'lunch' | 'kudocard' | 'punch' | 'pj') => {
     const res = await systemClient.testNotification(kind);
     if (!res.ok) showToast({ kind: 'err', msg: `Teste falhou: ${getError(res)}` });
   };
@@ -129,6 +131,7 @@ export function Settings() {
               onToggleDay={toggleKudocardDay}
               onTest={() => void testNotif('kudocard')}
             />
+            <PjCard settings={settings} onUpdate={update} onTest={() => void testNotif('pj')} />
           </div>
         )}
 

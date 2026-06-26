@@ -206,8 +206,87 @@
   align-items: center;
 }
 
-.checkbox-row input[type="checkbox"] {
+.checkbox-row input[type='checkbox'] {
   width: auto;
   min-height: auto;
 }
 
+/* ─── PJ Alert (lembrete mensal) — modal compacta estilo "card" ─────── */
+.pj-alert-modal--mini .modal-card {
+  width: 360px;
+  max-width: 90vw;
+  padding: 0;
+  border-radius: calc(var(--radius) + 4px);
+  overflow: hidden;
+  animation: pj-alert-pop 0.32s cubic-bezier(0.22, 1.4, 0.4, 1);
+}
+
+@keyframes pj-alert-pop {
+  0% {
+    transform: scale(0.84);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pj-alert__head {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pj-alert__eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pj-alert__title {
+  margin: 4px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pj-alert__bell {
+  margin: 20px auto 16px;
+  font-size: 64px;
+  line-height: 1;
+  text-align: center;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.3));
+  animation: pj-alert-wiggle 1.4s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+@keyframes pj-alert-wiggle {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(6deg);
+  }
+}
+
+.pj-alert__body {
+  margin: 0 22px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.pj-alert__cta {
+  display: block;
+  width: calc(100% - 36px);
+  margin: 0 18px 18px;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 700;
+}

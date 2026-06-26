@@ -5,7 +5,7 @@ import type { AppSettings, SessionStatus, TodayAlert } from '@shared/types/index
 import { BellPanel } from './BellPanel';
 import { LunchTimerWidget } from './LunchTimerWidget';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { UpdateBadge } from './UpdateBadge';
+import { OrgSwitcher } from './OrgSwitcher';
 import { BeeforLogo } from '../../components/common/BeeforLogo';
 import { useClickOutside } from '../../hooks/useClickOutside';
 
@@ -115,6 +115,10 @@ export function TopBar({
 
         <span className="topbar-divider" aria-hidden="true" />
 
+        <OrgSwitcher />
+
+        <span className="topbar-divider" aria-hidden="true" />
+
         <Suspense fallback={null}>
           <Coin2uBadge
             settings={appSettings}
@@ -169,8 +173,6 @@ export function TopBar({
         </button>
 
         <span className="topbar-divider" aria-hidden="true" />
-
-        <UpdateBadge />
 
         <div className="gear-menu-wrap" ref={gearRef}>
           <button

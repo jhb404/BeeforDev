@@ -43,37 +43,22 @@ function mapMember(raw: any): TeamMember {
           resposta: String(r?.resposta ?? ''),
         }))
       : [],
+    idsTimes: Array.isArray(raw?.idsTimes)
+      ? raw.idsTimes.map((id: unknown) => String(id)).filter(Boolean)
+      : Array.isArray(raw?.times)
+        ? raw.times.map((t: any) => String(t?.id ?? '')).filter(Boolean)
+        : [],
   };
 }
 
-export async function fetchTeamMembers(pageSize = 200): Promise<TeamMember[]> {
-  const session = await getValidSession();
-  const filtro: ListarTodasFiltro = {
-    nomeColaborador: '',
-    idTime: '',
-    idGrupo: '',
-    idCliente: '',
-    idResponsavel: '',
-    status: '',
-    statusPessoa: 1, // 1 = ativos (default do front)
-    checkpoints: '',
-    habilidade: '',
-    comecaCom: 0,
-    terminaCom: pageSize,
-    idPessoaLogada: session.idPessoa,
-    idGestor: '',
-    semaforoChecklist: '',
-    visaoLista: true,
-    TelaPessoa: true,
-  };
-  const data = await beeforHttp.post<any>('/Pessoa/ListarTodas', filtro);
-  // DEBUG: inspeciona shape cru do retorno (tipo + amostra) p/ achar por que vem vazio.
-  logger.info(
-    `ListarTodas retorno: type=${typeof data} isArray=${Array.isArray(data)} ` +
-      `len=${Array.isArray(data) ? data.length : 'n/a'} ` +
-      `sample=${JSON.stringify(data).slice(0, 300)}`,
-  );
-  const arr = Array.isArray(data)
+export interface TeamMembersFilter {
+  idTime?: string;
+  idGrupo?: string;
+  pageSize?: number;
+}
+
+function extractArray(data: any): any[] {
+  return Array.isArray(data)
     ? data
     : Array.isArray(data?.data)
       ? data.data
@@ -82,5 +67,56 @@ export async function fetchTeamMembers(pageSize = 200): Promise<TeamMember[]> {
         : Array.isArray(data?.lista)
           ? data.lista
           : [];
-  return arr.map(mapMember).filter((m: TeamMember) => m.nome);
+}
+
+const MAX_PAGES = 50; // trava de segurança: 50 * pageSize
+
+/**
+ * O backend filtra por idTime/idGrupo no body (igual lista-perfil do web) e pagina
+ * por intervalo [comecaCom, terminaCom). Buscamos TODAS as páginas — senão um time
+ * cujos membros caem além do corte (ex.: 200) volta incompleto.
+ */
+export async function fetchTeamMembers(opts: TeamMembersFilter = {}): Promise<TeamMember[]> {
+  const { idTime = '', idGrupo = '', pageSize = 200 } = opts;
+  const session = await getValidSession();
+  const out: TeamMember[] = [];
+  const seen = new Set<string>();
+
+  for (let page = 0; page < MAX_PAGES; page += 1) {
+    const comecaCom = page * pageSize;
+    const filtro: ListarTodasFiltro = {
+      nomeColaborador: '',
+      idTime,
+      idGrupo,
+      idCliente: '',
+      idResponsavel: '',
+      status: '',
+      statusPessoa: 1, // 1 = ativos (default do front)
+      checkpoints: '',
+      habilidade: '',
+      comecaCom,
+      terminaCom: comecaCom + pageSize,
+      idPessoaLogada: session.idPessoa,
+      idGestor: '',
+      semaforoChecklist: '',
+      visaoLista: true,
+      TelaPessoa: true,
+    };
+    const data = await beeforHttp.post<any>('/Pessoa/ListarTodas', filtro);
+    const arr = extractArray(data);
+    for (const raw of arr) {
+      const m = mapMember(raw);
+      if (!m.nome) continue;
+      const key = (m.email || m.nome).toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(m);
+    }
+    if (arr.length < pageSize) break; // última página
+  }
+
+  logger.info(
+    `ListarTodas: ${out.length} pessoas (idTime=${idTime || '-'} idGrupo=${idGrupo || '-'})`,
+  );
+  return out;
 }

@@ -47,6 +47,10 @@ const DEFAULT_SETTINGS: AppSettings = {
   kudocardFrequency: 'once',
   kudocardDays: [],
 
+  pjAlarm: false,
+  pjAlarmDay: 5,
+  pjAlarmTime: '09:00',
+
   hoursPerDay: 8,
   hourRate: 0,
   patchJournal: FALLBACK_PATCH_JOURNAL,
