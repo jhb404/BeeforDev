@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSelectedTeamId } from '../../../app/contextSelection';
+import { useSelectedTeamId } from '../../../utils/teamContext';
 import { usePraticasConfig } from '../hooks/usePraticasData';
 import { CARD_REGISTRY, CHIP_CHAVES, FIXOS } from './cards/registry';
 import { PraticaChip, CHIPS } from './PraticaChip';

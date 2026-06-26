@@ -68,8 +68,11 @@ const api = {
   getKudoDetail: (id: string): Promise<ActionResult<KudoCardDetail>> =>
     ipcRenderer.invoke(IPC.ACTION_KUDO_DETAIL, id),
 
-  fetchTeamMembers: (): Promise<ActionResult<TeamMember[]>> =>
-    ipcRenderer.invoke(IPC.ACTION_FETCH_TEAM_MEMBERS),
+  fetchTeamMembers: (filter?: {
+    idTime?: string;
+    idGrupo?: string;
+  }): Promise<ActionResult<TeamMember[]>> =>
+    ipcRenderer.invoke(IPC.ACTION_FETCH_TEAM_MEMBERS, filter),
 
   onStatus: (cb: (status: SessionStatus) => void): (() => void) => {
     const listener = (_e: unknown, status: SessionStatus) => cb(status);

@@ -582,45 +582,67 @@ export async function playUiSuccess(): Promise<void> {
   ]);
 }
 
-// poker-open — fichas + baralho: cliques secos de chips + "shuffle" (ruído curto)
+// poker-open — JACKPOT pixel 🎰: fichas → riffle de cartas → cascata de moedas (arpejo 8-bit) → acorde de vitória
 export async function playUiPokerOpen(): Promise<void> {
   const audio = getCtx();
   await ensureRunning(audio);
   const s = audio.currentTime;
-  // 3 cliques de ficha (curtos, agudos, levemente dessincronizados)
-  const chips = [0, 0.06, 0.13];
-  for (const t of chips) {
+
+  // blip chiptune: onda quadrada/triângulo curtinha (estilo 8-bit)
+  const blip = (
+    freq: number,
+    t: number,
+    dur: number,
+    gain: number,
+    type: OscillatorType = 'square',
+  ) => {
     const osc = audio.createOscillator();
     const g = audio.createGain();
-    osc.type = 'square';
-    osc.frequency.value = 1200 + Math.random() * 400;
+    osc.type = type;
+    osc.frequency.value = freq;
     g.gain.setValueAtTime(0.0001, s + t);
-    g.gain.exponentialRampToValueAtTime(0.12, s + t + 0.004);
-    g.gain.exponentialRampToValueAtTime(0.0001, s + t + 0.05);
+    g.gain.exponentialRampToValueAtTime(gain, s + t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + t + dur);
     osc.connect(g).connect(audio.destination);
     osc.start(s + t);
-    osc.stop(s + t + 0.06);
+    osc.stop(s + t + dur + 0.02);
+  };
+
+  // 1) fichas batendo na mesa — 2 clinks secos
+  [0, 0.06].forEach((t) => blip(1250 + Math.random() * 350, t, 0.05, 0.09));
+
+  // 2) riffle de cartas — rajada curta de ticks filtrados ("embaralhar")
+  for (let i = 0; i < 8; i += 1) {
+    const t = 0.04 + (i / 8) * 0.16;
+    const len = Math.floor(audio.sampleRate * 0.01);
+    const buf = audio.createBuffer(1, len, audio.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let j = 0; j < len; j += 1) d[j] = (Math.random() * 2 - 1) * (1 - j / len);
+    const tick = audio.createBufferSource();
+    tick.buffer = buf;
+    const bp = audio.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 2800 + Math.random() * 900;
+    bp.Q.value = 1.4;
+    const tg = audio.createGain();
+    tg.gain.value = 0.04;
+    tick.connect(bp).connect(tg).connect(audio.destination);
+    tick.start(s + t);
+    tick.stop(s + t + 0.02);
   }
-  // "shuffle" do baralho — ruído filtrado curto
-  const dur = 0.4;
-  const buf = audio.createBuffer(1, audio.sampleRate * dur, audio.sampleRate);
-  const data = buf.getChannelData(0);
-  for (let i = 0; i < data.length; i += 1) {
-    const decay = 1 - i / data.length;
-    data[i] = (Math.random() * 2 - 1) * decay * 0.5;
-  }
-  const noise = audio.createBufferSource();
-  noise.buffer = buf;
-  const filter = audio.createBiquadFilter();
-  filter.type = 'bandpass';
-  filter.frequency.value = 3200;
-  filter.Q.value = 0.6;
-  const ng = audio.createGain();
-  ng.gain.setValueAtTime(0.08, s + 0.18);
-  ng.gain.exponentialRampToValueAtTime(0.0001, s + 0.18 + dur);
-  noise.connect(filter).connect(ng).connect(audio.destination);
-  noise.start(s + 0.18);
-  noise.stop(s + 0.18 + dur);
+
+  // 3) JACKPOT — cascata de moedas: arpejo pentatônico ascendente acelerando
+  const coins = [523, 587, 659, 784, 880, 1047, 1175, 1319, 1568, 1760, 2093];
+  const coinStart = 0.22;
+  coins.forEach((f, i) => blip(f, coinStart + i * (0.05 - i * 0.0008), 0.07, 0.08));
+
+  // 4) final estilo Nintendo — "coin" ta-ding leve (B5 curto → E6 sustentado), sem peso grave
+  const endAt = 0.76;
+  blip(988, endAt, 0.07, 0.05); // B5 curtinho
+  blip(1319, endAt + 0.08, 0.3, 0.055, 'triangle'); // E6 sustentado e suave (mais baixo que o resto)
+
+  // 5) brilho discreto por cima — bem mais baixo que antes
+  blip(2637, endAt + 0.12, 0.12, 0.025, 'triangle'); // E7 sparkle leve
 }
 
 // dog-bark — "au-au" pixel: dois ganidos curtos com pitch caindo

@@ -3,7 +3,10 @@ import type { BeeforApi } from '../../../main/preload';
 
 export function createTeamClient(api: BeeforApi) {
   return {
-    fetchMembers: (): Promise<ActionResult<TeamMember[]>> => api.fetchTeamMembers(),
+    fetchMembers: (filter?: {
+      idTime?: string;
+      idGrupo?: string;
+    }): Promise<ActionResult<TeamMember[]>> => api.fetchTeamMembers(filter),
   };
 }
 

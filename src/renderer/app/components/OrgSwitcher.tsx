@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check } from '../../components/common/Icons';
 import {
-  type Selection,
-  SELECTION_KEY,
   CONTEXT_CHANGED_EVENT,
   readSelection,
-} from '../contextSelection';
+  SELECTION_KEY,
+  type Selection,
+} from '../../utils/teamContext';
 
 /**
  * Botão de organização atual (chip) + popover de troca de org / time / grupo.

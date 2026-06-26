@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Seleção de contexto global (Organização / Time / Grupo) escolhida no OrgSwitcher
- * do topo. Persistida em localStorage + evento, sem reload. Consumida por qualquer
- * tela que precise reagir ao time ativo (ex.: gráficos de Práticas Ágeis).
+ * Contexto selecionado no OrgSwitcher (Organização / Time / Grupo).
+ * Fonte única: localStorage + evento — compartilhado entre o switcher (topbar)
+ * e quem consome o contexto (ex.: useTeamMembers, que filtra as pessoas pelo time).
  */
 
 export type Selection =
@@ -27,7 +27,24 @@ export function readSelection(): Selection {
   return { kind: 'org' };
 }
 
-/** id do time ativo no topo; null quando o contexto é org-wide ou grupo. */
+/** Filtro pra API: time → idTime; grupo → idGrupo; org-wide → ambos vazios. */
+export function contextFilter(sel: Selection): { idTime: string; idGrupo: string } {
+  if (sel.kind === 'team') return { idTime: sel.id, idGrupo: '' };
+  if (sel.kind === 'group') return { idTime: '', idGrupo: sel.id };
+  return { idTime: '', idGrupo: '' };
+}
+
+/** Chave de cache por contexto — evita mostrar o time errado ao trocar. */
+export function contextCacheKey(sel: Selection): string {
+  if (sel.kind === 'team') return `team:${sel.id}`;
+  if (sel.kind === 'group') return `group:${sel.id}`;
+  return 'org';
+}
+
+/**
+ * Id do time ativo no topo; null quando o contexto é org-wide ou grupo.
+ * Reage à troca no OrgSwitcher (evento) e a trocas em outra janela (storage).
+ */
 export function useSelectedTeamId(): string | null {
   const [teamId, setTeamId] = useState<string | null>(() => {
     const s = readSelection();
@@ -40,7 +57,7 @@ export function useSelectedTeamId(): string | null {
       setTeamId(s.kind === 'team' ? s.id : null);
     };
     window.addEventListener(CONTEXT_CHANGED_EVENT, update);
-    window.addEventListener('storage', update); // troca em outra janela
+    window.addEventListener('storage', update);
     return () => {
       window.removeEventListener(CONTEXT_CHANGED_EVENT, update);
       window.removeEventListener('storage', update);
