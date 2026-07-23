@@ -29,6 +29,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
   autoLoginOnLaunch: true,
   viewMode: 'minimal',
+  calendarShowDiff: true,
 
   beeforEnv: 'prod',
 

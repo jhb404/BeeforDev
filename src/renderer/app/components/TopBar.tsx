@@ -7,6 +7,7 @@ import { LunchTimerWidget } from './LunchTimerWidget';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { OrgSwitcher } from './OrgSwitcher';
 import { BeeforLogo } from '../../components/common/BeeforLogo';
+import { UpdateBadge } from './UpdateBadge';
 import { useClickOutside } from '../../hooks/useClickOutside';
 
 const Coin2uBadge = lazy(() =>
@@ -117,15 +118,19 @@ export function TopBar({
 
         <OrgSwitcher />
 
-        <span className="topbar-divider" aria-hidden="true" />
+        {appSettings?.coin2uEnabled !== false && (
+          <>
+            <span className="topbar-divider" aria-hidden="true" />
 
-        <Suspense fallback={null}>
-          <Coin2uBadge
-            settings={appSettings}
-            forceOpen={coin2uForceOpen}
-            onForceOpenConsumed={onCoin2uForceOpenConsumed}
-          />
-        </Suspense>
+            <Suspense fallback={null}>
+              <Coin2uBadge
+                settings={appSettings}
+                forceOpen={coin2uForceOpen}
+                onForceOpenConsumed={onCoin2uForceOpenConsumed}
+              />
+            </Suspense>
+          </>
+        )}
 
         <span className="topbar-divider" aria-hidden="true" />
 
@@ -173,6 +178,8 @@ export function TopBar({
         </button>
 
         <span className="topbar-divider" aria-hidden="true" />
+
+        <UpdateBadge />
 
         <div className="gear-menu-wrap" ref={gearRef}>
           <button

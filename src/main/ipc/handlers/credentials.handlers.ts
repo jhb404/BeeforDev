@@ -3,6 +3,7 @@ import { clearCredentials, getCredentials, saveCredentials } from '../../secureS
 import { ok } from '../../../shared/result';
 import { credentialsSchema } from '../schemas';
 import { defineHandler } from '../defineHandler';
+import { getCurrentStatus } from '../../statusBus';
 
 export function registerCredentialsHandlers() {
   defineHandler({
@@ -20,7 +21,9 @@ export function registerCredentialsHandlers() {
     errorMessage: 'Get credentials failed',
     run: async () => {
       const c = await getCredentials();
-      return c ? { email: c.email } : null;
+      // `connected` espelha o Coin2u: mostra status na tela de Segurança.
+      // Sessão viva = status 'connected' no statusBus.
+      return c ? { email: c.email, connected: getCurrentStatus() === 'connected' } : null;
     },
   });
 

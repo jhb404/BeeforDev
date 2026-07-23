@@ -141,10 +141,12 @@ export function Settings() {
               email={session.email}
               password={session.password}
               savedEmail={session.savedEmail}
+              connected={session.connected}
               onEmailChange={session.setEmail}
               onPasswordChange={session.setPassword}
               onSave={() => void session.save()}
               onClear={() => void session.clear()}
+              onGoogleLogin={() => void session.loginGoogle()}
               coin2uEmail={coin2u.email}
               coin2uPassword={coin2u.password}
               coin2uSavedEmail={coin2u.savedEmail}
@@ -153,6 +155,8 @@ export function Settings() {
               onCoin2uPasswordChange={coin2u.setPassword}
               onCoin2uSave={() => void coin2u.save()}
               onCoin2uClear={() => void coin2u.clear()}
+              coin2uEnabled={settings.coin2uEnabled}
+              onCoin2uEnabledChange={(v) => void update('coin2uEnabled', v)}
             />
             <SecurityCard />
           </div>

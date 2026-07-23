@@ -9,6 +9,7 @@ export function createFakeIpcClients(overrides: Partial<IpcClients> = {}): IpcCl
     session: {
       getStatus: vi.fn(async () => 'idle' as const),
       login: vi.fn(async () => okVoid()),
+      loginGoogle: vi.fn(async () => okVoid()),
       logout: vi.fn(async () => okVoid()),
       verify: vi.fn(async () => okData('idle' as const)),
       onStatus: vi.fn(() => vi.fn()),
