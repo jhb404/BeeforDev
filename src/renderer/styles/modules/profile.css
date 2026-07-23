@@ -19,6 +19,16 @@
   flex: 1;
   padding: 14px 18px 18px;
 }
+/* Onboarding usa .modal-card (altura capada por max-height). Sem isto, passos altos
+   — como a grade de temas + prévia — estouram e escondem o botão "Concluir".
+   flex:1 + min-height:0 deixam o corpo rolar sozinho dentro do card. */
+.onboarding-modal .profile-modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
 .profile-modal__subtitle {
   font-size: 13px;
   color: var(--text-muted);

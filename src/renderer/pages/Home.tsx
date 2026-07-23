@@ -26,6 +26,7 @@ import { APP_EVENTS, onAppEvent } from '../app/events';
 import { useMoodFlow } from './home/hooks/useMoodFlow';
 import { useTimesheetData } from './home/hooks/useTimesheetData';
 import { usePrefetch } from '../app/hooks/usePrefetch';
+import { getError } from '@shared/result';
 
 /** parse beefor://join?ws=<enc>&room=<CODE> → { wsUrl, roomId } */
 function parsePokerDeepLink(raw: string): { wsUrl: string; roomId: string } | null {
@@ -50,6 +51,7 @@ interface HomeProps {
 export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProps = {}) {
   const {
     mood: moodClient,
+    session: sessionClient,
     settings: settingsClient,
     system: systemClient,
     timesheet: timesheetClient,
@@ -211,6 +213,25 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
     });
   };
 
+  // Reconectar de verdade: refaz o login (não só refetch dos dados). Sem sessão
+  // viva, refreshAll não reconecta — por isso o botão parecia "não fazer nada".
+  const reconnect = async () => {
+    if (ready) {
+      await refreshAll();
+      return;
+    }
+    const res = await sessionClient.login();
+    if (res.ok) {
+      await refreshAll();
+    } else {
+      showToast({
+        kind: 'err',
+        title: 'Não foi possível reconectar',
+        msg: getError(res) || 'Verifique suas credenciais em Configurações → Segurança.',
+      });
+    }
+  };
+
   const hoursPerDayMin = (settings?.hoursPerDay ?? 8) * 60;
 
   const summary = useMemo(() => {
@@ -273,7 +294,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
         loadingMood={loadingMood}
         loadingTs={loadingTs}
         ready={ready}
-        onReload={() => void refreshAll()}
+        onReload={() => void reconnect()}
         onOpenKudo={() => setShowKudoModal(true)}
         onOpenKudoHistory={() => setShowKudoHistory(true)}
         onOpenAtividades={() => setShowAtividades(true)}
@@ -318,7 +339,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
             busy={isBusy('lancarHora')}
             ready={ready}
             hoursPerDayMin={hoursPerDayMin}
-            showDiff={settings?.calendarShowDiff ?? false}
+            showDiff={settings?.calendarShowDiff ?? true}
             onUpdateRow={updateRow}
             onLancar={(idx) => void lancar(idx)}
           />

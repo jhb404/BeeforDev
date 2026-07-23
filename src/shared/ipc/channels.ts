@@ -11,6 +11,7 @@ export const IPC = {
   // session / actions
   SESSION_STATUS: 'session:status',
   SESSION_LOGIN: 'session:login',
+  SESSION_LOGIN_GOOGLE: 'session:loginGoogle',
   SESSION_LOGOUT: 'session:logout',
   SESSION_VERIFY: 'session:verify',
 

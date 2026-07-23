@@ -67,7 +67,14 @@ export function Coin2uBadge({ settings, forceOpen, onForceOpenConsumed }: Props 
     }
   };
 
+  // Usuário declarou não ter conta Coin2U no onboarding → badge invisível.
+  const coin2uDisabled = settings?.coin2uEnabled === false;
+
   useEffect(() => {
+    if (coin2uDisabled) {
+      setConfigured(false);
+      return;
+    }
     let timer: ReturnType<typeof setInterval> | null = null;
     void (async () => {
       const creds = await coin2uClient.getCreds();
@@ -81,9 +88,9 @@ export function Coin2uBadge({ settings, forceOpen, onForceOpenConsumed }: Props 
       if (timer) clearInterval(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [coin2uDisabled]);
 
-  if (configured === false || configured === null) return null;
+  if (coin2uDisabled || configured === false || configured === null) return null;
 
   const handleClick = () => {
     if (settings?.uiSounds) void playUiCoin();

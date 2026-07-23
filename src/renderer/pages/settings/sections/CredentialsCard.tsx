@@ -1,11 +1,16 @@
+import { GoogleSignInButton } from '../../../components/common/GoogleSignInButton';
+import { Switch } from '../Switch';
+
 interface CredentialsCardProps {
   email: string;
   password: string;
   savedEmail: string | null;
+  connected: boolean;
   onEmailChange: (v: string) => void;
   onPasswordChange: (v: string) => void;
   onSave: () => void;
   onClear: () => void;
+  onGoogleLogin: () => void;
   coin2uEmail: string;
   coin2uPassword: string;
   coin2uSavedEmail: string | null;
@@ -14,6 +19,9 @@ interface CredentialsCardProps {
   onCoin2uPasswordChange: (v: string) => void;
   onCoin2uSave: () => void;
   onCoin2uClear: () => void;
+  /** false = esconde o badge de moedas no topo. undefined/true = mostra (se tiver login). */
+  coin2uEnabled?: boolean;
+  onCoin2uEnabledChange: (v: boolean) => void;
 }
 
 export function CredentialsCard(p: CredentialsCardProps) {
@@ -51,14 +59,31 @@ export function CredentialsCard(p: CredentialsCardProps) {
       {p.savedEmail && (
         <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 8 }}>
           Salvo: <strong>{p.savedEmail}</strong>
+          {' · '}
+          <span style={{ color: p.connected ? 'var(--ok)' : 'var(--err)' }}>
+            {p.connected ? 'Conectado' : 'Desconectado'}
+          </span>
         </p>
       )}
+
+      <div className="credentials-google">
+        <span className="credentials-google__sep">ou</span>
+        <GoogleSignInButton onClick={p.onGoogleLogin} comingSoon />
+      </div>
 
       <div className="card-divider" />
 
       <p className="card-subtitle">Coin2U</p>
+      <Switch
+        id="coin2uEnabled"
+        checked={p.coin2uEnabled !== false}
+        onChange={p.onCoin2uEnabledChange}
+        label="Mostrar moedas Coin2U no topo do app"
+      />
       <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 10px' }}>
-        Login separado do Beefor. Mostra suas moedas no topo.
+        {p.coin2uEnabled === false
+          ? 'Desativado — o badge de moedas fica escondido. Ative para exibir (precisa do login abaixo).'
+          : 'Login separado do Beefor. Mostra suas moedas no topo.'}
       </p>
       <div className="field">
         <label className="label">E-mail</label>

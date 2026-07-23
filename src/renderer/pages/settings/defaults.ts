@@ -6,6 +6,7 @@ export const SETTINGS_DEFAULTS: AppSettings = {
   autoStart: true,
   autoLoginOnLaunch: true,
   viewMode: 'minimal',
+  calendarShowDiff: true,
   automatePunch: false,
   punchTimes: DEFAULT_PUNCH,
   punchDriftMinutes: 10,

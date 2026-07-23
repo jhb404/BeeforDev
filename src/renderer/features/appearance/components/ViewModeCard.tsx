@@ -11,7 +11,7 @@ export function ViewModeCard({ settings, onUpdate, onChangeViewMode }: ViewModeC
       {settings.viewMode === 'minimal' && (
         <Switch
           id="calendarShowDiff"
-          checked={settings.calendarShowDiff ?? false}
+          checked={settings.calendarShowDiff ?? true}
           onChange={(v) => onUpdate('calendarShowDiff', v)}
           label="Mostrar saldo diário nas células do calendário"
         />

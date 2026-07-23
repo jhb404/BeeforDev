@@ -179,6 +179,24 @@ export function OrgSwitcher() {
     }
   }, [open]);
 
+  // Primeira carga: se o usuário nunca escolheu contexto, pré-seleciona um time
+  // (favorito, senão o primeiro) em vez de "Organização (Todos)". Evita que o
+  // modal de times venha com a organização inteira antes de qualquer clique.
+  useEffect(() => {
+    if (teams.length === 0) return;
+    if (localStorage.getItem(SELECTION_KEY)) return; // já escolheu antes — respeita
+    const target = teams.find((t) => t.favorito) ?? teams[0];
+    if (!target) return;
+    const sel: Selection = { kind: 'team', id: target.id };
+    setSelection(sel);
+    try {
+      localStorage.setItem(SELECTION_KEY, JSON.stringify(sel));
+    } catch {
+      // ignore
+    }
+    window.dispatchEvent(new CustomEvent(CONTEXT_CHANGED_EVENT, { detail: sel }));
+  }, [teams]);
+
   const activeOrg = orgs.find((o) => o.idOrganizacao === activeOrgId) ?? orgs[0] ?? null;
   const orgId = activeOrg?.idOrganizacao ?? '';
   const favoriteTeam = teams.find((t) => t.favorito) ?? null;

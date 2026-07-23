@@ -51,6 +51,9 @@ export function useGamification(): GamificationData {
 
   const isAchievementUnlocked = (id: string) => unlockedIds.has(id);
   const isThemePresetUnlocked = (id: string) => {
+    // Todos os temas liberados por enquanto (sem código/conquista).
+    // Reverter: apagar o `return true` abaixo e restaurar a lógica original.
+    if (THEME_PRESETS.some((t) => t.id === id)) return true;
     if (redeemedThemeSet.has(id)) return true;
     const p = THEME_PRESETS.find((t) => t.id === id);
     if (!p) return false;

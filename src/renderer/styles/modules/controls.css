@@ -294,3 +294,65 @@
   }
 }
 
+/* ── Botão "Entrar com Google" ── */
+.google-signin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background: var(--bg-1);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  font-weight: 600;
+}
+.google-signin-btn:hover:not(:disabled) {
+  background: var(--bg-2);
+  border-color: var(--accent);
+  color: var(--text);
+}
+.google-signin-btn svg {
+  flex-shrink: 0;
+}
+.google-signin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+}
+.google-signin-soon {
+  display: block;
+  margin-top: 8px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* separador "ou" antes do botão do Google */
+.onboarding-google-sep,
+.credentials-google {
+  display: flex;
+  align-items: center;
+  margin-top: 14px;
+}
+.onboarding-google-sep {
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.onboarding-google-sep::before,
+.onboarding-google-sep::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.credentials-google {
+  flex-direction: column;
+  gap: 10px;
+}
+.credentials-google__sep {
+  align-self: center;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+

@@ -1,5 +1,10 @@
 import keytar from 'keytar';
-import { KEYTAR_ACCOUNT_EMAIL, KEYTAR_ACCOUNT_PASSWORD, KEYTAR_SERVICE } from '../shared/constants';
+import {
+  KEYTAR_ACCOUNT_EMAIL,
+  KEYTAR_ACCOUNT_GOOGLE_TOKEN,
+  KEYTAR_ACCOUNT_PASSWORD,
+  KEYTAR_SERVICE,
+} from '../shared/constants';
 import type { Credentials } from '../shared/types/index';
 import { logger } from './logger';
 
@@ -20,4 +25,19 @@ export async function clearCredentials(): Promise<void> {
   await keytar.deletePassword(KEYTAR_SERVICE, KEYTAR_ACCOUNT_EMAIL);
   await keytar.deletePassword(KEYTAR_SERVICE, KEYTAR_ACCOUNT_PASSWORD);
   logger.info('Credentials cleared');
+}
+
+/** Guarda o JWT da sessão Google (não há senha p/ re-login — o token permite refresh). */
+export async function saveGoogleToken(token: string): Promise<void> {
+  await keytar.setPassword(KEYTAR_SERVICE, KEYTAR_ACCOUNT_GOOGLE_TOKEN, token);
+  logger.info('Google token saved to OS keychain');
+}
+
+export async function getGoogleToken(): Promise<string | null> {
+  return keytar.getPassword(KEYTAR_SERVICE, KEYTAR_ACCOUNT_GOOGLE_TOKEN);
+}
+
+export async function clearGoogleToken(): Promise<void> {
+  await keytar.deletePassword(KEYTAR_SERVICE, KEYTAR_ACCOUNT_GOOGLE_TOKEN);
+  logger.info('Google token cleared');
 }

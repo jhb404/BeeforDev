@@ -31,7 +31,8 @@ type AlarmInfo = { title: string; body: string; kind?: Exclude<TodayAlert['kind'
 const api = {
   saveCredentials: (creds: Credentials): Promise<ActionResult> =>
     ipcRenderer.invoke(IPC.CREDS_SAVE, creds),
-  getCredentials: (): Promise<{ email: string } | null> => ipcRenderer.invoke(IPC.CREDS_GET),
+  getCredentials: (): Promise<{ email: string; connected?: boolean } | null> =>
+    ipcRenderer.invoke(IPC.CREDS_GET),
   clearCredentials: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.CREDS_CLEAR),
 
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke(IPC.SETTINGS_GET),
@@ -39,6 +40,7 @@ const api = {
 
   getStatus: (): Promise<SessionStatus> => ipcRenderer.invoke(IPC.SESSION_STATUS),
   login: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.SESSION_LOGIN),
+  loginGoogle: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.SESSION_LOGIN_GOOGLE),
   logout: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.SESSION_LOGOUT),
   verifySession: (): Promise<ActionResult<SessionStatus>> => ipcRenderer.invoke(IPC.SESSION_VERIFY),
 
