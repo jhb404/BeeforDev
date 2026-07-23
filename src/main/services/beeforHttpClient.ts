@@ -1,4 +1,8 @@
-import { getBeeforTokenApi, getBeeforApiBase } from '../../shared/constants';
+import {
+  getBeeforTokenApi,
+  getBeeforApiBase,
+  getBeeforLoginComTokenApi,
+} from '../../shared/constants';
 import { logger } from '../logger';
 
 /**
@@ -31,6 +35,15 @@ const TTL_MS = 25 * 60 * 1000;
 let cached: BeeforSession | null = null;
 let pendingRefresh: Promise<BeeforSession | null> | null = null;
 let credentials: { usuario: string; senha: string } | null = null;
+/**
+ * JWT da sessão Google. Login Google não tem senha, então guardamos o token e
+ * renovamos a sessão via /Token/LoginComToken (o JWT dura 60 dias no backend).
+ */
+let googleToken: string | null = null;
+
+export function setGoogleToken(token: string | null): void {
+  googleToken = token;
+}
 
 /**
  * Org selecionada manualmente via troca de organização. Sobrevive a re-logins:
@@ -118,10 +131,16 @@ export async function loginHttp(usuario: string, senha: string): Promise<BeeforS
   });
 
   if (response.status === 401 || response.status === 403) {
-    throw new BeeforAuthError('Credenciais inválidas.', response.status);
+    throw new BeeforAuthError('E-mail ou senha inválidos.', response.status);
   }
   if (!response.ok) {
     const txt = await response.text().catch(() => '');
+    // O backend devolve 500 (não 401) pra senha errada: o corpo contém
+    // "Usuario ou senha invalido". Mapeia pra erro de credencial legível
+    // em vez de vazar o stack "No authentication handler is registered...".
+    if (/usu[aá]rio ou senha inv[aá]lid/i.test(txt)) {
+      throw new BeeforAuthError('E-mail ou senha inválidos.', response.status);
+    }
     throw new BeeforApiError(
       `Login falhou ${response.status}: ${txt.slice(0, 200)}`,
       response.status,
@@ -130,6 +149,14 @@ export async function loginHttp(usuario: string, senha: string): Promise<BeeforS
   }
 
   const data = (await response.json()) as Record<string, unknown>;
+  const session = sessionFromLoginResponse(data);
+  setCachedSession(session);
+  setCredentials(usuario, senha);
+  return session;
+}
+
+/** Constrói (e valida) uma BeeforSession a partir do JSON de /Token ou /Token/LoginComGoogle. */
+function sessionFromLoginResponse(data: Record<string, unknown>): BeeforSession {
   logger.info(`Login response keys: ${Object.keys(data).join(', ')}`);
   logger.info(
     `Login response token=${JSON.stringify(data?.token)} idPessoa=${JSON.stringify(data?.idPessoa)}`,
@@ -141,8 +168,7 @@ export async function loginHttp(usuario: string, senha: string): Promise<BeeforS
     logger.warn(`Login rejeitado: token vazio=${!token} idPessoa=${idPessoa}`);
     throw new BeeforAuthError('Credenciais inválidas ou conta sem acesso.');
   }
-
-  const session: BeeforSession = {
+  return {
     token,
     idPessoa,
     idUsuario: data?.id ? String(data.id) : null,
@@ -153,8 +179,67 @@ export async function loginHttp(usuario: string, senha: string): Promise<BeeforS
       typeof data?.nomeOrganizacao === 'string' ? (data.nomeOrganizacao as string) : undefined,
     cachedAt: Date.now(),
   };
+}
+
+/**
+ * Aplica a sessão do login com Google.
+ *
+ * A sessão vem PRONTA: capturamos a resposta do POST /Token/LoginComGoogle que o
+ * próprio site faz (hook de XHR no googleAuth.ts). A RESPOSTA é JSON claro com o
+ * token da sessão, então cacheamos direto.
+ *
+ * Não há usuario/senha, mas guardamos o JWT em `googleToken`: o refresh automático
+ * usa /Token/LoginComToken (o token dura 60 dias), então a sessão Google não morre
+ * mais quando o cache de 25min expira.
+ */
+export function applyGoogleSession(data: Record<string, unknown>): BeeforSession {
+  const session = sessionFromLoginResponse(data);
   setCachedSession(session);
-  setCredentials(usuario, senha);
+  clearCredentials();
+  googleToken = session.token;
+  logger.info(`Sessão Google aplicada (idPessoa=${session.idPessoa}).`);
+  return session;
+}
+
+/**
+ * Reidrata a sessão a partir de um JWT ainda válido (POST /Token/LoginComToken).
+ * Usado no refresh do login Google (que não tem senha) e no restore ao abrir o app.
+ * O backend devolve o VM direto (Ok(vm)) reusando o mesmo token.
+ */
+export async function loginWithTokenHttp(token: string): Promise<BeeforSession> {
+  const url = getBeeforLoginComTokenApi();
+  logger.info(`HTTP loginComToken → ${url}`);
+
+  // LoginComToken é [AllowAnonymous]. O middleware do backend só decripta o body
+  // se houver header X-Encryption-Key — sem ele, aceita JSON puro. Mandamos puro.
+  const response = await fetchKeepAlive(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      accept: 'application/json, text/plain, */*',
+    },
+    body: JSON.stringify({ Token: token }),
+  });
+
+  if (response.status === 401 || response.status === 403) {
+    throw new BeeforAuthError('Sessão Google expirada. Faça login novamente.', response.status);
+  }
+  if (!response.ok) {
+    const txt = await response.text().catch(() => '');
+    throw new BeeforApiError(
+      `LoginComToken falhou ${response.status}: ${txt.slice(0, 200)}`,
+      response.status,
+      txt,
+    );
+  }
+
+  const data = (await response.json()) as Record<string, unknown>;
+  // Pode vir cru (VM) ou envelopado ({ value: vm }) — normaliza como no TrocarOrganizacao.
+  const raw: Record<string, unknown> =
+    (data?.token ? data : (data?.value as Record<string, unknown>)) ?? data ?? {};
+  const session = sessionFromLoginResponse(raw);
+  setCachedSession(session);
+  googleToken = session.token;
   return session;
 }
 
@@ -177,18 +262,37 @@ async function loadCredentialsFromKeychain(): Promise<{ usuario: string; senha: 
   return null;
 }
 
+async function loadGoogleTokenFromKeychain(): Promise<string | null> {
+  try {
+    const { getGoogleToken } = await import('../secureStorage');
+    return await getGoogleToken();
+  } catch (err) {
+    logger.warn(
+      `Falha ao ler token Google do keytar: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    return null;
+  }
+}
+
 async function refreshSession(): Promise<BeeforSession | null> {
   if (!credentials) {
     const fromStore = await loadCredentialsFromKeychain();
     if (fromStore) credentials = fromStore;
   }
-  if (!credentials) return null;
+  // Sem senha (login Google) → tenta o JWT persistido via LoginComToken.
+  if (!credentials && !googleToken) {
+    googleToken = await loadGoogleTokenFromKeychain();
+  }
+  if (!credentials && !googleToken) return null;
+
   if (!pendingRefresh) {
     pendingRefresh = (async () => {
       try {
-        const session = await loginHttp(credentials!.usuario, credentials!.senha);
-        // Login volta na org default. Se havia org selecionada manualmente, re-aplica
-        // o token escopado pra manter a troca através de refreshes (TTL/401).
+        const session = credentials
+          ? await loginHttp(credentials.usuario, credentials.senha)
+          : await loginWithTokenHttp(googleToken!);
+        // Login/LoginComToken volta na org default. Se havia org selecionada manualmente,
+        // re-aplica o token escopado pra manter a troca através de refreshes (TTL/401).
         if (activeOrgId && activeOrgId !== session.idOrganizacao) {
           try {
             return await trocarOrganizacaoToken(activeOrgId);

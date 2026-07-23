@@ -1,3 +1,28 @@
+- v0.2.7: LOUCA NO PATRÃOOO (TEMAS LIBERADOS)
+
+Oieee, dei um trato no primeiro acesso e em umas coisinhas que tavam pedindo socorro. Bora:
+
+🎨 DEU A LOUCA NO PATRÃOOO, TODOS TEMAS LIBERADOS!!!
+OBS: E dá pra trocar quando bater vontade em Perfil → Tema
+
+🪙 Coin2U agora tem liga/desliga caso não tenha acesso a essa ferramenta
+
+🔒 Login com Google: CALMA que tá vindo
+O botão tá lá aparecendo, mas desativado por enquanto — quero entregar ele redondo, sem gambiarra. Chega numa atualização futura, confia 🤞
+
+🐛 Faxina de sempre:
+- Consertei umas par de coisa que tava quebrando
+- ...e outras coisinhas ali no meio
+https://media1.tenor.com/m/DUlvPVrPZrwAAAAd/hacker-pc.gif
+OBS: algum botão de "fechar porta" nos elevadores REALMENTE FUNCIONA!?? Eu acho q aperto por fé...mas n faz N A D A
+
+🕛 Proximas adições:
+-Login com google
+-Ajuste no login de um unico usuario kk
+-Melhorias no white mode...(Alguem usa? só pra saber mesmo KSKSK)
+
+---
+
 - v0.2.6: POOOOKER BABYYY 🃏🐝
 
 Gente, subi umas par de coisa e não escrevi aq...foram ajustes bons saibam disso kk

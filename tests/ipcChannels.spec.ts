@@ -9,6 +9,7 @@ const EXPECTED_IPC = {
   SETTINGS_SET: 'settings:set',
   SESSION_STATUS: 'session:status',
   SESSION_LOGIN: 'session:login',
+  SESSION_LOGIN_GOOGLE: 'session:loginGoogle',
   SESSION_LOGOUT: 'session:logout',
   SESSION_VERIFY: 'session:verify',
   ACTION_AUTO_LANCAMENTO: 'action:autoLancamento',

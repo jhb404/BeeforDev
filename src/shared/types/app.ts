@@ -113,6 +113,9 @@ export interface AppSettings {
   /** User has completed (or dismissed) the first-run onboarding wizard */
   onboarded?: boolean;
 
+  /** Usuário declarou ter conta Coin2U (onboarding). false = esconde badge/modal de coins. */
+  coin2uEnabled?: boolean;
+
   /** Coin2U userId (numeric) for dashboard fetch — auto-captured on login */
   coin2uUserId?: number;
 

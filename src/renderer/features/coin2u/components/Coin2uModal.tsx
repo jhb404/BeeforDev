@@ -19,6 +19,7 @@ import { Coin2uHistoryTab } from './Coin2uHistoryTab';
 import { Coin2uPurchasesTab } from './Coin2uPurchasesTab';
 import { Coin2uConfirmPurchase } from './Coin2uConfirmPurchase';
 import { Coin2uToast } from './Coin2uToast';
+import { Coin2uLoginForm } from './Coin2uLoginForm';
 import { getError } from '@shared/result';
 
 interface Props {
@@ -37,6 +38,8 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
   const [tab, setTab] = useState<Coin2uTab>('send');
   const [confirmItem, setConfirmItem] = useState<Coin2uShopItem | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+  // null = ainda checando; true/false = tem ou não credenciais salvas
+  const [hasCreds, setHasCreds] = useState<boolean | null>(null);
 
   const refreshAll = async () => {
     await data.refresh();
@@ -46,11 +49,25 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
   useEffect(() => {
     if (!open) return;
     void coin2uClient.getCreds().then((creds) => {
+      setHasCreds(!!creds);
       if (creds?.userId) data.setUserId(creds.userId);
+      // Só busca dados se houver credenciais — evita erro "não configuradas".
+      if (creds) void refreshAll();
     });
-    void refreshAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  const handleConnected = async () => {
+    setHasCreds(true);
+    data.setError(null);
+    await refreshAll();
+  };
+
+  // Erro de credenciais/autenticação → oferece login inline na hora.
+  const authError =
+    !!data.error &&
+    /credenci|não configurad|nao configurad|login|inv[aá]lid|401|403/i.test(data.error);
+  const showLogin = hasCreds === false || (hasCreds !== null && authError && !data.loading);
 
   useEscapeToClose(open, () => {
     if (confirmItem) {
@@ -102,31 +119,44 @@ export function Coin2uModal({ open, settings, onClose, onDataChanged }: Props) {
       />
 
       <div className="coin2u-modal__body">
-        {data.error && (
-          <div className="coin2u-warn">
-            Falha ao atualizar. <span>{data.error}</span>
-          </div>
-        )}
-
-        {tab === 'send' ? (
-          <Coin2uSendTab
-            dashboard={data.dashboard}
-            loading={data.loading}
-            settings={settings}
-            onAfterTransfer={refreshAll}
-            onToast={toastApi.showToast}
+        {showLogin ? (
+          <Coin2uLoginForm
+            reason={
+              hasCreds === false
+                ? 'Nenhuma conta Coin2U conectada ainda.'
+                : `Não foi possível conectar: ${data.error}`
+            }
+            onConnected={handleConnected}
           />
-        ) : tab === 'shop' ? (
-          <Coin2uShopTab
-            shopItems={shop.shopItems}
-            shopLoading={shop.shopLoading}
-            dashboard={data.dashboard}
-            onConfirmItem={setConfirmItem}
-          />
-        ) : tab === 'purchases' ? (
-          <Coin2uPurchasesTab log={data.log} />
         ) : (
-          <Coin2uHistoryTab log={data.log} userId={data.userId} />
+          <>
+            {data.error && (
+              <div className="coin2u-warn">
+                Falha ao atualizar. <span>{data.error}</span>
+              </div>
+            )}
+
+            {tab === 'send' ? (
+              <Coin2uSendTab
+                dashboard={data.dashboard}
+                loading={data.loading}
+                settings={settings}
+                onAfterTransfer={refreshAll}
+                onToast={toastApi.showToast}
+              />
+            ) : tab === 'shop' ? (
+              <Coin2uShopTab
+                shopItems={shop.shopItems}
+                shopLoading={shop.shopLoading}
+                dashboard={data.dashboard}
+                onConfirmItem={setConfirmItem}
+              />
+            ) : tab === 'purchases' ? (
+              <Coin2uPurchasesTab log={data.log} />
+            ) : (
+              <Coin2uHistoryTab log={data.log} userId={data.userId} />
+            )}
+          </>
         )}
       </div>
 

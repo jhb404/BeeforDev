@@ -7,14 +7,16 @@ export const getBeeforApiBase = (): string => getApiBases().teams;
 export const getBeeforTimesheetApiBase = (): string => getApiBases().timesheet;
 export const getBeeforAppUrl = (): string => getApiBases().appUrl;
 
-export const getBeeforTimesheetApi = (): string =>
-  `${getApiBases().timesheet}/apontamento`;
+export const getBeeforTimesheetApi = (): string => `${getApiBases().timesheet}/apontamento`;
 export const getBeeforKudoApi = (): string => `${getApiBases().teams}/KudoCard`;
 export const getBeeforPessoaApi = (): string => `${getApiBases().teams}/Pessoa`;
 export const getBeeforHomeApi = (): string => `${getApiBases().teams}/Home`;
 export const getBeeforTokenApi = (): string => `${getApiBases().teams}/Token`;
-export const getBeeforOrganizacaoApi = (): string =>
-  `${getApiBases().teams}/Organizacao`;
+export const getBeeforGoogleLoginApi = (): string => `${getApiBases().teams}/Token/LoginComGoogle`;
+/** Reidrata a sessão a partir de um JWT ainda válido (usado no refresh do login Google). */
+export const getBeeforLoginComTokenApi = (): string => `${getApiBases().teams}/Token/LoginComToken`;
+
+export const getBeeforOrganizacaoApi = (): string => `${getApiBases().teams}/Organizacao`;
 export const getBeeforQuadroApi = (): string => `${getApiBases().teams}/Quadro`;
 
 /** Legacy named exports kept for callers that imported strings directly.
@@ -30,6 +32,8 @@ export const BEEFOR_TIMESHEET_URL = `${getBeeforAppUrl()}/time-sheet-beefor/lanc
 export const KEYTAR_SERVICE = 'beefor-dev';
 export const KEYTAR_ACCOUNT_EMAIL = 'beefor-email';
 export const KEYTAR_ACCOUNT_PASSWORD = 'beefor-password';
+/** JWT da sessão Google (login Google não tem senha → guarda o token p/ refresh/restart). */
+export const KEYTAR_ACCOUNT_GOOGLE_TOKEN = 'beefor-google-token';
 export const KEYTAR_ACCOUNT_COIN2U_EMAIL = 'coin2u-email';
 export const KEYTAR_ACCOUNT_COIN2U_PASSWORD = 'coin2u-password';
 
