@@ -21,7 +21,7 @@
     "build": "npm run build:renderer && npm run build:main",
     "start": "electron .",
     "package:win": "node scripts/fetch-cloudflared.mjs && npm run build && electron-builder --win --publish always",
-    "package:mac": "npm run build && electron-builder --mac --publish always",
+    "package:mac": "node scripts/fetch-cloudflared.mjs && npm run build && electron-builder --mac --publish always",
     "test": "vitest run",
     "lint": "tsc --noEmit && eslint src --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
@@ -86,6 +86,7 @@
       "package.json"
     ],
     "asar": true,
+    "afterPack": "scripts/mac-adhoc-sign.js",
     "extraResources": [
       {
         "from": "patch-journal.md",
