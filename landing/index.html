@@ -362,11 +362,12 @@
 
           <div class="panel mac">
             <div class="mac-head">🍎 Tá no Mac? Lê isto antes</div>
-            <p>Depois de instalar e <strong>ANTES DE ABRIR</strong>, roda no Terminal...Apple sendo a Apple kk:</p>
+            <p>Depois de arrastar pra Aplicativos e <strong>ANTES DE ABRIR</strong>, roda no Terminal (sem sudo)...Apple sendo a Apple kk:</p>
             <div class="codebox">
-              <code id="mac-cmd">xattr -cr "/Applications/Beefor Dev.app"</code>
+              <code id="mac-cmd">xattr -dr com.apple.quarantine "/Applications/Beefor Dev.app"</code>
               <button class="copy-btn" id="copy-cmd" type="button" data-sound="success">Copiar</button>
             </div>
+            <p>Não quer Terminal? Tenta abrir, o macOS bloqueia, e aí vai em <strong>Ajustes do Sistema → Privacidade e Segurança</strong> e clica em <strong>“Abrir mesmo assim”</strong>. Só na primeira vez.</p>
           </div>
         </aside>
       </div>

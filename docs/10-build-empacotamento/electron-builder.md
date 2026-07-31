@@ -42,3 +42,4 @@ Nao empacotado nesta tarefa.
 
 ## Observacoes / Dividas
 Assinatura de codigo pendente para reduzir SmartScreen.
+macOS: hook `afterPack` (`scripts/mac-adhoc-sign.js`) assina ad-hoc o bundle — ver [macos-assinatura.md](./macos-assinatura.md).
