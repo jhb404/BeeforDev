@@ -70,6 +70,29 @@ describe('useTimesheetData', () => {
     expect(clients.timesheet.fetch).toHaveBeenLastCalledWith(2026, 5);
   });
 
+  it('skips fetching and marks loaded when disabled (pessoa sem TimeSheet Beefor)', async () => {
+    const clients = createFakeIpcClients();
+    clients.timesheet.fetch = vi.fn(async () => ({ ok: true as const, data: [row] }));
+
+    const { result } = renderHook(() =>
+      useTimesheetData({
+        ready: true,
+        year: 2026,
+        month: 5,
+        moodLoaded: true,
+        timesheetClient: clients.timesheet,
+        systemClient: clients.system,
+        refreshMood: vi.fn(async () => undefined),
+        showToast: vi.fn(),
+        enabled: false,
+      }),
+    );
+
+    // timesheetLoaded precisa virar true mesmo sem fetch, senão o boot trava no splash.
+    await waitFor(() => expect(result.current.timesheetLoaded).toBe(true));
+    expect(clients.timesheet.fetch).not.toHaveBeenCalled();
+  });
+
   it('refreshes mood when auto launch sync fails', async () => {
     let notifyCb: ((info: { title: string; body: string }) => void) | undefined;
     const refreshMood = vi.fn(async () => undefined);

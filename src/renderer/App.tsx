@@ -4,6 +4,7 @@ import { TitleBar } from './components/layout/TitleBar';
 import { StartupOverlay } from './components/layout/StartupOverlay';
 import { SettingsProvider, useSettings } from './app/providers/SettingsProvider';
 import { ThemeProvider, useTheme } from './app/providers/ThemeProvider';
+import { AccessProvider, useAccess } from './app/providers/AccessProvider';
 import { useAlerts } from './app/hooks/useAlerts';
 import { useUiSoundsDelegate } from './app/hooks/useUiSoundsDelegate';
 import { useAlarmRouter } from './app/hooks/useAlarmRouter';
@@ -44,6 +45,8 @@ function AppShell() {
   const { theme, toggle: toggleTheme } = useTheme();
   const showToast = useToast();
   const { timesheet: timesheetClient } = useIpc();
+  // Pessoa sem TimeSheet Beefor: nada de ponto na UI (timer de almoço incluso).
+  const { semTimesheet } = useAccess();
 
   const handleOpenBeefor = useCallback(async () => {
     const res = await timesheetClient.openBeefor();
@@ -125,8 +128,14 @@ function AppShell() {
     setCoin2uForceOpen(true);
   }, []);
 
+  const startLunchTimerFromTray = useCallback(() => {
+    // Defesa em profundidade: o main já filtra o item do tray por acesso.
+    if (semTimesheet) return;
+    startLunchTimer();
+  }, [semTimesheet, startLunchTimer]);
+
   useTrayListeners({
-    onLunchTimer: startLunchTimer,
+    onLunchTimer: startLunchTimerFromTray,
     onOpenKudo: openKudoFromTray,
     onOpenCoins: openCoinsFromTray,
   });
@@ -160,6 +169,7 @@ function AppShell() {
         appSettings={appSettings}
         coin2uForceOpen={coin2uForceOpen}
         onCoin2uForceOpenConsumed={() => setCoin2uForceOpen(false)}
+        showLunchTimer={!semTimesheet}
         lunchTimerActive={lunchTimerActive}
         lunchStartedAt={lunchStartedAt}
         onCancelLunchTimer={cancelLunchTimer}
@@ -175,6 +185,7 @@ function AppShell() {
                 onMoodChanged={(mood) => alerts.setCurrentMoodExternal(mood)}
                 onBootReady={() => setHomeBootReady(true)}
                 onStartLunchTimer={() => {
+                  if (semTimesheet) return;
                   if (!lunchTimerActive) startLunchTimer();
                 }}
               />
@@ -241,7 +252,9 @@ export default function App() {
       <ToastProvider>
         <SettingsProvider>
           <ThemeProvider>
-            <AppShell />
+            <AccessProvider>
+              <AppShell />
+            </AccessProvider>
           </ThemeProvider>
         </SettingsProvider>
       </ToastProvider>

@@ -14,6 +14,7 @@ Features seguem estrutura por dominio com components/hooks/utils/index quando ap
 | `gamification` | XP, achievements, temas, icones e unlock codes. | [gamification.md](./gamification.md) |
 | `kudo` | Envio e historico de KudoCards. | [kudo.md](./kudo.md) |
 | `team` | Lista, detalhes, avatar/status/aniversarios. | [team.md](./team.md) |
+| (cross-cutting) | Gate de acesso ao TimeSheet Beefor — esconde toda UI de ponto. | [acesso-timesheet.md](./acesso-timesheet.md) |
 
 ## Fluxo Interno
 Features consomem `useIpc` indiretamente por hooks ou props, usam componentes compartilhados e mantem estado local/caches quando necessario.

@@ -3,6 +3,7 @@ import { ModalShell } from '../../components/ui/ModalShell';
 import { BeeforLogo } from '../../components/common/BeeforLogo';
 import { useIpc } from '../../services/ipc';
 import { useToast } from '../providers/ToastProvider';
+import { useAccess } from '../providers/AccessProvider';
 import type { AppSettings } from '@shared/types/index';
 import { SETTINGS_DEFAULTS, PUNCH_LABELS } from '../../pages/settings/defaults';
 import { getError } from '@shared/result';
@@ -157,6 +158,8 @@ export function OnboardingModal({ open, onClose }: Props) {
     system: systemClient,
   } = useIpc();
   const showToast = useToast();
+  // Sem TimeSheet Beefor: o passo de horários de ponto e o card de almoço saem do fluxo.
+  const { semTimesheet } = useAccess();
 
   const [step, setStep] = useState<Step>('credentials');
   const [email, setEmail] = useState('');
@@ -183,8 +186,12 @@ export function OnboardingModal({ open, onClose }: Props) {
   const [hoverThemeId, setHoverThemeId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const currentStepIndex = STEPS.indexOf(step);
-  const stepLabel = `Passo ${currentStepIndex + 1} de ${STEPS.length}`;
+  const steps = semTimesheet ? STEPS.filter((s) => s !== 'punch') : STEPS;
+  /** Passo depois do Coin2U e o "voltar" do passo de alarmes, com ou sem 'punch'. */
+  const afterCoin2u: Step = semTimesheet ? 'alarms' : 'punch';
+  const beforeAlarms: Step = semTimesheet ? 'coin2u' : 'punch';
+  const currentStepIndex = steps.indexOf(step);
+  const stepLabel = `Passo ${currentStepIndex + 1} de ${steps.length}`;
   const previewPreset =
     ALL_THEMES.find((p) => p.id === (hoverThemeId ?? selectedThemeId)) ?? ALL_THEMES[0];
 
@@ -248,12 +255,12 @@ export function OnboardingModal({ open, onClose }: Props) {
   // "Não tenho conta Coin2U" → marca desabilitado e pula pro próximo passo.
   const handleSemCoin2u = () => {
     setHasCoin2u(false);
-    setStep('punch');
+    setStep(afterCoin2u);
   };
 
   const handleCoin2uNext = async () => {
     if (!coin2uEmail || !coin2uPassword) {
-      setStep('punch');
+      setStep(afterCoin2u);
       return;
     }
     setSaving(true);
@@ -264,7 +271,7 @@ export function OnboardingModal({ open, onClose }: Props) {
       return;
     }
     setHasCoin2u(true);
-    setStep('punch');
+    setStep(afterCoin2u);
   };
 
   const handleFinish = async () => {
@@ -556,30 +563,34 @@ export function OnboardingModal({ open, onClose }: Props) {
                   />
                 </div>
               </div>
-              <div className="card" style={{ padding: '12px 14px' }}>
-                <strong style={{ fontSize: 13, marginBottom: 8, display: 'block' }}>Almoço</strong>
-                <Switch
-                  id="ob-lunchAlarm"
-                  checked={lunchAlarm}
-                  onChange={setLunchAlarm}
-                  label="Lembrete de horário de almoço"
-                />
-                <div className="field" style={{ marginTop: 8 }}>
-                  <label className="label">Horário do almoço</label>
-                  <input
-                    type="time"
-                    value={lunchAlarmTime}
-                    disabled={!lunchAlarm}
-                    onChange={(e) => setLunchAlarmTime(e.target.value)}
+              {!semTimesheet && (
+                <div className="card" style={{ padding: '12px 14px' }}>
+                  <strong style={{ fontSize: 13, marginBottom: 8, display: 'block' }}>
+                    Almoço
+                  </strong>
+                  <Switch
+                    id="ob-lunchAlarm"
+                    checked={lunchAlarm}
+                    onChange={setLunchAlarm}
+                    label="Lembrete de horário de almoço"
                   />
+                  <div className="field" style={{ marginTop: 8 }}>
+                    <label className="label">Horário do almoço</label>
+                    <input
+                      type="time"
+                      value={lunchAlarmTime}
+                      disabled={!lunchAlarm}
+                      onChange={(e) => setLunchAlarmTime(e.target.value)}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
             <div className="row" style={{ marginTop: 20, justifyContent: 'space-between' }}>
               <button
                 type="button"
                 className="secondary"
-                onClick={() => setStep('punch')}
+                onClick={() => setStep(beforeAlarms)}
                 data-sound="click"
               >
                 ← Voltar

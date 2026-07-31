@@ -1,0 +1,555 @@
+/*
+ * home-cards.css — cards que preenchem a Home de quem não usa TimeSheet Beefor
+ * (sem a grade de ponto sobrava espaço vazio abaixo do "Mood do dia").
+ *
+ * Um card por LINHA, na mesma largura do painel de mood. O conteúdo de cada card
+ * se divide em duas colunas quando há espaço (resumo | lista), assim a linha cheia
+ * não vira um bloco alto e vazio.
+ */
+
+.home-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.home-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.home-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.home-card__hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.home-card__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.home-card__empty strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+/*
+ * Corpo em duas colunas: resumo/número à esquerda, lista à direita.
+ * Abaixo de 720px empilha (a janela do app é estreita por padrão).
+ */
+.home-card__split {
+  display: grid;
+  grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .home-card__split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── Calendário Niko (mood do mês) ──────────────────────── */
+
+.niko__month {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  min-width: 104px;
+  text-align: center;
+}
+
+/* Calendário à esquerda com largura limitada (célula não vira quadrado gigante
+   numa linha cheia), legenda/resumo à direita. */
+.niko-body {
+  display: grid;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .niko-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.niko-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.niko-grid__weekday {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-align: center;
+  padding-bottom: 2px;
+}
+
+.niko-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  overflow: hidden;
+}
+
+.niko-cell--pad {
+  border-color: transparent;
+  background: transparent;
+}
+
+.niko-cell__day {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 9px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.niko-cell__emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* Também usada pelo swatch da legenda, que não é uma `.niko-cell`. */
+.niko-cell--empty {
+  background: var(--bg-2);
+}
+.niko-cell--feliz {
+  background: color-mix(in srgb, var(--ok) 26%, var(--bg-2));
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+}
+.niko-cell--bom {
+  background: color-mix(in srgb, var(--accent) 22%, var(--bg-2));
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+.niko-cell--regular {
+  background: color-mix(in srgb, var(--warm) 24%, var(--bg-2));
+  border-color: color-mix(in srgb, var(--warm) 42%, var(--border));
+}
+.niko-cell--triste {
+  background: color-mix(in srgb, var(--err) 24%, var(--bg-2));
+  border-color: color-mix(in srgb, var(--err) 42%, var(--border));
+}
+.niko-cell--ausencia {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--bg-2),
+    var(--bg-2) 3px,
+    var(--bg-3) 3px,
+    var(--bg-3) 6px
+  );
+}
+
+.niko-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.niko-side__stats {
+  display: flex;
+  gap: 18px;
+}
+
+.niko-side__stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.niko-side__stat strong {
+  font-size: 22px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.niko-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.niko-legend li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.niko-legend__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ── Minhas atividades ──────────────────────────────────── */
+
+.ativ-home__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ativ-home__list > li > button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  text-align: left;
+  min-height: unset;
+  cursor: pointer;
+}
+
+.ativ-home__list > li > button:hover {
+  background: var(--bg-3);
+  border-color: var(--border-strong);
+}
+
+.ativ-home__icon {
+  font-size: 14px;
+}
+
+.ativ-home__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ativ-home__name {
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ativ-home__meta {
+  font-size: 10px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ativ-home__momento {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.ativ-home__more > button {
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 6px 8px;
+  min-height: unset;
+  cursor: pointer;
+}
+
+.ativ-home__more > button:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+/* ── Coin2U ─────────────────────────────────────────────── */
+
+.coin2u-home__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coin2u-home__balances {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.coin2u-home__balance {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 2px 6px;
+}
+
+.coin2u-home__balance strong {
+  font-size: 22px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.coin2u-home__balance .label {
+  grid-column: 1 / -1;
+}
+
+.coin2u-home__meta {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.coin2u-home__meta strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.coin2u-home__log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.coin2u-home__log li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.coin2u-home__log-amount {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--warm);
+}
+
+.coin2u-home__log-who {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coin2u-home__log-when {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── KudoCards ──────────────────────────────────────────── */
+
+.kudo-home__body {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .kudo-home__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.kudo-home__counts {
+  display: flex;
+  gap: 20px;
+}
+
+.kudo-home__count {
+  display: flex;
+  flex-direction: column;
+}
+
+.kudo-home__count strong {
+  font-size: 24px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.kudo-home__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kudo-home__list > li > button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  text-align: left;
+  min-height: unset;
+  cursor: pointer;
+}
+
+.kudo-home__list > li > button:hover {
+  background: var(--bg-3);
+  border-color: var(--border-strong);
+}
+
+.kudo-home__emoji {
+  font-size: 16px;
+}
+
+.kudo-home__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.kudo-home__who {
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kudo-home__what {
+  font-size: 10px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kudo-home__when {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Streak de mood ─────────────────────────────────────── */
+
+.streak-home__body {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .streak-home__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.streak-home__me {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.streak-home__me strong {
+  font-size: 26px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.streak-home__flame {
+  font-size: 18px;
+}
+
+.streak-home__top {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.streak-home__top li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.streak-home__top li.is-me {
+  color: var(--text);
+  font-weight: 600;
+  border-color: var(--accent);
+}
+
+.streak-home__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.streak-home__days {
+  font-variant-numeric: tabular-nums;
+}

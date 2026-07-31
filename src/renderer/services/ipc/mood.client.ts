@@ -1,4 +1,9 @@
-import type { ActionResult, Mood } from '@shared/types/index';
+import type {
+  ActionResult,
+  Mood,
+  MoodCalendarPessoa,
+  MoodCalendarQuery,
+} from '@shared/types/index';
 import type { BeeforHttpApi } from '../../../main/preload';
 
 function requireHttp(http?: BeeforHttpApi): BeeforHttpApi {
@@ -19,6 +24,9 @@ export function createMoodClient(http?: BeeforHttpApi) {
         ok: true as const,
         data: data?.mood ?? null,
       } as ActionResult<string | null>;
+    },
+    getCalendar: async (query: MoodCalendarQuery): Promise<ActionResult<MoodCalendarPessoa[]>> => {
+      return requireHttp(http).mood.calendar(query);
     },
   };
 }

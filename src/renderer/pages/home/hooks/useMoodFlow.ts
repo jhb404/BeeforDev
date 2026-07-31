@@ -4,7 +4,8 @@ import type { MoodClient } from '../../../services/ipc/mood.client';
 
 interface UseMoodFlowOptions {
   ready: boolean;
-  moodClient: MoodClient;
+  /** Só o que o fluxo usa — evita que métodos novos do client quebrem os callers. */
+  moodClient: Pick<MoodClient, 'getCurrent' | 'select'>;
   wrap: (keyOrFn: any, maybeFn?: () => Promise<void>) => Promise<void>;
   showToast: (toast: { kind: 'ok' | 'err'; title?: string; msg: string }) => void;
   onMoodChanged?: (mood: string | null) => void;

@@ -1,5 +1,6 @@
 export { Coin2uModal } from './components/Coin2uModal';
 export { Coin2uBadge } from './components/Coin2uBadge';
+export { Coin2uHomeCard } from './components/Coin2uHomeCard';
 export { CoinIcon } from './components/Coin2uCoinIcon';
 export { useCoin2uData } from './hooks/useCoin2uData';
 export { useCoin2uShop } from './hooks/useCoin2uShop';

@@ -2,6 +2,7 @@ export { useGamification } from './useGamification';
 export { useActiveIcon } from './useActiveIcon';
 export { StreakRankingModal } from './components/StreakRankingModal';
 export { MoodStreakBadge } from './components/MoodStreakBadge';
+export { StreakHomeCard } from './components/StreakHomeCard';
 export { UnlockCodeModal } from './components/UnlockCodeModal';
 export { ACHIEVEMENTS, achievementById, TIERS } from './achievements';
 export type { TierMeta } from './achievements';

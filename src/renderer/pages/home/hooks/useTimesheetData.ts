@@ -13,6 +13,11 @@ interface UseTimesheetDataOptions {
   systemClient: SystemClient;
   refreshMood: () => Promise<void>;
   showToast: (toast: { kind: 'ok' | 'err'; title?: string; msg: string }) => void;
+  /**
+   * false → pessoa sem acesso ao TimeSheet Beefor: não busca apontamento nenhum
+   * (evita chamada que o backend recusaria) e marca como carregado pro boot fluir.
+   */
+  enabled?: boolean;
 }
 
 export function useTimesheetData({
@@ -24,6 +29,7 @@ export function useTimesheetData({
   systemClient,
   refreshMood,
   showToast,
+  enabled = true,
 }: UseTimesheetDataOptions) {
   const [rows, setRows] = useState<RowState[]>(() => buildEmpty(year, month));
   const [loadingTs, setLoadingTs] = useState(false);
@@ -42,6 +48,10 @@ export function useTimesheetData({
   }, [month]);
 
   const refreshTimesheet = useCallback(async () => {
+    if (!enabled) {
+      setTimesheetLoaded(true);
+      return;
+    }
     if (fetchInFlight.current) return;
     fetchInFlight.current = true;
     setLoadingTs(true);
@@ -61,7 +71,7 @@ export function useTimesheetData({
       setTimesheetLoaded(true);
       fetchInFlight.current = false;
     }
-  }, [month, showToast, timesheetClient, year]);
+  }, [enabled, month, showToast, timesheetClient, year]);
 
   const refreshAll = useCallback(async () => {
     await Promise.all([refreshTimesheet(), refreshMood()]);
@@ -77,6 +87,7 @@ export function useTimesheetData({
   }, [month, moodLoaded, ready, refreshAll, refreshTimesheet, year]);
 
   useEffect(() => {
+    if (!enabled) return;
     const off = systemClient.onNotify((info) => {
       if (info.title === 'sync:autoLancamento' && info.body === 'ok') {
         const y = yearRef.current;
@@ -94,7 +105,7 @@ export function useTimesheetData({
       }
     });
     return off;
-  }, [refreshMood, systemClient, timesheetClient]);
+  }, [enabled, refreshMood, systemClient, timesheetClient]);
 
   return {
     rows,

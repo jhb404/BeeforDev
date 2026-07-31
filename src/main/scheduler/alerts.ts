@@ -3,6 +3,7 @@ import type { TodayAlert } from '../../shared/types/index';
 import { isWeekend } from './time';
 import { applyDailyDrift } from './drift';
 import { ensureKudocardSchedule } from './schedulePersist';
+import { usaTimesheetBeefor } from '../services/beeforHttpClient';
 
 /** Returns alerts scheduled for today based on current settings. */
 export async function getTodayAlerts(): Promise<TodayAlert[]> {
@@ -10,6 +11,8 @@ export async function getTodayAlerts(): Promise<TodayAlert[]> {
   const now = new Date();
   const todayDay = now.getDate();
   const weekend = isWeekend();
+  // Sem acesso ao TimeSheet: nada de ponto/almoço/PJ. Mood e Kudocard continuam.
+  const ts = usaTimesheetBeefor();
   const alerts: TodayAlert[] = [];
 
   if (!weekend) {
@@ -22,7 +25,7 @@ export async function getTodayAlerts(): Promise<TodayAlert[]> {
       });
     }
 
-    if (s.lunchAlarm) {
+    if (s.lunchAlarm && ts) {
       alerts.push({
         kind: 'lunch',
         title: '🍽️ Almoço',
@@ -31,7 +34,7 @@ export async function getTodayAlerts(): Promise<TodayAlert[]> {
       });
     }
 
-    if (s.automatePunch) {
+    if (s.automatePunch && ts) {
       const labels = ['Entrada', 'Saída p/ almoço', 'Retorno', 'Saída'];
       const icons = ['🟢', '🟡', '🔵', '🔴'];
       s.punchTimes.forEach((base, idx) => {
@@ -61,7 +64,7 @@ export async function getTodayAlerts(): Promise<TodayAlert[]> {
   }
 
   // PJ — independente de fim de semana, só no dia configurado (clamp p/ último dia do mês)
-  if (s.pjAlarm) {
+  if (s.pjAlarm && ts) {
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     if (todayDay === Math.min(s.pjAlarmDay, lastDay)) {
       alerts.push({

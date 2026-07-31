@@ -7,6 +7,7 @@ import { alreadyFired, markFired } from './firedState';
 import { notify } from './notify';
 import { applyDailyDrift } from './drift';
 import { ensureKudocardSchedule } from './schedulePersist';
+import { usaTimesheetBeefor } from '../services/beeforHttpClient';
 
 export { getTodayAlerts } from './alerts';
 
@@ -28,6 +29,8 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
   const hhmm = nowHHMM();
   const weekend = isWeekend();
   const todayDay = new Date().getDate();
+  // Pessoa sem TimeSheet Beefor não recebe lembrete de ponto/almoço/PJ.
+  const ts = usaTimesheetBeefor();
 
   // Mood
   if (
@@ -48,7 +51,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
   }
 
   // Lunch
-  if (s.lunchAlarm && s.lunchAlarmTime === hhmm && !alreadyFired('lunch')) {
+  if (ts && s.lunchAlarm && s.lunchAlarmTime === hhmm && !alreadyFired('lunch')) {
     if (!weekend) {
       notify(win, '🍽️ Hora do almoço', 'Bom apetite! Lembra de bater o ponto.', true, 'lunch');
       markFired('lunch');
@@ -72,7 +75,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
   }
 
   // PJ — Ajustar Pontos: dispara num dia fixo do mês (clamp p/ último dia se mês curto)
-  if (s.pjAlarm && s.pjAlarmTime === hhmm && !alreadyFired('pj')) {
+  if (ts && s.pjAlarm && s.pjAlarmTime === hhmm && !alreadyFired('pj')) {
     const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
     const targetDay = Math.min(s.pjAlarmDay, lastDay);
     if (todayDay === targetDay) {
@@ -88,7 +91,7 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
   }
 
   // Punch — only notif (real punch click left for future implementation)
-  if (s.automatePunch && !weekend) {
+  if (ts && s.automatePunch && !weekend) {
     s.punchTimes.forEach((base, idx) => {
       if (!base) return;
       const driftedKey = `punch-${idx}`;

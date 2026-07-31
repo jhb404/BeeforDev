@@ -30,6 +30,7 @@ export function createFakeIpcClients(overrides: Partial<IpcClients> = {}): IpcCl
     mood: {
       select: vi.fn(async () => okVoid()),
       getCurrent: vi.fn(async () => okData<string | null>(null)),
+      getCalendar: vi.fn(async () => okData([])),
     },
     kudo: {
       send: vi.fn(async () => okData({ success: true, message: 'ok' })),

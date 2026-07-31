@@ -22,10 +22,16 @@ import { HomeTopbar } from './home/components/HomeTopbar';
 import { logger } from '../services/logger';
 import { AtividadesModal } from '../features/atividades/components/AtividadesModal';
 import { PlanningPokerModal } from '../features/poker/components/PlanningPokerModal';
+import { Coin2uHomeCard } from '../features/coin2u';
+import { AtividadesHomeCard } from '../features/atividades/components/AtividadesHomeCard';
+import { KudoHomeCard } from '../features/kudo';
+import { StreakHomeCard } from '../features/gamification';
+import { MoodCalendarCard } from './home/components/MoodCalendarCard';
 import { APP_EVENTS, onAppEvent } from '../app/events';
 import { useMoodFlow } from './home/hooks/useMoodFlow';
 import { useTimesheetData } from './home/hooks/useTimesheetData';
 import { usePrefetch } from '../app/hooks/usePrefetch';
+import { useAccess } from '../app/providers/AccessProvider';
 import { getError } from '@shared/result';
 
 /** parse beefor://join?ws=<enc>&room=<CODE> → { wsUrl, roomId } */
@@ -59,6 +65,12 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
   const { status, busy, isBusy, wrap } = useBeefor();
   const ready = status === 'connected';
   usePrefetch(ready);
+  // Pessoa sem TimeSheet Beefor não vê nada de ponto: grade, relógio, toolbar,
+  // resumo de horas. Mood/KudoCard/Atividades/Poker seguem normais.
+  const { semTimesheet, usaTimesheet } = useAccess();
+  // Só busca apontamento depois de saber se a pessoa tem acesso — evita um GET
+  // (e um toast de erro) pra quem não usa TimeSheet.
+  const acessoResolvido = usaTimesheet !== null;
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -70,6 +82,9 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
   const [showKudoModal, setShowKudoModal] = useState(false);
   const [showKudoHistory, setShowKudoHistory] = useState(false);
   const [showAtividades, setShowAtividades] = useState(false);
+  // Item pré-selecionado quando o modal é aberto a partir de um card da Home.
+  const [atividadeInicial, setAtividadeInicial] = useState<string | null>(null);
+  const [kudoInicial, setKudoInicial] = useState<string | null>(null);
   const [showPoker, setShowPoker] = useState(false);
   const [pokerInvite, setPokerInvite] = useState<{ wsUrl: string; roomId: string } | null>(null);
 
@@ -108,7 +123,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
 
   const { rows, setRows, loadingTs, timesheetLoaded, refreshTimesheet, refreshAll } =
     useTimesheetData({
-      ready,
+      ready: ready && acessoResolvido,
       year,
       month,
       moodLoaded,
@@ -116,6 +131,7 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
       systemClient,
       refreshMood,
       showToast,
+      enabled: !semTimesheet,
     });
 
   const updateRow = (idx: number, patch: Partial<RowState>) => {
@@ -309,52 +325,79 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
         onSelect={selectMood}
       />
 
-      <section className="timesheet-panel">
-        <TimesheetToolbar
-          year={year}
-          month={month}
-          yearOptions={yearOptions}
-          busy={isBusy('autoLancamento')}
-          ready={ready}
-          onYearChange={setYear}
-          onMonthChange={setMonth}
-          onAutoLancamento={() => void autoLancamento()}
-          onImportarMes={() => setImportarMes({ fileName: '' })}
-        />
+      {/* Sem a grade de ponto sobra espaço abaixo do mood — cards preenchem,
+          um por linha, na mesma largura do painel de mood. */}
+      {semTimesheet && (
+        <div className="home-cards">
+          <MoodCalendarCard ready={ready} refreshKey={currentMood} />
+          <AtividadesHomeCard
+            ready={ready}
+            onOpen={(id) => {
+              setAtividadeInicial(id ?? null);
+              setShowAtividades(true);
+            }}
+          />
+          <Coin2uHomeCard settings={settings} />
+          <KudoHomeCard
+            ready={ready}
+            onSend={() => setShowKudoModal(true)}
+            onHistory={(id) => {
+              setKudoInicial(id ?? null);
+              setShowKudoHistory(true);
+            }}
+          />
+          <StreakHomeCard ready={ready} />
+        </div>
+      )}
 
-        <SummaryStrip summary={summary} compact={settings?.viewMode === 'minimal'} />
-
-        {showTimesheetLoader ? (
-          <FunnyLoader title="Carregando lançamentos" />
-        ) : showDisconnectedState ? (
-          <div className="ts-empty">
-            <strong>Sem sessão ativa</strong>
-            <span>Conecte a sessão para carregar os apontamentos do mês.</span>
-          </div>
-        ) : settings?.viewMode === 'minimal' ? (
-          <MinimalView
-            rows={rows}
+      {!semTimesheet && (
+        <section className="timesheet-panel">
+          <TimesheetToolbar
             year={year}
             month={month}
-            busy={isBusy('lancarHora')}
+            yearOptions={yearOptions}
+            busy={isBusy('autoLancamento')}
             ready={ready}
-            hoursPerDayMin={hoursPerDayMin}
-            showDiff={settings?.calendarShowDiff ?? true}
-            onUpdateRow={updateRow}
-            onLancar={(idx) => void lancar(idx)}
+            onYearChange={setYear}
+            onMonthChange={setMonth}
+            onAutoLancamento={() => void autoLancamento()}
+            onImportarMes={() => setImportarMes({ fileName: '' })}
           />
-        ) : (
-          <TimesheetGrid
-            rows={rows}
-            today={today}
-            hoursPerDayMin={hoursPerDayMin}
-            busy={isBusy('lancarHora')}
-            ready={ready}
-            onUpdateRow={updateRow}
-            onLancar={(idx) => void lancar(idx)}
-          />
-        )}
-      </section>
+
+          <SummaryStrip summary={summary} compact={settings?.viewMode === 'minimal'} />
+
+          {showTimesheetLoader ? (
+            <FunnyLoader title="Carregando lançamentos" />
+          ) : showDisconnectedState ? (
+            <div className="ts-empty">
+              <strong>Sem sessão ativa</strong>
+              <span>Conecte a sessão para carregar os apontamentos do mês.</span>
+            </div>
+          ) : settings?.viewMode === 'minimal' ? (
+            <MinimalView
+              rows={rows}
+              year={year}
+              month={month}
+              busy={isBusy('lancarHora')}
+              ready={ready}
+              hoursPerDayMin={hoursPerDayMin}
+              showDiff={settings?.calendarShowDiff ?? true}
+              onUpdateRow={updateRow}
+              onLancar={(idx) => void lancar(idx)}
+            />
+          ) : (
+            <TimesheetGrid
+              rows={rows}
+              today={today}
+              hoursPerDayMin={hoursPerDayMin}
+              busy={isBusy('lancarHora')}
+              ready={ready}
+              onUpdateRow={updateRow}
+              onLancar={(idx) => void lancar(idx)}
+            />
+          )}
+        </section>
+      )}
 
       <BatchConfirmModal
         open={showBatchModal}
@@ -386,9 +429,23 @@ export function Home({ onMoodChanged, onBootReady, onStartLunchTimer }: HomeProp
         onError={(msg) => showToast({ kind: 'err', title: 'Falha ao enviar KudoCard', msg })}
       />
 
-      <KudoCardHistoryModal open={showKudoHistory} onClose={() => setShowKudoHistory(false)} />
+      <KudoCardHistoryModal
+        open={showKudoHistory}
+        initialSelectedId={kudoInicial}
+        onClose={() => {
+          setShowKudoHistory(false);
+          setKudoInicial(null);
+        }}
+      />
 
-      <AtividadesModal open={showAtividades} onClose={() => setShowAtividades(false)} />
+      <AtividadesModal
+        open={showAtividades}
+        initialSelectedId={atividadeInicial}
+        onClose={() => {
+          setShowAtividades(false);
+          setAtividadeInicial(null);
+        }}
+      />
 
       <PlanningPokerModal
         open={showPoker}

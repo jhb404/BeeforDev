@@ -6,12 +6,15 @@ import { mergeSettings } from '../../../pages/settings/defaults';
 import { DensityCard, LogoCard, ThemePresetsCard, ViewModeCard } from '../../appearance';
 import { APP_EVENTS, emitAppEvent } from '../../../app/events';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
+import { useAccess } from '../../../app/providers/AccessProvider';
 
 /** Aparência dentro do Perfil: tema, logo, densidade e modo de visualização. */
 export function AppearanceView() {
   const { settings: settingsClient, system: systemClient } = useIpc();
   const showToast = useToast();
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  // ViewMode escolhe o layout da grade de ponto — sem TimeSheet não há o que escolher.
+  const { semTimesheet } = useAccess();
 
   useEffect(() => {
     void settingsClient.get().then((s) => {
@@ -43,9 +46,13 @@ export function AppearanceView() {
 
   return (
     <section className="settings-section appearance-view">
-      <p className="settings-section__hint">VISUALIZAÇÃO | DENSIDADE | TEMAS | LOGO</p>
+      <p className="settings-section__hint">
+        {semTimesheet ? 'DENSIDADE | TEMAS | LOGO' : 'VISUALIZAÇÃO | DENSIDADE | TEMAS | LOGO'}
+      </p>
       <div className="settings-grid grid-1">
-        <ViewModeCard settings={settings} onUpdate={update} onChangeViewMode={changeViewMode} />
+        {!semTimesheet && (
+          <ViewModeCard settings={settings} onUpdate={update} onChangeViewMode={changeViewMode} />
+        )}
         <DensityCard settings={settings} onUpdate={update} />
         <ThemePresetsCard settings={settings} onUpdate={update} />
         <LogoCard settings={settings} onUpdate={update} />
