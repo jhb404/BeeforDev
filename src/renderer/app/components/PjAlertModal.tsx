@@ -8,7 +8,7 @@ interface PjAlertModalProps {
 }
 
 /**
- * Lembrete mensal de ajuste de pontos PJ.
+ * Lembrete mensal de lançamento de horas.
  * Modal central compacta — não bloqueia, só lembra com bom humor.
  */
 export function PjAlertModal({ open, body, onClose }: PjAlertModalProps) {
@@ -22,14 +22,14 @@ export function PjAlertModal({ open, body, onClose }: PjAlertModalProps) {
       <div className="pj-alert__head">
         <p className="eyebrow pj-alert__eyebrow">Lembrete mensal</p>
         <h2 id="pj-alert-title" className="pj-alert__title">
-          Ajustar Pontos
+          Lançamento de horas
         </h2>
       </div>
       <div className="pj-alert__bell" aria-hidden="true">
         🔔
       </div>
       <p className="pj-alert__body">
-        {body || 'Só te lembrando pra ajustar seu ponto...se não o dimdim não cai kk'}
+        {body || 'Só te lembrando pra lançar suas horas...se não o dimdim não cai kk'}
       </p>
       <button type="button" className="warm pj-alert__cta" onClick={onClose} data-sound="close">
         GRADECIDO!

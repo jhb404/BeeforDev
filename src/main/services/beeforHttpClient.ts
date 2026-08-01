@@ -22,6 +22,23 @@ export interface BeeforSession {
   nome?: string;
   email?: string;
   nomeOrganizacao?: string;
+  /**
+   * Pessoa tem acesso ao TimeSheet Beefor (flag `usaTimeSheetBeefor` do /Token).
+   * Quando false, toda a UI de lançamento de horas fica escondida.
+   * Default true quando a API não manda o campo (fail-open: não esconde por engano).
+   */
+  usaTimeSheetBeefor: boolean;
+  /** Pessoa usa SÓ o TimeSheet (sem mood/kudo/etc). Default false. */
+  usaSomenteTimeSheetBeefor: boolean;
+  /**
+   * Times de que a pessoa faz parte (`idsTimes` do /Token). Diferente de
+   * `/Pessoa/PegarTimesComboBox`, que lista os times da organização inteira —
+   * endpoints por time (ex.: calendário Niko) só devolvem a pessoa se o idTime
+   * for um destes.
+   */
+  idsTimes: string[];
+  /** Time favoritado da pessoa (`timeFavoritado` do /Token), se houver. */
+  timeFavoritado: string | null;
   cachedAt: number;
 }
 
@@ -92,6 +109,42 @@ export function setCredentials(usuario: string, senha: string): void {
 
 export function clearCredentials(): void {
   credentials = null;
+}
+
+/**
+ * Bool tolerante: a API pode devolver true/false, "true"/"false" ou omitir o campo.
+ * `fallback` cobre o campo ausente.
+ */
+function asBool(v: unknown, fallback: boolean): boolean {
+  if (v === true || v === 'true' || v === 'True') return true;
+  if (v === false || v === 'false' || v === 'False') return false;
+  return fallback;
+}
+
+const NULL_GUID = '00000000-0000-0000-0000-000000000000';
+
+/** Lista de GUIDs vinda da API: descarta vazios e o GUID nulo. */
+function asGuidList(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .map((it) => (typeof it === 'string' ? it.trim() : ''))
+    .filter((it) => it.length > 0 && it !== NULL_GUID);
+}
+
+/** GUID único ou null (trata '' e o GUID nulo como ausência). */
+function asGuidOrNull(v: unknown): string | null {
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  return s && s !== NULL_GUID ? s : null;
+}
+
+/**
+ * Acesso ao TimeSheet Beefor da sessão atual. Sem sessão em cache devolve `true`
+ * (fail-open) — só esconde a UI quando a API afirmou que a pessoa não usa.
+ */
+export function usaTimesheetBeefor(): boolean {
+  const s = getCachedSession();
+  return s ? s.usaTimeSheetBeefor : true;
 }
 
 export function getCachedSession(): BeeforSession | null {
@@ -177,6 +230,10 @@ function sessionFromLoginResponse(data: Record<string, unknown>): BeeforSession 
     email: typeof data?.email === 'string' ? (data.email as string) : undefined,
     nomeOrganizacao:
       typeof data?.nomeOrganizacao === 'string' ? (data.nomeOrganizacao as string) : undefined,
+    usaTimeSheetBeefor: asBool(data?.usaTimeSheetBeefor, true),
+    usaSomenteTimeSheetBeefor: asBool(data?.usaSomenteTimeSheetBeefor, false),
+    idsTimes: asGuidList(data?.idsTimes),
+    timeFavoritado: asGuidOrNull(data?.timeFavoritado),
     cachedAt: Date.now(),
   };
 }
@@ -455,6 +512,17 @@ export async function trocarOrganizacaoToken(idOrganizacao: string): Promise<Bee
     email: typeof raw?.email === 'string' ? (raw.email as string) : current.email,
     nomeOrganizacao:
       typeof raw?.nomeOrganizacao === 'string' ? (raw.nomeOrganizacao as string) : undefined,
+    // Flag é por organização: a org nova pode não usar TimeSheet. Se o VM não trouxer
+    // o campo, mantém o valor da sessão anterior.
+    usaTimeSheetBeefor: asBool(raw?.usaTimeSheetBeefor, current.usaTimeSheetBeefor),
+    usaSomenteTimeSheetBeefor: asBool(
+      raw?.usaSomenteTimeSheetBeefor,
+      current.usaSomenteTimeSheetBeefor,
+    ),
+    // Times são por organização — a org nova tem os seus. Sem o campo, zera em vez
+    // de herdar ids que não existem na org destino.
+    idsTimes: asGuidList(raw?.idsTimes),
+    timeFavoritado: asGuidOrNull(raw?.timeFavoritado),
     cachedAt: Date.now(),
   };
 

@@ -1,5 +1,5 @@
 import type { AppSettings } from '@shared/types/index';
-import { PUNCH_LABELS } from '../defaults';
+import { PUNCH_ICONS, PUNCH_LABELS } from '../defaults';
 import { Switch } from '../Switch';
 
 interface PunchCardProps {
@@ -9,11 +9,15 @@ interface PunchCardProps {
   onTest: () => void;
 }
 
+/**
+ * Alerta DIÁRIO de lançamento de horas — só notifica nos horários configurados;
+ * o lançamento em si é feito pela pessoa. O lembrete MENSAL fica no `PjCard`.
+ */
 export function PunchCard({ settings, onUpdate, onUpdatePunchTime, onTest }: PunchCardProps) {
   return (
     <div className="card">
       <div className="row between" style={{ marginBottom: 8 }}>
-        <h2 style={{ margin: 0 }}>AUTOMATIZAR BATIDA DE PONTO</h2>
+        <h2 style={{ margin: 0 }}>Alerta de lançamento de horas (diário)</h2>
         <button className="secondary compact" onClick={onTest}>
           Testar
         </button>
@@ -22,12 +26,17 @@ export function PunchCard({ settings, onUpdate, onUpdatePunchTime, onTest }: Pun
         id="automatePunch"
         checked={settings.automatePunch}
         onChange={(v) => onUpdate('automatePunch', v)}
-        label="Ativar batida automática"
+        label="Ativar alerta de lançamento de horas"
       />
+      <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '2px 0 8px' }}>
+        Avisa nos horários abaixo para você lançar as horas no Beefor.
+      </p>
       <div className="punch-grid">
         {PUNCH_LABELS.map((lab, i) => (
           <div className="field" key={lab}>
-            <label className="label">{lab}</label>
+            <label className="label">
+              {PUNCH_ICONS[i]} {lab}
+            </label>
             <input
               type="time"
               disabled={!settings.automatePunch}
@@ -36,23 +45,6 @@ export function PunchCard({ settings, onUpdate, onUpdatePunchTime, onTest }: Pun
             />
           </div>
         ))}
-      </div>
-      <div className="field" style={{ marginTop: 10 }}>
-        <label className="label">Variação aleatória diária (± minutos)</label>
-        <input
-          type="number"
-          min={0}
-          max={60}
-          disabled={!settings.automatePunch}
-          value={settings.punchDriftMinutes}
-          onChange={(e) =>
-            onUpdate('punchDriftMinutes', Math.max(0, Number(e.target.value) || 0))
-          }
-        />
-        <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 6 }}>
-          Cada dia recebe um deslocamento aleatório (em minutos) somado/subtraído
-          de cada horário base, pra simular variação natural.
-        </p>
       </div>
     </div>
   );

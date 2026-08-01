@@ -6,10 +6,12 @@ type AlarmKind = 'mood' | 'lunch' | 'punch' | 'kudocard' | 'pj' | 'default';
 
 function classifyAlarm(title: string): AlarmKind {
   // TODO: remove title fallback after one release with `evt:playAlarm.kind` in main.
+  // Diário e mensal compartilham "Lançamento de horas" no título: o diário sempre
+  // traz "— <horário>", então ele é testado primeiro.
   if (title.includes('Mood')) return 'mood';
-  if (title.includes('almoço') || title.includes('Almoço')) return 'lunch';
-  if (title.includes('PJ') || title.includes('Ajustar Pontos')) return 'pj';
-  if (title.includes('Ponto')) return 'punch';
+  if (title.includes('Intervalo') || title.includes('intervalo')) return 'lunch';
+  if (title.includes('Lançamento de horas —')) return 'punch';
+  if (title.includes('Lançamento de horas')) return 'pj';
   if (title.includes('Kudocard') || title.includes('kudocard')) return 'kudocard';
   return 'default';
 }

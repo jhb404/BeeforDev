@@ -5,7 +5,17 @@ import { IPC } from '../../shared/ipc/index';
 import { getTrayIcon } from '../window';
 import { loadSettings } from '../sessionStore';
 import { runAutoLancamentoFromTray, runMoodFromTray } from './trayActions';
+import { usaTimesheetBeefor } from '../services/beeforHttpClient';
 import { logger } from '../logger';
+
+/** Itens do tray que só fazem sentido com acesso ao TimeSheet Beefor. */
+const TIMESHEET_TRAY_ITEMS = new Set<TrayMenuItem['type']>(['autoLancamento', 'lunchTimer']);
+
+/** Remove ações de lançamento de horas quando a pessoa não usa TimeSheet Beefor. */
+function filterByAccess(items: TrayMenuItem[]): TrayMenuItem[] {
+  if (usaTimesheetBeefor()) return items;
+  return items.filter((item) => !TIMESHEET_TRAY_ITEMS.has(item.type));
+}
 
 interface TrayOptions {
   variant?: 'orange' | 'purple';
@@ -19,7 +29,7 @@ let lastOpts: TrayOptions | null = null;
 let lunchTimerActive = false;
 
 function buildMenuTemplate(items: TrayMenuItem[], opts: TrayOptions): MenuItemConstructorOptions[] {
-  return items.map((item) => {
+  return filterByAccess(items).map((item) => {
     switch (item.type) {
       case 'open':
         return { label: 'Abrir', click: () => opts.onShowWindow() };
@@ -52,7 +62,7 @@ function buildMenuTemplate(items: TrayMenuItem[], opts: TrayOptions): MenuItemCo
         };
       case 'lunchTimer':
         return {
-          label: lunchTimerActive ? '⏱ Timer ativo...' : 'Timer de almoço (1h)',
+          label: lunchTimerActive ? '⏱ Timer ativo...' : 'Timer de intervalo (1h)',
           enabled: !lunchTimerActive,
           click: () => opts.getWindow()?.webContents.send(IPC.EVT_TRAY_LUNCH_TIMER),
         };

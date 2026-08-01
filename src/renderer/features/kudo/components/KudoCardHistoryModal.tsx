@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ModalShell } from '../../../components/ui/ModalShell';
 import { KUDO_CARD_EMOJI, KUDO_CARD_LABELS, KUDO_CARD_TYPE_BY_TIPO } from '@shared/types/index';
 import { FunnyLoader } from '../../../components/common/FunnyLoader';
@@ -10,6 +10,8 @@ type Tab = 'recebidos' | 'enviados';
 interface Props {
   open: boolean;
   onClose: () => void;
+  /** Kudo a abrir já selecionado — usado pelo card da Home. */
+  initialSelectedId?: string | null;
 }
 
 function formatDate(iso: string): string {
@@ -34,13 +36,25 @@ function labelOf(tipo: number): string {
   return t ? KUDO_CARD_LABELS[t] : `Tipo ${tipo}`;
 }
 
-export function KudoCardHistoryModal({ open, onClose }: Props) {
+export function KudoCardHistoryModal({ open, onClose, initialSelectedId }: Props) {
   const [tab, setTab] = useState<Tab>('recebidos');
   const { counts, lists, loading, errMsg, selected, setSelected, detail, loadingDetail } =
     useKudoHistory(open);
 
   const slowHint = useSlowHint(loading);
   const slowDetailHint = useSlowHint(loadingDetail);
+
+  // Seleção inicial: espera as listas e procura nas duas abas (o id pode ser enviado).
+  useEffect(() => {
+    if (!open || !initialSelectedId || !lists) return;
+    const naRecebidos = lists.recebidos.find((k) => k.id === initialSelectedId);
+    const alvo = naRecebidos ?? lists.enviados.find((k) => k.id === initialSelectedId);
+    if (!alvo) return;
+    setTab(naRecebidos ? 'recebidos' : 'enviados');
+    setSelected(alvo);
+    // setSelected vem do hook e é estável; incluir causaria loop com a seleção manual.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialSelectedId, lists, open]);
 
   const items = lists ? lists[tab] : [];
 

@@ -11,7 +11,7 @@ export function LunchCard({ settings, onUpdate, onTest }: LunchCardProps) {
   return (
     <div className="card">
       <div className="row between" style={{ marginBottom: 8 }}>
-        <h2 style={{ margin: 0 }}>Alerta ALMOÇO</h2>
+        <h2 style={{ margin: 0 }}>🍽️ Alerta de intervalo</h2>
         <button className="secondary compact" onClick={onTest}>
           Testar
         </button>
@@ -20,10 +20,10 @@ export function LunchCard({ settings, onUpdate, onTest }: LunchCardProps) {
         id="lunchAlarm"
         checked={settings.lunchAlarm}
         onChange={(v) => onUpdate('lunchAlarm', v)}
-        label="Alarme de almoço"
+        label="Ativar alerta de intervalo"
       />
       <div className="field">
-        <label className="label">Horário do alarme</label>
+        <label className="label">Horário do intervalo</label>
         <input
           type="time"
           disabled={!settings.lunchAlarm}

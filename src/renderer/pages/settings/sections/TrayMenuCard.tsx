@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { AppSettings, TrayMenuItem, TrayMenuItemType } from '@shared/types/index';
 import { DEFAULT_TRAY_MENU } from '@shared/types/index';
+import { useAccess } from '../../../app/providers/AccessProvider';
 
 interface TrayMenuCardProps {
   settings: AppSettings;
@@ -15,7 +16,7 @@ const LABELS: Record<TrayMenuItemType, string> = {
   logout: '🚪 Logout',
   separator: '— Divisor —',
   quit: '❌ Sair',
-  lunchTimer: '🍽️ Timer de almoço (1h)',
+  lunchTimer: '🍽️ Timer de intervalo (1h)',
   sendKudo: '🏆 Enviar KudoCard',
   sendCoins: '🪙 Enviar coins',
 };
@@ -33,15 +34,24 @@ const AVAILABLE_TYPES: TrayMenuItemType[] = [
   'quit',
 ];
 
+/** Itens que dependem do TimeSheet Beefor — o main também os filtra do menu real. */
+const TIMESHEET_TYPES = new Set<TrayMenuItemType>(['autoLancamento', 'lunchTimer']);
+
 let nextId = 1000;
 function genId(): string {
   return String(++nextId);
 }
 
 export function TrayMenuCard({ settings, onUpdate }: TrayMenuCardProps) {
+  const { semTimesheet } = useAccess();
   const current =
     settings.trayMenu && settings.trayMenu.length > 0 ? settings.trayMenu : DEFAULT_TRAY_MENU;
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  // Mantém o índice original: remover/reordenar opera no array salvo, não no filtrado.
+  const visible = current
+    .map((item, idx) => ({ item, idx }))
+    .filter(({ item }) => !semTimesheet || !TIMESHEET_TYPES.has(item.type));
+  const addableTypes = AVAILABLE_TYPES.filter((t) => !semTimesheet || !TIMESHEET_TYPES.has(t));
 
   const update = (next: TrayMenuItem[]) => onUpdate('trayMenu', next);
 
@@ -68,7 +78,7 @@ export function TrayMenuCard({ settings, onUpdate }: TrayMenuCardProps) {
       </p>
 
       <ul className="tray-menu-list">
-        {current.map((item, idx) => (
+        {visible.map(({ item, idx }) => (
           <li
             key={item.id}
             className={`tray-menu-item ${dragIdx === idx ? 'tray-menu-item--dragging' : ''}`}
@@ -111,7 +121,7 @@ export function TrayMenuCard({ settings, onUpdate }: TrayMenuCardProps) {
           }}
         >
           <option value="">+ Adicionar item...</option>
-          {AVAILABLE_TYPES.map((t) => (
+          {addableTypes.map((t) => (
             <option key={t} value={t}>
               {LABELS[t]}
             </option>

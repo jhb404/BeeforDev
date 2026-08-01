@@ -6,7 +6,7 @@
  */
 
 export type XpAction =
-  | 'punch-day' // bateu ponto no dia
+  | 'punch-day' // lançou horas no dia
   | 'mood-day' // colocou mood no dia
   | 'kudo-sent' // enviou kudocard
   | 'auto-lancamento' // rodou auto lançamento
@@ -15,7 +15,7 @@ export type XpAction =
   | 'open-app'; // primeira abertura do dia
 
 export const XP_REWARDS: Record<XpAction, { xp: number; label: string; hint: string }> = {
-  'punch-day': { xp: 20, label: 'Bater ponto', hint: 'Lança ao menos 1 horário no dia' },
+  'punch-day': { xp: 20, label: 'Lançar horas', hint: 'Lança ao menos 1 horário no dia' },
   'mood-day': { xp: 10, label: 'Mood diário', hint: 'Registra como você está hoje' },
   'kudo-sent': { xp: 40, label: 'Enviar KudoCard', hint: 'Reconhecer alguém do time' },
   'auto-lancamento': { xp: 30, label: 'Auto lançamento', hint: 'Lança o mês inteiro de uma vez' },

@@ -12,9 +12,14 @@ import { TIPO_ICON, TIPO_LABEL } from '../utils/atividadeDisplay';
 interface Props {
   open: boolean;
   onClose: () => void;
+  /**
+   * Card a abrir já selecionado (drawer aberto). Usado pelo card da Home: clicar
+   * numa tarefa da prévia deve cair direto no detalhe, não só abrir a lista.
+   */
+  initialSelectedId?: string | null;
 }
 
-export function AtividadesModal({ open, onClose }: Props) {
+export function AtividadesModal({ open, onClose, initialSelectedId }: Props) {
   const { atividades: atividadesClient } = useIpc();
   const [atividades, setAtividades] = useState<BeeforAtividade[]>([]);
   const [loading, setLoading] = useState(false);
@@ -45,6 +50,18 @@ export function AtividadesModal({ open, onClose }: Props) {
     playUiSound('activity-open');
     doFetch();
   }, [doFetch, open]);
+
+  // Seleção inicial só depois da lista chegar (o id vem de fora, sem o objeto).
+  useEffect(() => {
+    if (!open || !initialSelectedId) return;
+    const alvo = atividades.find((a) => a.id === initialSelectedId);
+    if (alvo) setSelected((current) => current ?? alvo);
+  }, [atividades, initialSelectedId, open]);
+
+  // Fechar limpa a seleção — reabrir sem id não deve herdar o anterior.
+  useEffect(() => {
+    if (!open) setSelected(null);
+  }, [open]);
 
   const tipos = [...new Set(atividades.map((a) => a.tipo))].sort();
   const filtered = atividades.filter((a) => {

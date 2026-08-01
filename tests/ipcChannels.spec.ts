@@ -64,6 +64,7 @@ const EXPECTED_IPC = {
   API_MOOD_ADD: 'api:moodAdd',
   API_MOOD_EDIT: 'api:moodEdit',
   API_MOOD_STREAK_ORG: 'api:moodStreakOrg',
+  API_MOOD_CALENDAR: 'api:moodCalendar',
   API_KUDO_SEND: 'api:kudoSend',
   API_KUDO_COUNTS: 'api:kudoCounts',
   API_KUDO_LISTS: 'api:kudoLists',

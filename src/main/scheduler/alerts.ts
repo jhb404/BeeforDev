@@ -1,8 +1,9 @@
 import { loadSettings } from '../sessionStore';
 import type { TodayAlert } from '../../shared/types/index';
 import { isWeekend } from './time';
-import { applyDailyDrift } from './drift';
 import { ensureKudocardSchedule } from './schedulePersist';
+import { usaTimesheetBeefor } from '../services/beeforHttpClient';
+import { LANCAMENTO_ICONS, LANCAMENTO_LABELS } from './labels';
 
 /** Returns alerts scheduled for today based on current settings. */
 export async function getTodayAlerts(): Promise<TodayAlert[]> {
@@ -10,10 +11,12 @@ export async function getTodayAlerts(): Promise<TodayAlert[]> {
   const now = new Date();
   const todayDay = now.getDate();
   const weekend = isWeekend();
+  // Sem acesso ao TimeSheet: nada de lançamento de horas/intervalo. Mood e Kudocard continuam.
+  const ts = usaTimesheetBeefor();
   const alerts: TodayAlert[] = [];
 
   if (!weekend) {
-    if (s.moodNotification || s.moodAlarm) {
+    if (s.moodNotification) {
       alerts.push({
         kind: 'mood',
         title: '😊 Mood do dia',
@@ -22,25 +25,22 @@ export async function getTodayAlerts(): Promise<TodayAlert[]> {
       });
     }
 
-    if (s.lunchAlarm) {
+    if (s.lunchAlarm && ts) {
       alerts.push({
         kind: 'lunch',
-        title: '🍽️ Almoço',
-        body: 'Lembrete de almoço.',
+        title: '🍽️ Intervalo',
+        body: 'Lembrete de intervalo.',
         time: s.lunchAlarmTime,
       });
     }
 
-    if (s.automatePunch) {
-      const labels = ['Entrada', 'Saída p/ almoço', 'Retorno', 'Saída'];
-      const icons = ['🟢', '🟡', '🔵', '🔴'];
-      s.punchTimes.forEach((base, idx) => {
-        if (!base) return;
-        const time = applyDailyDrift(base, s.punchDriftMinutes, idx);
+    if (s.automatePunch && ts) {
+      s.punchTimes.forEach((time, idx) => {
+        if (!time) return;
         alerts.push({
           kind: 'punch',
-          title: `${icons[idx]} Ponto — ${labels[idx]}`,
-          body: `Bater ponto às ${time}.`,
+          title: `${LANCAMENTO_ICONS[idx]} Lançamento de horas — ${LANCAMENTO_LABELS[idx]}`,
+          body: `Lançar ${LANCAMENTO_LABELS[idx]} às ${time}.`,
           time,
         });
       });
@@ -60,14 +60,14 @@ export async function getTodayAlerts(): Promise<TodayAlert[]> {
     }
   }
 
-  // PJ — independente de fim de semana, só no dia configurado (clamp p/ último dia do mês)
-  if (s.pjAlarm) {
+  // Mensal — independente de fim de semana, só no dia configurado (clamp p/ último dia do mês)
+  if (s.pjAlarm && ts) {
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     if (todayDay === Math.min(s.pjAlarmDay, lastDay)) {
       alerts.push({
         kind: 'pj',
-        title: '🧾 Ajustar Pontos (PJ)',
-        body: 'Hoje é dia de ajustar os pontos no Beefor!',
+        title: '🧾 Lançamento de horas',
+        body: 'Hoje é dia de lançar suas horas no Beefor!',
         time: s.pjAlarmTime,
       });
     }

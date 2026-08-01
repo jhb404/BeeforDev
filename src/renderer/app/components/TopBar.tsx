@@ -34,6 +34,8 @@ interface TopBarProps {
   profileInitials?: string;
   coin2uForceOpen?: boolean;
   onCoin2uForceOpenConsumed?: () => void;
+  /** false quando a pessoa não usa TimeSheet Beefor — esconde o timer de intervalo. */
+  showLunchTimer?: boolean;
   lunchTimerActive?: boolean;
   lunchStartedAt?: number | null;
   onCancelLunchTimer?: () => void;
@@ -59,6 +61,7 @@ export function TopBar({
   profileInitials,
   coin2uForceOpen,
   onCoin2uForceOpenConsumed,
+  showLunchTimer = true,
   lunchTimerActive = false,
   lunchStartedAt = null,
   onCancelLunchTimer,
@@ -95,11 +98,13 @@ export function TopBar({
       </div>
 
       <div className="topbar-actions">
-        <LunchTimerWidget
-          active={lunchTimerActive}
-          startedAt={lunchStartedAt}
-          onCancel={onCancelLunchTimer ?? (() => undefined)}
-        />
+        {showLunchTimer && (
+          <LunchTimerWidget
+            active={lunchTimerActive}
+            startedAt={lunchStartedAt}
+            onCancel={onCancelLunchTimer ?? (() => undefined)}
+          />
+        )}
 
         <button
           type="button"

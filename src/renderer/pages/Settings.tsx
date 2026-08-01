@@ -13,6 +13,7 @@ import { PjCard } from './settings/sections/PjCard';
 import { PunchCard } from './settings/sections/PunchCard';
 import { SecurityCard } from './settings/sections/SecurityCard';
 import { TrayMenuCard } from './settings/sections/TrayMenuCard';
+import { useAccess } from '../app/providers/AccessProvider';
 import { useAdminElevation } from './settings/hooks/useAdminElevation';
 import { useAppSettings } from './settings/hooks/useAppSettings';
 import { useCoin2uCredentials } from './settings/hooks/useCoin2uCredentials';
@@ -21,16 +22,24 @@ import { getError } from '@shared/result';
 
 type SettingsCategory = 'geral' | 'alertas' | 'seguranca';
 
-const CATEGORIES: Array<{
+/** `semTimesheet` = pessoa sem acesso ao TimeSheet: sem lançamento de horas/intervalo. */
+function buildCategories(semTimesheet: boolean): Array<{
   id: SettingsCategory;
   label: string;
   Icon: LucideIcon;
   hint: string;
-}> = [
-  { id: 'geral', label: 'Geral', Icon: SettingsIcon, hint: 'Configuração geral, jornada, tray' },
-  { id: 'alertas', label: 'Alertas', Icon: Bell, hint: 'Ponto, mood, almoço, KudoCard' },
-  { id: 'seguranca', label: 'Segurança', Icon: Lock, hint: 'Credenciais, Coin2U, sessão' },
-];
+}> {
+  return [
+    { id: 'geral', label: 'Geral', Icon: SettingsIcon, hint: 'Configuração geral, jornada, tray' },
+    {
+      id: 'alertas',
+      label: 'Alertas',
+      Icon: Bell,
+      hint: semTimesheet ? 'Mood, KudoCard' : 'Lançamento de horas, mood, intervalo, KudoCard',
+    },
+    { id: 'seguranca', label: 'Segurança', Icon: Lock, hint: 'Credenciais, Coin2U, sessão' },
+  ];
+}
 
 export function Settings() {
   const { system: systemClient } = useIpc();
@@ -41,11 +50,12 @@ export function Settings() {
   const coin2u = useCoin2uCredentials();
   const elevation = useAdminElevation();
   const { settings, update, updatePunchTime, toggleKudocardDay } = useAppSettings();
+  const { semTimesheet } = useAccess();
+  const CATEGORIES = buildCategories(semTimesheet);
 
   const needsAdmin =
     (settings.automatePunch ||
       settings.lunchAlarm ||
-      settings.moodAlarm ||
       settings.moodNotification ||
       settings.kudocardNotification ||
       settings.pjAlarm) &&
@@ -113,25 +123,32 @@ export function Settings() {
 
         {category === 'alertas' && (
           <div className="settings-grid grid-2">
-            <PunchCard
-              settings={settings}
-              onUpdate={update}
-              onUpdatePunchTime={updatePunchTime}
-              onTest={() => void testNotif('punch')}
-            />
+            {/* Lançamento de horas e intervalo só existem com TimeSheet Beefor. */}
+            {!semTimesheet && (
+              <PunchCard
+                settings={settings}
+                onUpdate={update}
+                onUpdatePunchTime={updatePunchTime}
+                onTest={() => void testNotif('punch')}
+              />
+            )}
             <MoodCard settings={settings} onUpdate={update} onTest={() => void testNotif('mood')} />
-            <LunchCard
-              settings={settings}
-              onUpdate={update}
-              onTest={() => void testNotif('lunch')}
-            />
+            {!semTimesheet && (
+              <LunchCard
+                settings={settings}
+                onUpdate={update}
+                onTest={() => void testNotif('lunch')}
+              />
+            )}
             <KudoCardSettings
               settings={settings}
               onUpdate={update}
               onToggleDay={toggleKudocardDay}
               onTest={() => void testNotif('kudocard')}
             />
-            <PjCard settings={settings} onUpdate={update} onTest={() => void testNotif('pj')} />
+            {!semTimesheet && (
+              <PjCard settings={settings} onUpdate={update} onTest={() => void testNotif('pj')} />
+            )}
           </div>
         )}
 

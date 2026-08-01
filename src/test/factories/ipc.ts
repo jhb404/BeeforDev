@@ -30,6 +30,7 @@ export function createFakeIpcClients(overrides: Partial<IpcClients> = {}): IpcCl
     mood: {
       select: vi.fn(async () => okVoid()),
       getCurrent: vi.fn(async () => okData<string | null>(null)),
+      getCalendar: vi.fn(async () => okData([])),
     },
     kudo: {
       send: vi.fn(async () => okData({ success: true, message: 'ok' })),
@@ -114,12 +115,10 @@ export function defaultSettings() {
     autoLoginOnLaunch: true,
     automatePunch: false,
     punchTimes: ['08:00', '12:00', '13:00', '17:00'] as [string, string, string, string],
-    punchDriftMinutes: 0,
     lunchAlarm: false,
     lunchAlarmTime: '12:00',
     moodNotification: false,
     moodNotificationTime: '09:00',
-    moodAlarm: false,
     kudocardNotification: false,
     kudocardFrequency: 'once' as const,
     kudocardDays: [],

@@ -14,6 +14,7 @@ import {
   addMood,
   editMood,
   getMoodStreakOrganizacao,
+  getMoodCalendario,
 } from '../../services/beeforMoodService';
 import {
   sendKudoCard,
@@ -104,6 +105,16 @@ const dateRangeSchema = z.object({
   dataFim: z.string().optional(),
   topN: z.number().int().min(1).max(200).optional(),
 });
+
+// Calendário Niko: um dos dois ids é obrigatório (time OU grupo).
+const moodCalendarSchema = z
+  .object({
+    idTime: z.string().min(1).max(64).optional(),
+    idGrupo: z.string().min(1).max(64).optional(),
+    mes: z.number().int().min(1).max(12),
+    ano: z.number().int().min(2000).max(2100),
+  })
+  .refine((v) => !!v.idTime || !!v.idGrupo, { message: 'idTime ou idGrupo obrigatório' });
 
 const monthArgs = z.tuple([z.number().int().min(2000).max(2100), z.number().int().min(1).max(12)]);
 
@@ -223,6 +234,10 @@ export function registerBeeforApiHandlers(): void {
         idOrganizacao: s.idOrganizacao,
         nome: s.nome,
         email: s.email,
+        usaTimeSheetBeefor: s.usaTimeSheetBeefor,
+        usaSomenteTimeSheetBeefor: s.usaSomenteTimeSheetBeefor,
+        idsTimes: s.idsTimes,
+        timeFavoritado: s.timeFavoritado,
       });
     },
   });
@@ -254,6 +269,13 @@ export function registerBeeforApiHandlers(): void {
     errorMessage: 'Mood streak org failed',
     run: async ({ data }) =>
       ok(await getMoodStreakOrganizacao(data.dataInicio, data.dataFim, data.topN ?? 30)),
+  });
+
+  defineHandler({
+    channel: IPC.API_MOOD_CALENDAR,
+    schema: moodCalendarSchema,
+    errorMessage: 'Mood calendar failed',
+    run: async ({ data }) => ok(await getMoodCalendario(data)),
   });
 
   // ─── KudoCard ───────────────────────────────────────────

@@ -5,8 +5,9 @@ import type { AppSettings } from '../../shared/types/index';
 import { nowHHMM, isWeekend } from './time';
 import { alreadyFired, markFired } from './firedState';
 import { notify } from './notify';
-import { applyDailyDrift } from './drift';
 import { ensureKudocardSchedule } from './schedulePersist';
+import { usaTimesheetBeefor } from '../services/beeforHttpClient';
+import { LANCAMENTO_ICONS, LANCAMENTO_LABELS } from './labels';
 
 export { getTodayAlerts } from './alerts';
 
@@ -28,29 +29,21 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
   const hhmm = nowHHMM();
   const weekend = isWeekend();
   const todayDay = new Date().getDate();
+  // Pessoa sem TimeSheet Beefor não recebe lembrete de lançamento de horas/intervalo.
+  const ts = usaTimesheetBeefor();
 
-  // Mood
-  if (
-    (s.moodNotification || s.moodAlarm) &&
-    s.moodNotificationTime === hhmm &&
-    !alreadyFired('mood')
-  ) {
+  // Mood — o som acompanha a notificação, igual aos outros alertas.
+  if (s.moodNotification && s.moodNotificationTime === hhmm && !alreadyFired('mood')) {
     if (!weekend) {
-      notify(
-        win,
-        '😊 Mood do dia',
-        'Não esquece de marcar seu mood no Beefor!',
-        s.moodAlarm,
-        'mood',
-      );
+      notify(win, '😊 Mood do dia', 'Não esquece de marcar seu mood no Beefor!', true, 'mood');
       markFired('mood');
     }
   }
 
-  // Lunch
-  if (s.lunchAlarm && s.lunchAlarmTime === hhmm && !alreadyFired('lunch')) {
+  // Intervalo
+  if (ts && s.lunchAlarm && s.lunchAlarmTime === hhmm && !alreadyFired('lunch')) {
     if (!weekend) {
-      notify(win, '🍽️ Hora do almoço', 'Bom apetite! Lembra de bater o ponto.', true, 'lunch');
+      notify(win, '🍽️ Hora do intervalo', 'Lembra de lançar o intervalo no Beefor.', true, 'lunch');
       markFired('lunch');
     }
   }
@@ -71,15 +64,15 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
     }
   }
 
-  // PJ — Ajustar Pontos: dispara num dia fixo do mês (clamp p/ último dia se mês curto)
-  if (s.pjAlarm && s.pjAlarmTime === hhmm && !alreadyFired('pj')) {
+  // Mensal — lembrete de lançar as horas do mês, num dia fixo (clamp p/ último dia se mês curto)
+  if (ts && s.pjAlarm && s.pjAlarmTime === hhmm && !alreadyFired('pj')) {
     const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
     const targetDay = Math.min(s.pjAlarmDay, lastDay);
     if (todayDay === targetDay) {
       notify(
         win,
-        '🧾 Ajustar Pontos (PJ)',
-        'Hoje é dia de ajustar os pontos no Beefor!',
+        '🧾 Lançamento de horas',
+        'Hoje é dia de lançar suas horas no Beefor!',
         true,
         'pj',
       );
@@ -87,23 +80,20 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
     }
   }
 
-  // Punch — only notif (real punch click left for future implementation)
-  if (s.automatePunch && !weekend) {
-    s.punchTimes.forEach((base, idx) => {
-      if (!base) return;
-      const driftedKey = `punch-${idx}`;
-      const target = applyDailyDrift(base, s.punchDriftMinutes, idx);
-      if (target === hhmm && !alreadyFired(driftedKey)) {
-        const labels = ['Entrada', 'Saída p/ almoço', 'Retorno do almoço', 'Saída'];
-        const icons = ['🟢', '🟡', '🔵', '🔴'];
+  // Alerta diário — só notificação; o lançamento em si é feito pela pessoa.
+  if (ts && s.automatePunch && !weekend) {
+    s.punchTimes.forEach((target, idx) => {
+      if (!target) return;
+      const key = `punch-${idx}`;
+      if (target === hhmm && !alreadyFired(key)) {
         notify(
           win,
-          `${icons[idx]} Ponto — ${labels[idx]}`,
-          `Hora de bater o ponto (${target})`,
+          `${LANCAMENTO_ICONS[idx]} Lançamento de horas — ${LANCAMENTO_LABELS[idx]}`,
+          `Hora de lançar ${LANCAMENTO_LABELS[idx]} (${target}).`,
           true,
           'punch',
         );
-        markFired(driftedKey);
+        markFired(key);
       }
     });
   }
@@ -136,8 +126,8 @@ export function fireTestNotification(
       alarm: true,
     },
     lunch: {
-      title: '🍽️ Hora do almoço',
-      body: 'Bom apetite! Lembra de bater o ponto.',
+      title: '🍽️ Hora do intervalo',
+      body: 'Lembra de lançar o intervalo no Beefor.',
       alarm: true,
     },
     kudocard: {
@@ -145,10 +135,14 @@ export function fireTestNotification(
       body: 'Hoje é dia de reconhecer alguém — manda um kudocard!',
       alarm: true,
     },
-    punch: { title: '🟢 Ponto — Entrada', body: 'Hora de bater o ponto.', alarm: true },
+    punch: {
+      title: `${LANCAMENTO_ICONS[0]} Lançamento de horas — ${LANCAMENTO_LABELS[0]}`,
+      body: `Hora de lançar ${LANCAMENTO_LABELS[0]}.`,
+      alarm: true,
+    },
     pj: {
-      title: '🧾 Ajustar Pontos (PJ)',
-      body: 'Hoje é dia de ajustar os pontos no Beefor!',
+      title: '🧾 Lançamento de horas',
+      body: 'Hoje é dia de lançar suas horas no Beefor!',
       alarm: true,
     },
   };

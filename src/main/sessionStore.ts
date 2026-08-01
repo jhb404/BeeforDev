@@ -35,14 +35,12 @@ const DEFAULT_SETTINGS: AppSettings = {
 
   automatePunch: false,
   punchTimes: ['09:00', '12:00', '13:00', '18:00'],
-  punchDriftMinutes: 10,
 
   lunchAlarm: false,
   lunchAlarmTime: '12:00',
 
   moodNotification: false,
   moodNotificationTime: '09:30',
-  moodAlarm: false,
 
   kudocardNotification: false,
   kudocardFrequency: 'once',
@@ -84,12 +82,25 @@ export async function clearSession(): Promise<void> {
   }
 }
 
+/**
+ * Migra settings antigos.
+ * - `moodAlarm` foi removido: o som agora acompanha a notificação, como nos demais
+ *   alertas. Quem tinha só o alarme ligado (sem `moodNotification`) continuaria
+ *   sendo avisado, então promovemos o valor antes de descartar a chave.
+ * - `punchDriftMinutes` (variação aleatória) foi removido e é só descartado.
+ */
+function migrateSettings(parsed: Record<string, unknown>): Record<string, unknown> {
+  const { moodAlarm, punchDriftMinutes: _drift, ...rest } = parsed;
+  if (moodAlarm === true) rest.moodNotification = true;
+  return rest;
+}
+
 export async function loadSettings(): Promise<AppSettings> {
   const journal = await readPatchJournal();
   let merged: AppSettings;
   try {
     const raw = await fs.readFile(settingsPath(), 'utf-8');
-    const parsed = JSON.parse(raw);
+    const parsed = migrateSettings(JSON.parse(raw));
     merged = { ...DEFAULT_SETTINGS, ...parsed, patchJournal: journal };
   } catch {
     merged = { ...DEFAULT_SETTINGS, patchJournal: journal };

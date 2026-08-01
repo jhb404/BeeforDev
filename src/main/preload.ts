@@ -18,6 +18,8 @@ import type {
   KudoCardRecipientType,
   KudoSearchResult,
   Mood,
+  MoodCalendarPessoa,
+  MoodCalendarQuery,
   SendKudoCardRequest,
   SendKudoCardResult,
   SessionStatus,
@@ -206,6 +208,12 @@ const httpApi = {
       idOrganizacao: string | null;
       nome?: string;
       email?: string;
+      /** false → sem acesso ao TimeSheet: esconder toda UI de lançamento de horas. */
+      usaTimeSheetBeefor: boolean;
+      usaSomenteTimeSheetBeefor: boolean;
+      /** Times DA PESSOA (não da org) — use para endpoints por time. */
+      idsTimes: string[];
+      timeFavoritado: string | null;
     } | null>
   > => ipcRenderer.invoke(IPC.API_SESSION_INFO),
 
@@ -222,6 +230,9 @@ const httpApi = {
       ipcRenderer.invoke(IPC.API_MOOD_EDIT, { idSentimentoPessoa, mood }),
     streakOrg: (dataInicio?: string, dataFim?: string, topN: number = 30): Promise<ActionResult> =>
       ipcRenderer.invoke(IPC.API_MOOD_STREAK_ORG, { dataInicio, dataFim, topN }),
+    /** Calendário Niko do mês (mood dia a dia do time/grupo). */
+    calendar: (query: MoodCalendarQuery): Promise<ActionResult<MoodCalendarPessoa[]>> =>
+      ipcRenderer.invoke(IPC.API_MOOD_CALENDAR, query),
   },
 
   // KudoCard
