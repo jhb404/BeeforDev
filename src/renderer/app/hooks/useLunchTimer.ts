@@ -3,7 +3,10 @@ import { useIpc } from '../../services/ipc';
 import { playAlarmByKind } from '../../utils/alarm';
 
 interface ToastFn {
-  (toast: { kind: 'ok' | 'err'; title?: string; msg: string; persistent?: boolean }, ttl?: number): void;
+  (
+    toast: { kind: 'ok' | 'err'; title?: string; msg: string; persistent?: boolean },
+    ttl?: number,
+  ): void;
 }
 
 export function useLunchTimer(showToast: ToastFn) {
@@ -24,14 +27,18 @@ export function useLunchTimer(showToast: ToastFn) {
     setLunchStartedAt(now);
     systemClient.setLunchTimerActive(true);
     void playAlarmByKind('lunch');
-    void systemClient.notifyWindows('🍽️ Alerta Almoço', 'Timer de 1h iniciado. Bom apetite!');
-    showToast({ kind: 'ok', msg: 'Timer de almoço iniciado — 1 hora.' });
+    void systemClient.notifyWindows('🍽️ Intervalo', 'Timer de 1h iniciado.');
+    showToast({ kind: 'ok', msg: 'Timer de intervalo iniciado — 1 hora.' });
     lunchTimerRef.current = setTimeout(
       () => {
         setLunchTimerActive(false);
         setLunchStartedAt(null);
         systemClient.setLunchTimerActive(false);
-        showToast({ kind: 'ok', title: 'Almoço encerrado!', msg: 'Já passou 1 hora de almoço.' });
+        showToast({
+          kind: 'ok',
+          title: 'Intervalo encerrado!',
+          msg: 'Já passou 1 hora de intervalo.',
+        });
         lunchTimerRef.current = null;
       },
       60 * 60 * 1000,
@@ -43,7 +50,7 @@ export function useLunchTimer(showToast: ToastFn) {
     setLunchTimerActive(false);
     setLunchStartedAt(null);
     systemClient.setLunchTimerActive(false);
-    showToast({ kind: 'ok', msg: 'Timer de almoço cancelado.' });
+    showToast({ kind: 'ok', msg: 'Timer de intervalo cancelado.' });
   }, [clearTimer, showToast, systemClient]);
 
   useEffect(() => clearTimer, [clearTimer]);

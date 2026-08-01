@@ -48,7 +48,7 @@ export function LunchTimerWidget({ active, startedAt, onCancel }: Props) {
         type="button"
         className="lunch-timer-pill"
         onClick={() => setConfirm(true)}
-        title="Timer de almoço — clique para opções"
+        title="Timer de intervalo — clique para opções"
         data-sound="click"
       >
         <svg className="lunch-timer-pill__ring" viewBox="0 0 20 20" aria-hidden="true">
@@ -76,7 +76,7 @@ export function LunchTimerWidget({ active, startedAt, onCancel }: Props) {
           >
             <div className="modal-head">
               <div>
-                <p className="eyebrow">Almoço</p>
+                <p className="eyebrow">Intervalo</p>
                 <h2 id="lunch-timer-title">Timer em andamento</h2>
                 <p className="lunch-timer-modal__subtitle">
                   Restam <strong>{fmt(remaining)}</strong> de 1 hora.

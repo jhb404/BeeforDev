@@ -16,7 +16,7 @@ const LABELS: Record<TrayMenuItemType, string> = {
   logout: '🚪 Logout',
   separator: '— Divisor —',
   quit: '❌ Sair',
-  lunchTimer: '🍽️ Timer de almoço (1h)',
+  lunchTimer: '🍽️ Timer de intervalo (1h)',
   sendKudo: '🏆 Enviar KudoCard',
   sendCoins: '🪙 Enviar coins',
 };

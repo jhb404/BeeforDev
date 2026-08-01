@@ -11,7 +11,7 @@ import { logger } from '../logger';
 /** Itens do tray que só fazem sentido com acesso ao TimeSheet Beefor. */
 const TIMESHEET_TRAY_ITEMS = new Set<TrayMenuItem['type']>(['autoLancamento', 'lunchTimer']);
 
-/** Remove ações de ponto quando a pessoa não usa TimeSheet Beefor. */
+/** Remove ações de lançamento de horas quando a pessoa não usa TimeSheet Beefor. */
 function filterByAccess(items: TrayMenuItem[]): TrayMenuItem[] {
   if (usaTimesheetBeefor()) return items;
   return items.filter((item) => !TIMESHEET_TRAY_ITEMS.has(item.type));
@@ -62,7 +62,7 @@ function buildMenuTemplate(items: TrayMenuItem[], opts: TrayOptions): MenuItemCo
         };
       case 'lunchTimer':
         return {
-          label: lunchTimerActive ? '⏱ Timer ativo...' : 'Timer de almoço (1h)',
+          label: lunchTimerActive ? '⏱ Timer ativo...' : 'Timer de intervalo (1h)',
           enabled: !lunchTimerActive,
           click: () => opts.getWindow()?.webContents.send(IPC.EVT_TRAY_LUNCH_TIMER),
         };

@@ -145,7 +145,7 @@ export function MinimalView({
           </div>
           <div className="day-totals">
             <div className="day-total">
-              <span className="label">Trabalhado</span>
+              <span className="label">Apontado</span>
               <strong className="mono">
                 {selectedWorked > 0 ? formatMinutes(selectedWorked) : '00:00'}
               </strong>

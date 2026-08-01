@@ -29,7 +29,7 @@ export function PjAlertModal({ open, body, onClose }: PjAlertModalProps) {
         🔔
       </div>
       <p className="pj-alert__body">
-        {body || 'Só te lembrando pra ajustar seu ponto...se não o dimdim não cai kk'}
+        {body || 'Só te lembrando pra lançar suas horas...se não o dimdim não cai kk'}
       </p>
       <button type="button" className="warm pj-alert__cta" onClick={onClose} data-sound="close">
         GRADECIDO!

@@ -19,19 +19,19 @@ export function SummaryStrip({ summary, compact }: SummaryStripProps) {
     <div className={`summary-strip ${compact ? 'compact' : ''}`}>
       <div className="summary-card">
         <span className="summary-label">
-          <Clock size={14} /> Horas trabalhadas
+          <Clock size={14} /> Total de horas
         </span>
         <strong className="summary-value">{formatMinutes(summary.workedTotal)}</strong>
       </div>
       <div className="summary-card">
         <span className="summary-label">
-          <Calendar size={14} /> Dias trabalhados
+          <Calendar size={14} /> Dias apontados
         </span>
         <strong className="summary-value">{summary.workedDays}d</strong>
       </div>
       <div className={`summary-card ${summary.saldoTotal >= 0 ? 'pos' : 'neg'}`}>
         <span className="summary-label">
-          <Bolt size={14} /> Saldo do mês
+          <Bolt size={14} /> Saldo de horas
         </span>
         <strong className="summary-value">{formatMinutes(summary.saldoTotal, true)}</strong>
       </div>

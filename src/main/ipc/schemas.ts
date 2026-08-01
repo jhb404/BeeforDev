@@ -87,7 +87,6 @@ export const settingsSchema = z
     autoLoginOnLaunch: z.boolean(),
     automatePunch: z.boolean(),
     punchTimes: z.array(timeStr).max(8),
-    punchDriftMinutes: z.number().int().min(0).max(120),
     lunchAlarm: z.boolean(),
     lunchAlarmTime: timeStr,
     moodNotification: z.boolean(),

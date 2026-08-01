@@ -5,7 +5,7 @@ import { useIpc } from '../../services/ipc';
 import { useToast } from '../providers/ToastProvider';
 import { useAccess } from '../providers/AccessProvider';
 import type { AppSettings } from '@shared/types/index';
-import { SETTINGS_DEFAULTS, PUNCH_LABELS } from '../../pages/settings/defaults';
+import { SETTINGS_DEFAULTS, PUNCH_ICONS, PUNCH_LABELS } from '../../pages/settings/defaults';
 import { getError } from '@shared/result';
 import { THEME_PRESETS, resolvePresetTokens } from '../../features/gamification/themePresets';
 import type { ThemePreset } from '../../features/gamification/types';
@@ -24,7 +24,7 @@ const STEPS: Step[] = ['credentials', 'coin2u', 'punch', 'alarms', 'theme'];
 const STEP_TITLES: Record<Step, string> = {
   credentials: 'Credenciais do Beefor',
   coin2u: 'Credenciais do Coin2U',
-  punch: 'Horários de ponto',
+  punch: 'Alarme de lançamento de horas',
   alarms: 'Alarmes e notificações',
   theme: 'Escolha um tema',
 };
@@ -158,7 +158,7 @@ export function OnboardingModal({ open, onClose }: Props) {
     system: systemClient,
   } = useIpc();
   const showToast = useToast();
-  // Sem TimeSheet Beefor: o passo de horários de ponto e o card de almoço saem do fluxo.
+  // Sem TimeSheet Beefor: o passo de lançamento de horas e o card de intervalo saem do fluxo.
   const { semTimesheet } = useAccess();
 
   const [step, setStep] = useState<Step>('credentials');
@@ -173,7 +173,6 @@ export function OnboardingModal({ open, onClose }: Props) {
   const [punchTimes, setPunchTimes] = useState<AppSettings['punchTimes']>(
     SETTINGS_DEFAULTS.punchTimes,
   );
-  const [drift, setDrift] = useState(SETTINGS_DEFAULTS.punchDriftMinutes);
   const [moodNotification, setMoodNotification] = useState(false);
   const [moodAlarm, setMoodAlarm] = useState(false);
   const [moodNotificationTime, setMoodNotificationTime] = useState(
@@ -280,7 +279,6 @@ export function OnboardingModal({ open, onClose }: Props) {
     await settingsClient.set({
       ...current,
       punchTimes,
-      punchDriftMinutes: drift,
       moodNotification,
       moodAlarm,
       moodNotificationTime,
@@ -476,12 +474,11 @@ export function OnboardingModal({ open, onClose }: Props) {
           </div>
         )}
 
-        {/* ── Passo 3: Horários de ponto ── */}
+        {/* ── Passo 3: Alarme de lançamento de horas ── */}
         {step === 'punch' && (
           <div>
             <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
-              Configure seus horários base de ponto. O app pode lançar automaticamente com uma
-              variação aleatória.
+              Configure os horários em que o app te lembra de lançar as horas no Beefor.
             </p>
             <div
               style={{
@@ -493,7 +490,9 @@ export function OnboardingModal({ open, onClose }: Props) {
             >
               {PUNCH_LABELS.map((label, i) => (
                 <div className="field" key={i}>
-                  <label className="label">{label}</label>
+                  <label className="label">
+                    {PUNCH_ICONS[i]} {label}
+                  </label>
                   <input
                     type="time"
                     value={punchTimes[i]}
@@ -501,17 +500,6 @@ export function OnboardingModal({ open, onClose }: Props) {
                   />
                 </div>
               ))}
-            </div>
-            <div className="field">
-              <label className="label">Variação aleatória: {drift} min</label>
-              <input
-                type="range"
-                min={0}
-                max={30}
-                step={1}
-                value={drift}
-                onChange={(e) => setDrift(Number(e.target.value))}
-              />
             </div>
             <div className="row" style={{ marginTop: 20, justifyContent: 'space-between' }}>
               <button
@@ -566,16 +554,16 @@ export function OnboardingModal({ open, onClose }: Props) {
               {!semTimesheet && (
                 <div className="card" style={{ padding: '12px 14px' }}>
                   <strong style={{ fontSize: 13, marginBottom: 8, display: 'block' }}>
-                    Almoço
+                    🍽️ Intervalo
                   </strong>
                   <Switch
                     id="ob-lunchAlarm"
                     checked={lunchAlarm}
                     onChange={setLunchAlarm}
-                    label="Lembrete de horário de almoço"
+                    label="Lembrete de horário de intervalo"
                   />
                   <div className="field" style={{ marginTop: 8 }}>
-                    <label className="label">Horário do almoço</label>
+                    <label className="label">Horário do intervalo</label>
                     <input
                       type="time"
                       value={lunchAlarmTime}

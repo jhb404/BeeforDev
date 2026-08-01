@@ -35,7 +35,6 @@ const DEFAULT_SETTINGS: AppSettings = {
 
   automatePunch: false,
   punchTimes: ['09:00', '12:00', '13:00', '18:00'],
-  punchDriftMinutes: 10,
 
   lunchAlarm: false,
   lunchAlarmTime: '12:00',

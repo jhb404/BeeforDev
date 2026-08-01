@@ -9,7 +9,6 @@ export const SETTINGS_DEFAULTS: AppSettings = {
   calendarShowDiff: true,
   automatePunch: false,
   punchTimes: DEFAULT_PUNCH,
-  punchDriftMinutes: 10,
   lunchAlarm: false,
   lunchAlarmTime: '12:00',
   moodNotification: false,
@@ -29,7 +28,15 @@ export const SETTINGS_DEFAULTS: AppSettings = {
   uiSounds: false,
 };
 
-export const PUNCH_LABELS = ['Entrada', 'Saída almoço', 'Retorno', 'Saída'];
+/**
+ * Rótulos dos horários do alerta diário — mesmos nomes da grade do timesheet e do
+ * i18n do Beefor (`Entrada`, `Int 1`, `Ret 1`, `Saída`). Nada de "ponto"/"almoço":
+ * quem usa o app é prestador e lança horas, não bate ponto.
+ */
+export const PUNCH_LABELS = ['Entrada', 'Int. 1', 'Ret. 1', 'Saída'];
+
+/** Ícone por horário — o intervalo leva o de comida, igual ao Beefor. */
+export const PUNCH_ICONS = ['🟢', '🍽️', '🔵', '🔴'];
 
 /** Mescla um snapshot parcial sobre os defaults (preenche campos novos sem perder os existentes). */
 export function mergeSettings(partial: Partial<AppSettings> | null | undefined): AppSettings {

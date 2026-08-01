@@ -22,7 +22,7 @@ import { getError } from '@shared/result';
 
 type SettingsCategory = 'geral' | 'alertas' | 'seguranca';
 
-/** `semTimesheet` = pessoa sem acesso ao TimeSheet Beefor: sem menção a ponto/almoço. */
+/** `semTimesheet` = pessoa sem acesso ao TimeSheet: sem lançamento de horas/intervalo. */
 function buildCategories(semTimesheet: boolean): Array<{
   id: SettingsCategory;
   label: string;
@@ -35,7 +35,7 @@ function buildCategories(semTimesheet: boolean): Array<{
       id: 'alertas',
       label: 'Alertas',
       Icon: Bell,
-      hint: semTimesheet ? 'Mood, KudoCard' : 'Ponto, mood, almoço, KudoCard',
+      hint: semTimesheet ? 'Mood, KudoCard' : 'Lançamento de horas, mood, intervalo, KudoCard',
     },
     { id: 'seguranca', label: 'Segurança', Icon: Lock, hint: 'Credenciais, Coin2U, sessão' },
   ];

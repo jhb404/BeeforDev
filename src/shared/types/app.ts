@@ -43,12 +43,15 @@ export interface AppSettings {
   autoStart: boolean;
   autoLoginOnLaunch: boolean;
 
-  /** Auto punch base times "HH:MM" (4 entries: entrada, saída almoço, retorno, saída) */
+  /**
+   * Alerta diário de lançamento de horas. `punchTimes` são os 4 horários
+   * "HH:MM" (entrada, int. 1, ret. 1, saída). Chaves mantidas por compatibilidade
+   * com settings já salvos — a nomenclatura visível é "lançamento de horas".
+   */
   automatePunch: boolean;
   punchTimes: [string, string, string, string];
-  /** Max minutes drift applied randomly per day to each base time */
-  punchDriftMinutes: number;
 
+  /** Alerta de intervalo (antigo "almoço"). */
   lunchAlarm: boolean;
   lunchAlarmTime: string; // "HH:MM"
 
