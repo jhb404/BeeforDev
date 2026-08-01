@@ -20,19 +20,13 @@ export function MoodCard({ settings, onUpdate, onTest }: MoodCardProps) {
         id="moodNotification"
         checked={settings.moodNotification}
         onChange={(v) => onUpdate('moodNotification', v)}
-        label="Notificação diária de mood"
-      />
-      <Switch
-        id="moodAlarm"
-        checked={settings.moodAlarm}
-        onChange={(v) => onUpdate('moodAlarm', v)}
-        label="Tocar alarme com a notificação"
+        label="Ativar alerta de mood"
       />
       <div className="field">
         <label className="label">Horário</label>
         <input
           type="time"
-          disabled={!settings.moodNotification && !settings.moodAlarm}
+          disabled={!settings.moodNotification}
           value={settings.moodNotificationTime}
           onChange={(e) => onUpdate('moodNotificationTime', e.target.value)}
         />

@@ -20,7 +20,7 @@ export function PjCard({ settings, onUpdate, onTest }: PjCardProps) {
         id="pjAlarm"
         checked={settings.pjAlarm}
         onChange={(v) => onUpdate('pjAlarm', v)}
-        label="Lembrete mensal para lançamento de horas"
+        label="Ativar alerta mensal de lançamento de horas"
       />
       <div className="field" style={{ marginTop: 6 }}>
         <label className="label">Horário do alerta</label>

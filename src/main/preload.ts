@@ -208,7 +208,7 @@ const httpApi = {
       idOrganizacao: string | null;
       nome?: string;
       email?: string;
-      /** false → pessoa sem acesso ao TimeSheet Beefor: esconder toda UI de ponto. */
+      /** false → sem acesso ao TimeSheet: esconder toda UI de lançamento de horas. */
       usaTimeSheetBeefor: boolean;
       usaSomenteTimeSheetBeefor: boolean;
       /** Times DA PESSOA (não da org) — use para endpoints por time. */

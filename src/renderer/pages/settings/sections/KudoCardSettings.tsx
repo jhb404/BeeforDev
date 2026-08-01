@@ -26,7 +26,7 @@ export function KudoCardSettings({
         id="kudocardNotification"
         checked={settings.kudocardNotification}
         onChange={(v) => onUpdate('kudocardNotification', v)}
-        label="Notificação para enviar kudocard"
+        label="Ativar alerta de KudoCard"
       />
       <div className="field" style={{ marginTop: 6 }}>
         <label className="label">Horário (opcional — vazio = aleatório)</label>
@@ -34,15 +34,10 @@ export function KudoCardSettings({
           type="time"
           disabled={!settings.kudocardNotification}
           value={settings.kudocardNotificationTime ?? ''}
-          onChange={(e) =>
-            onUpdate('kudocardNotificationTime', e.target.value || undefined)
-          }
+          onChange={(e) => onUpdate('kudocardNotificationTime', e.target.value || undefined)}
         />
       </div>
-      <div
-        className="kudocard-freq"
-        style={{ opacity: settings.kudocardNotification ? 1 : 0.5 }}
-      >
+      <div className="kudocard-freq" style={{ opacity: settings.kudocardNotification ? 1 : 0.5 }}>
         {(['once', 'twice', 'custom'] as KudocardFrequency[]).map((f) => (
           <label key={f} className="kudocard-freq__opt">
             <input

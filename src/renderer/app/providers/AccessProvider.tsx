@@ -7,8 +7,8 @@ import { useBeefor } from '../../hooks/useBeefor';
  * `usaTimesheet`:
  *   - `null`  → ainda não se sabe (sessão não conectou / sessionInfo não respondeu).
  *   - `true`  → tem TimeSheet Beefor.
- *   - `false` → NÃO tem: toda UI de ponto (grade, relógio, timer de almoço,
- *               alertas de batida, cards de ponto nas Configurações) fica escondida.
+ *   - `false` → NÃO tem: toda UI de lançamento de horas (grade, timer de
+ *               intervalo, alertas e cards nas Configurações) fica escondida.
  *
  * Só esconde no `false` explícito: enquanto `null`, os loaders normais de boot cobrem
  * a tela, então não há flash da grade pra quem não deveria ver.

@@ -20,7 +20,7 @@ export function LunchCard({ settings, onUpdate, onTest }: LunchCardProps) {
         id="lunchAlarm"
         checked={settings.lunchAlarm}
         onChange={(v) => onUpdate('lunchAlarm', v)}
-        label="Alarme de intervalo"
+        label="Ativar alerta de intervalo"
       />
       <div className="field">
         <label className="label">Horário do intervalo</label>

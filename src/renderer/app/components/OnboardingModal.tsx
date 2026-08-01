@@ -173,8 +173,9 @@ export function OnboardingModal({ open, onClose }: Props) {
   const [punchTimes, setPunchTimes] = useState<AppSettings['punchTimes']>(
     SETTINGS_DEFAULTS.punchTimes,
   );
+  // Ligado por padrão: quem configura os horários no onboarding espera o alerta ativo.
+  const [automatePunch, setAutomatePunch] = useState(true);
   const [moodNotification, setMoodNotification] = useState(false);
-  const [moodAlarm, setMoodAlarm] = useState(false);
   const [moodNotificationTime, setMoodNotificationTime] = useState(
     SETTINGS_DEFAULTS.moodNotificationTime,
   );
@@ -278,9 +279,9 @@ export function OnboardingModal({ open, onClose }: Props) {
     const current = await settingsClient.get();
     await settingsClient.set({
       ...current,
+      automatePunch,
       punchTimes,
       moodNotification,
-      moodAlarm,
       moodNotificationTime,
       lunchAlarm,
       lunchAlarmTime,
@@ -480,12 +481,18 @@ export function OnboardingModal({ open, onClose }: Props) {
             <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
               Configure os horários em que o app te lembra de lançar as horas no Beefor.
             </p>
+            <Switch
+              id="ob-automatePunch"
+              checked={automatePunch}
+              onChange={setAutomatePunch}
+              label="Ativar alerta de lançamento de horas"
+            />
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
                 gap: '8px 16px',
-                marginBottom: 16,
+                margin: '12px 0 16px',
               }}
             >
               {PUNCH_LABELS.map((label, i) => (
@@ -496,6 +503,7 @@ export function OnboardingModal({ open, onClose }: Props) {
                   <input
                     type="time"
                     value={punchTimes[i]}
+                    disabled={!automatePunch}
                     onChange={(e) => updatePunchTime(i, e.target.value)}
                   />
                 </div>
@@ -533,20 +541,14 @@ export function OnboardingModal({ open, onClose }: Props) {
                   id="ob-moodNotification"
                   checked={moodNotification}
                   onChange={setMoodNotification}
-                  label="Notificação diária de mood"
-                />
-                <Switch
-                  id="ob-moodAlarm"
-                  checked={moodAlarm}
-                  onChange={setMoodAlarm}
-                  label="Tocar alarme com a notificação"
+                  label="Ativar alerta de mood"
                 />
                 <div className="field" style={{ marginTop: 8 }}>
                   <label className="label">Horário do lembrete</label>
                   <input
                     type="time"
                     value={moodNotificationTime}
-                    disabled={!moodNotification && !moodAlarm}
+                    disabled={!moodNotification}
                     onChange={(e) => setMoodNotificationTime(e.target.value)}
                   />
                 </div>
@@ -560,7 +562,7 @@ export function OnboardingModal({ open, onClose }: Props) {
                     id="ob-lunchAlarm"
                     checked={lunchAlarm}
                     onChange={setLunchAlarm}
-                    label="Lembrete de horário de intervalo"
+                    label="Ativar alerta de intervalo"
                   />
                   <div className="field" style={{ marginTop: 8 }}>
                     <label className="label">Horário do intervalo</label>

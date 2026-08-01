@@ -34,7 +34,7 @@ interface TopBarProps {
   profileInitials?: string;
   coin2uForceOpen?: boolean;
   onCoin2uForceOpenConsumed?: () => void;
-  /** false quando a pessoa não usa TimeSheet Beefor — esconde o timer de almoço. */
+  /** false quando a pessoa não usa TimeSheet Beefor — esconde o timer de intervalo. */
   showLunchTimer?: boolean;
   lunchTimerActive?: boolean;
   lunchStartedAt?: number | null;

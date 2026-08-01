@@ -56,7 +56,6 @@ export function Settings() {
   const needsAdmin =
     (settings.automatePunch ||
       settings.lunchAlarm ||
-      settings.moodAlarm ||
       settings.moodNotification ||
       settings.kudocardNotification ||
       settings.pjAlarm) &&
@@ -124,7 +123,7 @@ export function Settings() {
 
         {category === 'alertas' && (
           <div className="settings-grid grid-2">
-            {/* Ponto, almoço e Ajustar Pontos (PJ) só existem com TimeSheet Beefor. */}
+            {/* Lançamento de horas e intervalo só existem com TimeSheet Beefor. */}
             {!semTimesheet && (
               <PunchCard
                 settings={settings}

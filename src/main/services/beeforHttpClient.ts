@@ -24,7 +24,7 @@ export interface BeeforSession {
   nomeOrganizacao?: string;
   /**
    * Pessoa tem acesso ao TimeSheet Beefor (flag `usaTimeSheetBeefor` do /Token).
-   * Quando false, toda a UI de ponto/apontamento fica escondida.
+   * Quando false, toda a UI de lançamento de horas fica escondida.
    * Default true quando a API não manda o campo (fail-open: não esconde por engano).
    */
   usaTimeSheetBeefor: boolean;
@@ -140,7 +140,7 @@ function asGuidOrNull(v: unknown): string | null {
 
 /**
  * Acesso ao TimeSheet Beefor da sessão atual. Sem sessão em cache devolve `true`
- * (fail-open) — só esconde a UI de ponto quando a API afirmou que a pessoa não usa.
+ * (fail-open) — só esconde a UI quando a API afirmou que a pessoa não usa.
  */
 export function usaTimesheetBeefor(): boolean {
   const s = getCachedSession();

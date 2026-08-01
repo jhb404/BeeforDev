@@ -91,7 +91,6 @@ export const settingsSchema = z
     lunchAlarmTime: timeStr,
     moodNotification: z.boolean(),
     moodNotificationTime: timeStr,
-    moodAlarm: z.boolean(),
     kudocardNotification: z.boolean(),
     kudocardFrequency: z.enum(['once', 'twice', 'custom']),
     kudocardDays: z.array(z.number().int().min(1).max(31)).max(31),

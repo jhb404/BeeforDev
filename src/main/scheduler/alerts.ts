@@ -16,7 +16,7 @@ export async function getTodayAlerts(): Promise<TodayAlert[]> {
   const alerts: TodayAlert[] = [];
 
   if (!weekend) {
-    if (s.moodNotification || s.moodAlarm) {
+    if (s.moodNotification) {
       alerts.push({
         kind: 'mood',
         title: '😊 Mood do dia',

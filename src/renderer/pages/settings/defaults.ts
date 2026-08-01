@@ -13,7 +13,6 @@ export const SETTINGS_DEFAULTS: AppSettings = {
   lunchAlarmTime: '12:00',
   moodNotification: false,
   moodNotificationTime: '09:30',
-  moodAlarm: false,
   kudocardNotification: false,
   kudocardFrequency: 'once',
   kudocardDays: [],

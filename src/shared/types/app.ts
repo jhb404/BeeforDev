@@ -57,7 +57,6 @@ export interface AppSettings {
 
   moodNotification: boolean;
   moodNotificationTime: string; // "HH:MM"
-  moodAlarm: boolean;
 
   kudocardNotification: boolean;
   kudocardFrequency: KudocardFrequency;
@@ -71,7 +70,7 @@ export interface AppSettings {
    */
   kudocardSchedule?: { ym: string; slots: Array<{ day: number; time: string }> };
 
-  /** Ajustar Pontos (PJ) — lembrete mensal num dia fixo do mês */
+  /** Lembrete MENSAL de lançamento de horas, num dia fixo do mês */
   pjAlarm: boolean;
   /** Dia do mês (1..31) em que o alerta PJ dispara */
   pjAlarmDay: number;

@@ -32,20 +32,10 @@ async function tick(getWin: () => BrowserWindow | null): Promise<void> {
   // Pessoa sem TimeSheet Beefor não recebe lembrete de lançamento de horas/intervalo.
   const ts = usaTimesheetBeefor();
 
-  // Mood
-  if (
-    (s.moodNotification || s.moodAlarm) &&
-    s.moodNotificationTime === hhmm &&
-    !alreadyFired('mood')
-  ) {
+  // Mood — o som acompanha a notificação, igual aos outros alertas.
+  if (s.moodNotification && s.moodNotificationTime === hhmm && !alreadyFired('mood')) {
     if (!weekend) {
-      notify(
-        win,
-        '😊 Mood do dia',
-        'Não esquece de marcar seu mood no Beefor!',
-        s.moodAlarm,
-        'mood',
-      );
+      notify(win, '😊 Mood do dia', 'Não esquece de marcar seu mood no Beefor!', true, 'mood');
       markFired('mood');
     }
   }

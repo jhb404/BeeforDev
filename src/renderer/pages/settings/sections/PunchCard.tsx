@@ -26,7 +26,7 @@ export function PunchCard({ settings, onUpdate, onUpdatePunchTime, onTest }: Pun
         id="automatePunch"
         checked={settings.automatePunch}
         onChange={(v) => onUpdate('automatePunch', v)}
-        label="Ativar alerta diário"
+        label="Ativar alerta de lançamento de horas"
       />
       <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '2px 0 8px' }}>
         Avisa nos horários abaixo para você lançar as horas no Beefor.
